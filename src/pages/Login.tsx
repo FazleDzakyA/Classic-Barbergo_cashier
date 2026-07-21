@@ -125,9 +125,9 @@ export const Login: React.FC = () => {
         </form>
 
         <div className="login-footer">
-          <p>UKK Jurusan PPLG 2026</p>
+          <p>Created by Fazaa 2026 | XII PPLG 1</p>
           <p className="credentials-info">
-            Default: owner/owner123 | admin/admin123 | kasir/kasir123
+            Default: admin/admin123 | kasir/kasir123
           </p>
         </div>
       </motion.div>
