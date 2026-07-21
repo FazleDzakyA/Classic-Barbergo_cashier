@@ -1,0 +1,62 @@
+.services-page-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.color-label-pill {
+  width: 44px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.badge-category {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+/* Color Picker Input */
+.color-picker-input-wrapper {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  width: 100%;
+}
+
+.color-picker-box {
+  width: 60px !important;
+  height: 42px !important;
+  padding: 0 !important;
+  border: 1.5px solid var(--border-color);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: transparent !important;
+}
+
+.color-picker-box::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+.color-picker-box::-webkit-color-swatch {
+  border: none;
+}
+
+.color-hex-text {
+  flex: 1;
+}
+
+.add-service-btn {
+  white-space: nowrap;
+}

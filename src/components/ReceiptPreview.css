@@ -1,0 +1,249 @@
+.receipt-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.receipt-modal-box {
+  width: 100%;
+  max-width: 440px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+}
+
+.receipt-modal-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.receipt-modal-header h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.receipt-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.receipt-close-btn:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.receipt-scroll-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  background: #111111;
+  display: flex;
+  justify-content: center;
+}
+
+/* Printable Area */
+.printable-receipt-card {
+  width: 100%;
+  max-width: 320px;
+  background: #FFFFFF;
+  color: #000000;
+  padding: 1.5rem;
+  font-family: 'Courier New', Courier, monospace;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  border-radius: 4px;
+}
+
+.receipt-header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.receipt-logo {
+  width: 45px;
+  height: 45px;
+  object-fit: contain;
+  margin-bottom: 0.25rem;
+}
+
+.receipt-fallback-logo {
+  font-size: 24px;
+  color: #000000;
+  margin-bottom: 0.25rem;
+}
+
+.receipt-shop-name {
+  font-size: 1.2rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.receipt-shop-info {
+  font-size: 0.75rem;
+  color: #555555;
+  line-height: 1.3;
+}
+
+.receipt-divider {
+  border-top: 1px dashed #777777;
+  margin: 1rem 0;
+  width: 100%;
+}
+.receipt-divider.dotted {
+  border-top: 1px dotted #777777;
+}
+
+.receipt-meta-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+}
+
+.receipt-meta-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.receipt-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.receipt-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  font-size: 0.8rem;
+}
+
+.receipt-item-desc {
+  display: flex;
+  flex-direction: column;
+}
+
+.item-name {
+  font-weight: 700;
+}
+
+.item-dur {
+  font-size: 0.7rem;
+  color: #555555;
+}
+
+.receipt-summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+}
+
+.receipt-summary-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.total-row {
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.payment-method-row {
+  margin-top: 0.5rem;
+}
+
+.badge-payment-method {
+  border: 1px solid #000000;
+  padding: 0.1rem 0.4rem;
+  font-weight: 700;
+  font-size: 0.7rem;
+  border-radius: 2px;
+}
+
+.receipt-footer {
+  text-align: center;
+  margin-top: 1.25rem;
+  font-size: 0.75rem;
+  color: #444444;
+  line-height: 1.4;
+}
+
+.receipt-modal-footer {
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+/* PRINT CSS MEDIA QUERY */
+@media print {
+  /* Hide all elements in the app except the printable card */
+  body * {
+    visibility: hidden;
+  }
+  
+  .receipt-overlay,
+  #printable-receipt,
+  #printable-receipt * {
+    visibility: visible;
+  }
+  
+  /* Place the receipt on the top-left of page without margins */
+  .receipt-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    background: white !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+  
+  #printable-receipt {
+    box-shadow: none !important;
+    border: none !important;
+    width: 80mm !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: white !important;
+    color: black !important;
+  }
+  
+  /* Hide close/print buttons */
+  .no-print,
+  .receipt-modal-header,
+  .receipt-modal-footer {
+    display: none !important;
+  }
+}

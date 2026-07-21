@@ -1,0 +1,119 @@
+.backup-page-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.backup-card {
+  width: 100%;
+  max-width: 650px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.backup-card-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.backup-card-header h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.backup-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.backup-info-banner {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: rgba(214, 175, 55, 0.04);
+  border: 1.5px solid rgba(214, 175, 55, 0.15);
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+.flex-shrink-0 {
+  flex-shrink: 0;
+}
+
+.backup-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.backup-option-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition-fast);
+}
+
+.backup-option-row:hover {
+  border-color: var(--border-highlight);
+}
+
+.backup-option-row.danger-row {
+  border-color: rgba(239, 68, 68, 0.15);
+  background: rgba(239, 68, 68, 0.01);
+}
+.backup-option-row.danger-row:hover {
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.option-info {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.option-text h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+}
+
+.option-text p {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.35;
+}
+
+.yellow-warning-icon {
+  background: rgba(214, 175, 55, 0.1) !important;
+  border-color: rgba(214, 175, 55, 0.3) !important;
+  color: var(--primary) !important;
+  filter: drop-shadow(0 0 4px var(--primary)) !important;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+@media (max-width: 576px) {
+  .backup-option-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  .backup-option-row .btn {
+    width: 100%;
+  }
+}

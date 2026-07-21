@@ -1,0 +1,581 @@
+.cashier-layout-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 1.5rem;
+  height: calc(100vh - 110px); /* 100vh minus header and margins */
+}
+
+.cashier-left-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  overflow: hidden;
+}
+
+.cashier-search-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+}
+
+.cashier-categories {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.category-pill {
+  padding: 0.4rem 1rem;
+  border-radius: var(--radius-full);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+
+.category-pill:hover {
+  border-color: var(--primary);
+  color: var(--text-primary);
+}
+
+.category-pill.active {
+  background: var(--primary);
+  color: #000000;
+  border-color: var(--primary);
+  box-shadow: var(--shadow-glow);
+}
+
+.services-selection-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+/* Service Select Card */
+.service-select-card {
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  border-left: 4px solid var(--primary);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 120px;
+  cursor: pointer;
+  position: relative;
+  transition: all var(--transition-normal);
+}
+
+.service-select-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.service-select-card.selected {
+  background: rgba(212, 175, 55, 0.05);
+  border-color: var(--primary);
+  box-shadow: var(--shadow-glow);
+}
+
+.card-selection-indicator {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.service-select-card.selected .card-selection-indicator {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.check-icon {
+  color: #000000;
+}
+
+.service-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-right: 1.5rem;
+}
+
+.srv-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.srv-cat {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.service-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.srv-dur {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.srv-price {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--primary);
+}
+
+/* Right Billing Panel */
+.cashier-right-panel {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  height: 100%;
+}
+
+.cashier-panel-header {
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.panel-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.panel-title-wrapper h3 {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.trx-realtime-meta {
+  text-align: right;
+}
+
+.trx-num {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--primary);
+  display: block;
+}
+
+.trx-datetime {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  display: flex;
+  gap: 0.35rem;
+  justify-content: flex-end;
+}
+
+.cashier-panel-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.checkout-section {
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1.25rem;
+}
+.checkout-section:last-of-type {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.section-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Cart list inside panel */
+.cart-empty-message {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 1.5rem 1rem;
+  background: rgba(255, 255, 255, 0.01);
+  border: 1.5px dashed var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.cart-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cart-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--radius-md);
+}
+
+.cart-item-info {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  overflow: hidden;
+}
+
+.cart-item-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.cart-item-names {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cart-item-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.cart-item-dur {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.cart-item-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.cart-item-price {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.cart-item-remove {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cart-item-remove:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+}
+
+/* Discount Inputs */
+.discount-inputs-grid {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 0.75rem;
+}
+
+/* Payment Methods selection */
+.payment-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+.payment-method-card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0.65rem;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all var(--transition-fast);
+}
+
+.payment-method-card:hover {
+  border-color: var(--primary);
+}
+
+.payment-method-card.selected {
+  border-color: var(--primary);
+  background: rgba(212, 175, 55, 0.05);
+}
+
+.payment-checkmark {
+  width: 14px;
+  height: 14px;
+  background: var(--primary);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Cashier Footer */
+.cashier-panel-footer {
+  padding: 1.25rem;
+  border-top: 1px solid var(--border-color);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.totals-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-bottom: 1.25rem;
+}
+
+.totals-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.totals-val {
+  font-weight: 600;
+}
+
+.discount-row {
+  color: var(--success);
+}
+.discount-row .totals-val {
+  color: var(--success);
+}
+
+.grand-total-row {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  border-top: 1px dashed var(--border-color);
+  padding-top: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.checkout-submit-btn {
+  width: 100%;
+  padding: 0.75rem !important;
+  font-size: 0.95rem !important;
+  letter-spacing: 0.03em;
+}
+
+@media (max-width: 992px) {
+  .cashier-layout-grid {
+    grid-template-columns: 1fr;
+    height: auto;
+    overflow: visible;
+  }
+  .services-selection-grid {
+    overflow-y: visible;
+  }
+}
+
+/* Open Shift Styling */
+.open-shift-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 120px);
+}
+
+.open-shift-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.open-shift-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.open-shift-icon-box {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.open-shift-submit {
+  width: 100%;
+  padding: 0.75rem !important;
+  font-size: 0.95rem !important;
+  margin-top: 1.5rem;
+}
+
+.cashier-loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: calc(100vh - 120px);
+  gap: 1rem;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+}
+
+/* Shift Info Indicator in Cart Header */
+.shift-indicator-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1.25rem;
+  background: rgba(239, 68, 68, 0.03);
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.8rem;
+}
+
+.shift-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.shift-label {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.shift-time {
+  color: var(--text-muted);
+}
+
+.tutup-shift-btn-small {
+  padding: 0.4rem 0.75rem !important;
+  font-size: 0.75rem !important;
+  border-radius: var(--radius-sm) !important;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* Cash received & change calculation */
+.cash-calculation-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cash-received-input {
+  font-size: 1.1rem !important;
+  font-weight: 700;
+  color: var(--primary) !important;
+  text-align: right;
+}
+
+.change-result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.change-amount {
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.change-amount.valid {
+  color: var(--success);
+}
+
+.change-amount.invalid {
+  color: var(--danger);
+}
+
+/* Shift close modal details */
+.closing-shift-modal {
+  max-width: 440px !important;
+}
+
+.shift-summary-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+}
+
+.summary-lbl {
+  color: var(--text-secondary);
+}
+
+.summary-val {
+  font-weight: 600;
+}
+
+.expected-cash-row {
+  border-top: 1px dashed var(--border-color);
+  padding-top: 0.6rem;
+  margin-top: 0.25rem;
+}
+
+.cash-difference-info {
+  font-size: 0.75rem;
+  margin-top: 0.35rem;
+  text-align: right;
+  font-weight: 600;
+}
+

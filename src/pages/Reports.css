@@ -1,0 +1,228 @@
+.reports-page-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.report-selectors {
+  align-items: center;
+}
+
+.report-period-picker {
+  display: flex;
+  align-items: center;
+}
+
+.week-picker-helper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.week-range-hint {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.export-buttons-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.report-title-section {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.report-title-section h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.col-4 {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
+}
+
+.smaller-padding {
+  padding: 1rem 1.25rem !important;
+}
+
+.font-1-1 {
+  font-size: 1.05rem !important;
+}
+
+.report-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.report-detail-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.col-span-2 {
+  grid-column: span 2;
+}
+
+.header-transparent th {
+  background: transparent !important;
+  border-bottom: 1.5px solid var(--border-color) !important;
+}
+
+.border-none {
+  border: none !important;
+  background: transparent !important;
+}
+
+.smaller-row td, .smaller-row th {
+  padding: 0.6rem 0.25rem !important;
+  font-size: 0.85rem !important;
+}
+
+/* Print CSS Styles */
+.print-report-header {
+  display: none;
+}
+
+@media print {
+  /* Hide sidebar, header, navigation action cards */
+  body * {
+    visibility: hidden;
+  }
+  
+  .printable-report-area,
+  .printable-report-area * {
+    visibility: visible;
+  }
+  
+  /* Reset container styles */
+  .printable-report-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    color: #000000 !important;
+    background: #FFFFFF !important;
+    padding: 1.5cm !important;
+  }
+  
+  /* Style metrics cards as simple text blocks */
+  .metrics-grid {
+    display: flex !important;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .metric-item-card {
+    border: 1px solid #CCCCCC !important;
+    background: transparent !important;
+    color: #000000 !important;
+    flex: 1;
+    min-width: 150px;
+    padding: 1rem !important;
+    box-shadow: none !important;
+  }
+  
+  .metric-icon-box {
+    display: none !important; /* Hide colored background circles */
+  }
+  
+  .metric-label {
+    color: #555555 !important;
+  }
+  .metric-value {
+    color: #000000 !important;
+  }
+  
+  /* Style breakdown tables */
+  .report-details-grid {
+    display: block !important;
+  }
+  
+  .report-detail-card {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    margin-bottom: 2.5rem;
+    padding: 0 !important;
+  }
+  
+  .chart-title {
+    color: #000000 !important;
+    border-bottom: 1.5px solid #000000 !important;
+    margin-bottom: 0.5rem;
+  }
+  
+  .custom-table th {
+    color: #000000 !important;
+    border-bottom: 1.5px solid #000000 !important;
+    font-weight: 700;
+  }
+  .custom-table td {
+    color: #222222 !important;
+    border-bottom: 1px solid #DDDDDD !important;
+  }
+  
+  .gold-text, .danger-text, .success-text {
+    color: #000000 !important;
+  }
+  
+  .print-report-header {
+    display: block;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  .print-report-header h2 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin-bottom: 0.25rem;
+  }
+  .print-report-header p {
+    font-size: 0.9rem;
+    color: #444444;
+  }
+  .print-report-header hr {
+    border-top: 1.5px solid #000000;
+    margin: 1rem 0;
+  }
+  .print-report-header h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+}
+
+@media (max-width: 992px) {
+  .report-details-grid {
+    grid-template-columns: 1fr;
+  }
+  .col-span-2 {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .report-selectors {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .export-buttons-group {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+  .export-buttons-group .btn {
+    flex: 1;
+  }
+}

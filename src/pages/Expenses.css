@@ -1,0 +1,32 @@
+.expenses-page-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.date-input {
+  max-width: 160px;
+  background: var(--bg-tertiary) !important;
+  cursor: pointer;
+}
+
+.badge-expense-category {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  background: rgba(239, 68, 68, 0.05);
+  color: var(--danger);
+  border: 1px solid rgba(239, 68, 68, 0.15);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.add-expense-btn {
+  white-space: nowrap;
+}
+
+@media (max-width: 576px) {
+  .date-input {
+    max-width: 100%;
+  }
+}
