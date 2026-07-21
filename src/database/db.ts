@@ -31,7 +31,7 @@ const DEFAULT_LOGO_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/
 
 export async function seedDatabase() {
   // Clear old tables once to make it fresh and apply new seeded data
-  const DB_VERSION_KEY = 'barberflow_db_fresh_v5';
+  const DB_VERSION_KEY = 'barberflow_db_fresh_v6';
   if (!localStorage.getItem(DB_VERSION_KEY)) {
     try {
       await db.transactions.clear();
