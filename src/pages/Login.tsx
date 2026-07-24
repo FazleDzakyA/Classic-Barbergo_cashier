@@ -59,7 +59,7 @@ export const Login: React.FC = () => {
             <Scissors size={28} className="login-logo-icon" />
           </div>
           <h2 className="login-title">
-            Barber<span className="gold-text">Flow</span>
+            Barber<span className="gold-text">Go!</span>
           </h2>
           <p className="login-subtitle">Smart Barbershop Management System</p>
         </div>
