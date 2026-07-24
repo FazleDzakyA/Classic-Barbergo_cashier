@@ -40,15 +40,15 @@ flowchart TD
 ---
 
 ## 2. Jadwal Kerja / Time Schedule (Kriteria 2)
-Timeline perencanaan dan pengerjaan proyek BarberFlow selama 5 hari kerja:
+Berikut adalah *Time Schedule* resmi pelaksanaan proyek BarberFlow beserta status realisasi pengerjaan:
 
-| Hari | Tahapan Aktivitas | Output / Hasil |
-| :--- | :--- | :--- |
-| **Hari 1** | Analisis Kebutuhan & Desain Database | Flowchart, ERD, Context Diagram, DFD |
-| **Hari 2** | Inisialisasi Project & Konfigurasi CSS | Struktur folder React + TS, file `index.css` tema gelap-emas |
-| **Hari 3** | Implementasi Database Offline (Dexie.js) | Schema database `db.ts`, Seeder barber Semarang & Pricelist |
-| **Hari 4** | Pembuatan Fitur POS Kasir & Shift Sesi | Halaman Kasir, modul Cetak Struk, Buka/Tutup Shift |
-| **Hari 5** | Manajemen Laporan, Backup & Deploy | Ekspor Excel/PDF, integrasi PWA, Deployment Vercel |
+| No. | Uraian Kegiatan | Durasi Waktu | Pelaksanaan | Realisasi | Keterangan |
+| :--- | :--- | :---: | :---: | :---: | :--- |
+| 1 | Riset/Pengumpulan Data, Mendefinisikan Masalah, Merancang Fitur Aplikasi dan Alur Sistem | 1 Minggu | 20 – 24 Juli 2026 | 20 – 22 Juli 2026 | Selesai Lebih Cepat |
+| 2 | Membuat Desain Mock Up UI/UX | 1 Minggu | 27 – 31 Juli 2026 | 22 – 23 Juli 2026 | Selesai Lebih Cepat |
+| 3 | Membuat FrontEnd, BackEnd, Database serta Integrasi API | 2 Minggu | 3 – 14 Agustus 2026 | 23 – 24 Juli 2026 | Selesai Lebih Cepat |
+| 4 | Pengujian / Testing | 3 Hari | 15 – 17 Agustus 2026 | 24 Juli 2026 | Selesai Lebih Cepat |
+| 5 | Penilaian | 3 Hari | 18 – 20 Agustus 2026 | [Menunggu Jadwal] | Siap Dinilai |
 
 ---
 
