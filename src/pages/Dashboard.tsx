@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../database/db';
+import { db, useLiveQuery } from '../database/db';
 import { 
   TrendingUp, 
   TrendingDown, 

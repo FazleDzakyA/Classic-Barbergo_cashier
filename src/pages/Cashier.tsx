@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../database/db';
+import { db, useLiveQuery } from '../database/db';
 import type { Transaction } from '../types';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -110,7 +109,7 @@ export const Cashier: React.FC = () => {
     try {
       const dayTxs = await db.transactions.where('id').startsWith(prefix).toArray();
       let maxNum = 0;
-      dayTxs.forEach(t => {
+      dayTxs.forEach((t: any) => {
         const parts = t.id.split('-');
         if (parts.length === 3) {
           const num = parseInt(parts[2], 10);

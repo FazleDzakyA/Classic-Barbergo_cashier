@@ -1,216 +1,302 @@
-import Dexie, { type Table } from 'dexie';
+import { useState, useEffect } from 'react';
 import type { User, Barber, Service, Transaction, Expense, Settings, CashierSession } from '../types';
-import { hashPassword } from '../utils/crypto';
 
-export class BarberFlowDatabase extends Dexie {
-  users!: Table<User, number>;
-  barbers!: Table<Barber, number>;
-  services!: Table<Service, number>;
-  transactions!: Table<Transaction, string>;
-  expenses!: Table<Expense, number>;
-  settings!: Table<Settings, string>;
-  sessions!: Table<CashierSession, number>;
+const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/$/, '');
 
-  constructor() {
-    super('barberflow_db');
-    this.version(2).stores({
-      users: '++id, username, role, isActive',
-      barbers: '++id, name, shift, isActive, joinedDate',
-      services: '++id, name, category, isActive',
-      transactions: 'id, date, customerName, barberId, paymentMethod, createdAt, sessionId',
-      expenses: '++id, date, category, amount, sessionId',
-      settings: 'key',
-      sessions: '++id, openedBy, openTime, closeTime, status'
+// Global Event Emitter for reactive updates (custom pub/sub)
+type Listener = () => void;
+const listeners = new Set<Listener>();
+
+export function notifyChange() {
+  listeners.forEach(l => l());
+}
+
+export function subscribe(l: Listener) {
+  listeners.add(l);
+  return () => {
+    listeners.delete(l);
+  };
+}
+
+// Custom reactive hook that matches the useLiveQuery signature from dexie-react-hooks
+export function useLiveQuery<T>(querier: () => Promise<T> | T, deps: any[] = []): T | undefined {
+  const [data, setData] = useState<T>();
+  const [trigger, setTrigger] = useState(0);
+
+  useEffect(() => {
+    const unsubscribe = subscribe(() => {
+      setTrigger(t => t + 1);
     });
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    Promise.resolve(querier())
+      .then(res => {
+        if (active) setData(res);
+      })
+      .catch(err => {
+        console.error('Error in useLiveQuery querier:', err);
+      });
+    return () => {
+      active = false;
+    };
+  }, [trigger, ...deps]);
+
+  return data;
+}
+
+// Fluent query helper for matching Dexie query builder syntax
+class FluentQuery<T> {
+  private dataPromise: Promise<T[]>;
+  private field: string;
+
+  constructor(dataPromise: Promise<T[]>, field: string) {
+    this.dataPromise = dataPromise;
+    this.field = field;
+  }
+
+  equals(val: any) {
+    return {
+      first: async (): Promise<T | null> => {
+        const items = await this.dataPromise;
+        return items.find((item: any) => item[this.field] === val) || null;
+      },
+      toArray: async (): Promise<T[]> => {
+        const items = await this.dataPromise;
+        return items.filter((item: any) => item[this.field] === val);
+      },
+      count: async (): Promise<number> => {
+        const items = await this.dataPromise;
+        return items.filter((item: any) => item[this.field] === val).length;
+      }
+    };
+  }
+
+  equalsIgnoreCase(val: string) {
+    return {
+      first: async (): Promise<T | null> => {
+        const items = await this.dataPromise;
+        return (
+          items.find(
+            (item: any) =>
+              String(item[this.field]).toLowerCase() === val.toLowerCase()
+          ) || null
+        );
+      },
+      toArray: async (): Promise<T[]> => {
+        const items = await this.dataPromise;
+        return items.filter(
+          (item: any) =>
+            String(item[this.field]).toLowerCase() === val.toLowerCase()
+        );
+      }
+    };
+  }
+
+  startsWith(prefix: string) {
+    return {
+      toArray: async (): Promise<T[]> => {
+        const items = await this.dataPromise;
+        return items.filter((item: any) =>
+          String(item[this.field]).toLowerCase().startsWith(prefix.toLowerCase())
+        );
+      }
+    };
   }
 }
 
-export const db = new BarberFlowDatabase();
+// Dexie mock table implementation forwarding to Express backend API
+class MockTable<T, PK extends string | number> {
+  private apiPath: string;
 
-const DEFAULT_LOGO_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5c0-1.1.9-2 2-2h2"/><path d="M17 3h2c1.1 0 2 .9 2 2v2"/><path d="M21 17v2c0 1.1-.9 2-2 2h-2"/><path d="M7 21H5c-1.1 0-2-.9-2-2v-2"/><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 12h6"/></svg>`;
-
-export async function seedDatabase() {
-  // Clear old tables once to make it fresh and apply new seeded data
-  const DB_VERSION_KEY = 'barberflow_db_fresh_v6';
-  if (!localStorage.getItem(DB_VERSION_KEY)) {
-    try {
-      await db.transactions.clear();
-      await db.expenses.clear();
-      await db.sessions.clear();
-      await db.barbers.clear();
-      await db.services.clear();
-      await db.users.clear();
-      await db.settings.clear();
-      localStorage.setItem(DB_VERSION_KEY, 'true');
-    } catch (err) {
-      console.error('Error clearing old database tables:', err);
-    }
+  constructor(apiPath: string) {
+    this.apiPath = apiPath;
   }
 
-  // 1. Seed Settings
-  const settingsCount = await db.settings.count();
-  if (settingsCount === 0) {
-    await db.settings.put({
-      key: 'app_settings',
-      logo: DEFAULT_LOGO_SVG,
-      name: 'BarberFlow Premium',
-      address: 'Jl. Mr. Koesbiyono Tjondrowibowo Jl. Raya Muntal, Patemon, Kec. Gn. Pati, Kota Semarang, Jawa Tengah 50228',
-      phone: '0812-3456-7890',
-      receiptFooter: 'Terima kasih atas kunjungan Anda!\nBarberFlow - Premium Grooming Experience',
-      defaultTax: 0, // Set tax to 0% by default, or as requested
-      currency: 'Rp'
+  async toArray(): Promise<T[]> {
+    const res = await fetch(`${API_URL}${this.apiPath}`);
+    if (!res.ok) throw new Error(`Failed to fetch ${this.apiPath}`);
+    return res.json();
+  }
+
+  where(field: string) {
+    return new FluentQuery<T>(this.toArray(), field);
+  }
+
+  async count(): Promise<number> {
+    const arr = await this.toArray();
+    return arr.length;
+  }
+
+  async add(item: any): Promise<PK> {
+    const res = await fetch(`${API_URL}${this.apiPath}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(item)
     });
+    if (!res.ok) throw new Error(`Failed to add item to ${this.apiPath}`);
+    const data = await res.json();
+    notifyChange();
+    return (data.id || data.key || data.sessionId) as PK;
   }
 
-  // 2. Seed Users (Only admin and kasir role)
-  const usersCount = await db.users.count();
-  if (usersCount === 0) {
-    const adminHash = await hashPassword('admin123');
-    const cashierHash = await hashPassword('kasir123');
-
-    await db.users.bulkAdd([
-      {
-        username: 'admin',
-        passwordHash: adminHash,
-        role: 'admin',
-        name: 'Admin BB go',
-        isActive: true,
-        createdAt: new Date().toISOString()
-      },
-      {
-        username: 'kasir',
-        passwordHash: cashierHash,
-        role: 'cashier',
-        name: 'Kasir BB Go',
-        isActive: true,
-        createdAt: new Date().toISOString()
-      }
-    ]);
+  async put(item: any): Promise<PK> {
+    const id = (item.id || item.key || item.key_name);
+    const method = id && id !== 'app_settings' ? 'PUT' : 'POST';
+    const url = id && id !== 'app_settings' ? `${API_URL}${this.apiPath}/${id}` : `${API_URL}${this.apiPath}`;
+    
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(item)
+    });
+    if (!res.ok) throw new Error(`Failed to put item to ${this.apiPath}`);
+    const data = await res.json();
+    notifyChange();
+    return (data.id || data.key || data.key_name || id) as PK;
   }
 
-  // 3. Seed Barbers (No shift, active, fixed names)
-  const barbersCount = await db.barbers.count();
-  if (barbersCount === 0) {
-    await db.barbers.bulkAdd([
-      {
-        name: 'Faiz',
-        phone: '+62 812 1856 7781',
-        address: 'Jl. Mr. Koesbiyono Tjondrowibowo Jl. Raya Muntal, Patemon, Kec. Gn. Pati, Kota Semarang, Jawa Tengah 50228',
-        shift: 'Pagi', // field kept for db schema compliance, but hidden in UI
-        isActive: true,
-        joinedDate: new Date().toISOString().split('T')[0]
-      },
-      {
-        name: 'Fadli',
-        phone: '+62 823-2213-9938',
-        address: 'Jl. Mr. Koesbiyono Tjondrowibowo Jl. Raya Muntal, Patemon, Kec. Gn. Pati, Kota Semarang, Jawa Tengah 50228',
-        shift: 'Siang',
-        isActive: true,
-        joinedDate: new Date().toISOString().split('T')[0]
-      },
-      {
-        name: 'Rizki',
-        phone: '+62 882 0038 74460',
-        address: 'Jl. Mr. Koesbiyono Tjondrowibowo Jl. Raya Muntal, Patemon, Kec. Gn. Pati, Kota Semarang, Jawa Tengah 50228',
-        shift: 'Malam',
-        isActive: true,
-        joinedDate: new Date().toISOString().split('T')[0]
-      }
-    ]);
+  async update(id: PK, changes: any): Promise<PK> {
+    // If it's session close
+    if (this.apiPath === '/api/sessions') {
+      const res = await fetch(`${API_URL}/api/sessions/close`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: id, actualCash: changes.actualCash, notes: changes.notes })
+      });
+      if (!res.ok) throw new Error(`Failed to close session`);
+      const data = await res.json();
+      notifyChange();
+      return data.sessionId as PK;
+    }
+
+    // Default update: fetch current, merge changes, send PUT
+    const items = await this.toArray();
+    const existing = items.find((item: any) => (item.id || item.key || item.key_name) === id);
+    if (!existing) throw new Error(`Item not found for update`);
+    
+    const res = await fetch(`${API_URL}${this.apiPath}/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...existing, ...changes })
+    });
+    if (!res.ok) throw new Error(`Failed to update item in ${this.apiPath}`);
+    notifyChange();
+    return id;
   }
 
-  // 4. Seed Services matching the provided image
-  const servicesCount = await db.services.count();
-  if (servicesCount === 0) {
-    await db.services.bulkAdd([
-      {
-        name: 'Potong',
-        category: 'Haircut',
-        price: 20000,
-        duration: 30,
-        labelColor: '#D4AF37',
-        isActive: true
-      },
-      {
-        name: 'Potong kramas',
-        category: 'Haircut',
-        price: 23000,
-        duration: 40,
-        labelColor: '#4169E1',
-        isActive: true
-      },
-      {
-        name: 'Shaving',
-        category: 'Shaving',
-        price: 10000,
-        duration: 20,
-        labelColor: '#FF4500',
-        isActive: true
-      },
-      {
-        name: 'Hair Color Mulai',
-        category: 'Coloring',
-        price: 70000,
-        duration: 90,
-        labelColor: '#8A2BE2',
-        isActive: true
-      },
-      {
-        name: 'Highlight Mulai',
-        category: 'Coloring',
-        price: 80000,
-        duration: 90,
-        labelColor: '#FF69B4',
-        isActive: true
-      },
-      {
-        name: 'Semir Hitam',
-        category: 'Coloring',
-        price: 60000,
-        duration: 60,
-        labelColor: '#00CED1',
-        isActive: true
-      },
-      {
-        name: 'Hair Tonic',
-        category: 'Treatment',
-        price: 25000,
-        duration: 10,
-        labelColor: '#32CD32',
-        isActive: true
-      },
-      {
-        name: 'Hair Tonic Besar',
-        category: 'Treatment',
-        price: 30000,
-        duration: 10,
-        labelColor: '#FFD700',
-        isActive: true
-      },
-      {
-        name: 'Pomade',
-        category: 'Treatment',
-        price: 25000,
-        duration: 5,
-        labelColor: '#FFA500',
-        isActive: true
-      },
-      {
-        name: 'Creambath',
-        category: 'Treatment',
-        price: 50000,
-        duration: 45,
-        labelColor: '#9370DB',
-        isActive: true
-      },
-      {
-        name: 'Smoting',
-        category: 'Treatment',
-        price: 60000,
-        duration: 120,
-        labelColor: '#FF1493',
-        isActive: true
-      }
-    ]);
+  async delete(id: PK): Promise<void> {
+    const res = await fetch(`${API_URL}${this.apiPath}/${id}`, {
+      method: 'DELETE'
+    });
+    if (!res.ok) throw new Error(`Failed to delete item from ${this.apiPath}`);
+    notifyChange();
+  }
+
+  async clear(): Promise<void> {
+    const res = await fetch(`${API_URL}/api/database/reset`, {
+      method: 'POST'
+    });
+    if (!res.ok) throw new Error(`Failed to clear database`);
+    notifyChange();
+  }
+}
+
+// Special Table for Settings to handle key differences
+class SettingsTable {
+  async get(): Promise<Settings | null> {
+    const res = await fetch(`${API_URL}/api/settings`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data) return null;
+    return {
+      ...data,
+      key: 'app_settings',
+      key_name: 'app_settings'
+    };
+  }
+
+  async toArray(): Promise<Settings[]> {
+    const item = await this.get();
+    return item ? [item] : [];
+  }
+
+  where(field: string) {
+    return new FluentQuery<Settings>(this.toArray(), field);
+  }
+
+  async count(): Promise<number> {
+    const item = await this.get();
+    return item ? 1 : 0;
+  }
+
+  async put(item: any): Promise<string> {
+    const res = await fetch(`${API_URL}/api/settings`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(item)
+    });
+    if (!res.ok) throw new Error(`Failed to update settings`);
+    notifyChange();
+    return 'app_settings';
+  }
+
+  async clear(): Promise<void> {
+    const res = await fetch(`${API_URL}/api/database/reset`, { method: 'POST' });
+    if (!res.ok) throw new Error(`Failed to clear settings`);
+    notifyChange();
+  }
+}
+
+// Database client object matching the original Dexie instance
+export const db = {
+  users: new MockTable<User, number>('/api/users'),
+  barbers: new MockTable<Barber, number>('/api/barbers'),
+  services: new MockTable<Service, number>('/api/services'),
+  transactions: new MockTable<Transaction, string>('/api/transactions'),
+  expenses: new MockTable<Expense, number>('/api/expenses'),
+  sessions: new MockTable<CashierSession, number>('/api/sessions'),
+  settings: new SettingsTable(),
+
+  // Transaction method shim
+  async transaction(_mode: string, _tables: any[], callback: () => Promise<void>) {
+    await callback();
+  },
+
+  // Bulk backup import
+  async importBackup(backupData: any): Promise<void> {
+    const res = await fetch(`${API_URL}/api/database/import`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(backupData)
+    });
+    if (!res.ok) throw new Error(`Failed to import backup`);
+    notifyChange();
+  }
+};
+
+// Database class matching original type signature for imports
+export class BarberFlowDatabase {
+  users = db.users;
+  barbers = db.barbers;
+  services = db.services;
+  transactions = db.transactions;
+  expenses = db.expenses;
+  sessions = db.sessions;
+  settings = db.settings;
+}
+
+// Dummy seedDatabase check (handled by backend on startup)
+export async function seedDatabase() {
+  try {
+    // Simply check connection
+    const res = await fetch(`${API_URL}/api/settings`);
+    if (res.ok) {
+      console.log('Backend connected and seeded.');
+    }
+  } catch (err) {
+    console.warn('Backend API not reachable at ' + API_URL + '. Run MySQL and backend server.');
   }
 }

@@ -86,24 +86,8 @@ export const Backup: React.FC = () => {
           return;
         }
 
-        // Apply backup in single transaction
-        await db.transaction('rw', [
-          db.users, db.barbers, db.services, db.transactions, db.expenses, db.settings
-        ], async () => {
-          await db.users.clear();
-          await db.barbers.clear();
-          await db.services.clear();
-          await db.transactions.clear();
-          await db.expenses.clear();
-          await db.settings.clear();
-
-          await db.users.bulkAdd(backupData.users);
-          await db.barbers.bulkAdd(backupData.barbers);
-          await db.services.bulkAdd(backupData.services);
-          await db.transactions.bulkAdd(backupData.transactions);
-          await db.expenses.bulkAdd(backupData.expenses);
-          await db.settings.bulkAdd(backupData.settings);
-        });
+        // Apply backup via single API request
+        await (db as any).importBackup(backupData);
 
         toast.dismiss(loadingToast);
         toast.success('Database berhasil dipulihkan!');
