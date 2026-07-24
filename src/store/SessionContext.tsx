@@ -49,16 +49,19 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const openSession = async (startingCash: number): Promise<boolean> => {
     if (!user) return false;
     try {
-      const newSession: CashierSession = {
-        openedBy: user.name,
-        openTime: Date.now(),
-        startingCash,
-        status: 'open'
-      };
-      
-      const id = await db.sessions.add(newSession);
-      newSession.id = id;
-      setCurrentSession(newSession);
+      const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+      const res = await fetch(`${API_URL}/api/sessions/open`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ openedBy: user.name, startingCash })
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        toast.error(err.error || 'Gagal membuka shift kasir');
+        return false;
+      }
+      const session = await res.json();
+      setCurrentSession(session);
       toast.success('Shift kasir berhasil dibuka!');
       return true;
     } catch (err) {
@@ -71,35 +74,17 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const closeSession = async (actualCash: number, notes: string): Promise<boolean> => {
     if (!currentSession || !currentSession.id) return false;
     try {
-      // Calculate expected cash
-      // 1. Transactions paid in Cash under this session
-      const sessionTransactions = await db.transactions
-        .where('sessionId')
-        .equals(currentSession.id)
-        .toArray();
-      
-      const cashRevenue = sessionTransactions
-        .filter(t => t.paymentMethod === 'Cash')
-        .reduce((sum, t) => sum + t.total, 0);
-
-      // 2. Expenses under this session
-      const sessionExpenses = await db.expenses
-        .where('sessionId')
-        .equals(currentSession.id)
-        .toArray();
-      
-      const totalExpenses = sessionExpenses.reduce((sum, e) => sum + e.amount, 0);
-
-      const expectedCash = currentSession.startingCash + cashRevenue - totalExpenses;
-
-      await db.sessions.update(currentSession.id, {
-        closeTime: Date.now(),
-        expectedCash,
-        actualCash,
-        status: 'closed',
-        notes
+      const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+      const res = await fetch(`${API_URL}/api/sessions/close`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: currentSession.id, actualCash, notes })
       });
-
+      if (!res.ok) {
+        const err = await res.json();
+        toast.error(err.error || 'Gagal menutup shift kasir');
+        return false;
+      }
       setCurrentSession(null);
       toast.success('Shift kasir berhasil ditutup!');
       return true;

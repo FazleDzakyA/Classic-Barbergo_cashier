@@ -16,8 +16,8 @@ CREATE TABLE IF NOT EXISTS users (
 -- Seed Users (Default admin and kasir)
 INSERT INTO users (username, passwordHash, role, name, isActive, createdAt)
 VALUES 
-('admin', '4813494d137e1631bba301d5acab6e7bb7aa74ce1185d456565ef51d737677b2', 'admin', 'Admin BB go', TRUE, '2026-07-24T00:00:00.000Z'),
-('kasir', '0de1b9f6580f2d4f8269d0313f88eb2c1110fb27c5950d2c679b3806bf36e84d', 'cashier', 'Kasir BB Go', TRUE, '2026-07-24T00:00:00.000Z')
+('admin', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', 'admin', 'Admin BB go', TRUE, '2026-07-24T00:00:00.000Z'),
+('kasir', 'f02b7c1e519e4fa436147f7e1399974f9510aa9c8e0cb8be29151eb540f9d214', 'cashier', 'Kasir BB Go', TRUE, '2026-07-24T00:00:00.000Z')
 ON DUPLICATE KEY UPDATE username=username;
 
 -- 2. Table Barbers
