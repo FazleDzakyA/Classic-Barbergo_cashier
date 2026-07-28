@@ -10,7 +10,6 @@ import {
   Sparkles, 
   BarChart3, 
   Settings, 
-  Database, 
   LogOut 
 } from 'lucide-react';
 import './Sidebar.css';
@@ -31,55 +30,49 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     {
       path: '/dashboard',
       name: 'Dashboard',
-      icon: <LayoutDashboard size={20} />,
+      icon: <LayoutDashboard size={18} />,
       roles: ['admin']
     },
     {
       path: '/cashier',
-      name: 'Kasir',
-      icon: <Scissors size={20} />,
+      name: 'Kasir / POS',
+      icon: <Scissors size={18} />,
       roles: ['admin', 'cashier']
     },
     {
       path: '/history',
       name: 'Riwayat',
-      icon: <History size={20} />,
+      icon: <History size={18} />,
       roles: ['admin', 'cashier']
     },
     {
       path: '/expenses',
       name: 'Pengeluaran',
-      icon: <TrendingDown size={20} />,
+      icon: <TrendingDown size={18} />,
       roles: ['admin']
     },
     {
       path: '/barbers',
-      name: 'Data Barber',
-      icon: <Users size={20} />,
+      name: 'Barber',
+      icon: <Users size={18} />,
       roles: ['admin']
     },
     {
       path: '/services',
       name: 'Layanan',
-      icon: <Sparkles size={20} />,
+      icon: <Sparkles size={18} />,
       roles: ['admin']
     },
     {
       path: '/reports',
       name: 'Laporan',
-      icon: <BarChart3 size={20} />,
+      icon: <BarChart3 size={18} />,
       roles: ['admin']
     },
     {
       path: '/settings',
       name: 'Pengaturan',
-      icon: <Settings size={20} />,
-      roles: ['admin']
-    },
-    {
-      path: '/backup',
-      name: 'Backup',
-      icon: <Database size={20} />,
+      icon: <Settings size={18} />,
       roles: ['admin']
     }
   ];
@@ -94,20 +87,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
 
   return (
     <aside className={`sidebar-container glass-panel ${isOpen ? 'open' : ''}`}>
-      <div className="sidebar-brand">
-        <Scissors className="brand-icon" size={24} />
-        <span className="brand-text">
-          Barber<span className="gold-text">Flow</span>
-        </span>
-      </div>
-      
-      <div className="user-profile-badge">
-        <div className="avatar-placeholder">
-          {user.name.charAt(0).toUpperCase()}
+      <div className="sidebar-brand-wrapper">
+        <div className="sidebar-logo-box">
+          <Scissors size={20} className="sidebar-logo-icon" />
         </div>
-        <div className="user-profile-info">
-          <span className="profile-name">{user.name}</span>
-          <span className="profile-role capitalize">{role === 'cashier' ? 'kasir' : role}</span>
+        <div className="sidebar-brand-text-col">
+          <span className="brand-title">Classic Barber Go</span>
+          <span className="brand-subtitle">BARBERFLOW POS</span>
         </div>
       </div>
 
@@ -119,16 +105,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
             onClick={handleLinkClick}
             className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
           >
-            {item.icon}
-            <span className="nav-text">{item.name}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              {item.icon}
+              <span className="nav-text">{item.name}</span>
+            </div>
+            <span className="active-dot-indicator" />
           </NavLink>
         ))}
       </nav>
 
-      <div className="sidebar-footer">
-        <button className="logout-btn" onClick={logout}>
-          <LogOut size={20} />
-          <span>Keluar</span>
+      <div className="sidebar-user-footer">
+        <div className="user-avatar-initial">
+          {user.name.charAt(0).toUpperCase()}
+        </div>
+        <div className="user-info-text">
+          <span className="user-name-title">{user.name}</span>
+          <span className="user-role-sub">{role === 'cashier' ? 'Kasir' : 'Admin'}</span>
+        </div>
+        <button className="user-logout-btn" onClick={logout} title="Logout">
+          <LogOut size={16} />
         </button>
       </div>
     </aside>

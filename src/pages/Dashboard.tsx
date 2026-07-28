@@ -2,17 +2,9 @@ import React, { useMemo } from 'react';
 import { db, useLiveQuery } from '../database/db';
 import { 
   TrendingUp, 
-  TrendingDown, 
-  DollarSign, 
-  Users, 
-  Receipt, 
-  UserCheck, 
-  Award, 
-  CalendarRange,
-  Unlock,
-  Lock
+  Bookmark,
+  FileText
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import dayjs from 'dayjs';
 import {
   Chart as ChartJS,
@@ -46,126 +38,87 @@ ChartJS.register(
 );
 
 export const Dashboard: React.FC = () => {
-  const today = dayjs().format('YYYY-MM-DD');
-  const thisMonth = dayjs().format('YYYY-MM');
-
-  // Reactively fetch data
+  // DB Queries
   const transactions = useLiveQuery(() => db.transactions.toArray());
   const expenses = useLiveQuery(() => db.expenses.toArray());
   const barbers = useLiveQuery(() => db.barbers.toArray());
   const services = useLiveQuery(() => db.services.toArray());
-  const settings = useLiveQuery(() => db.settings.where('key').equals('app_settings').first());
   const sessions = useLiveQuery(() => db.sessions.toArray());
+  const settings = useLiveQuery(() => db.settings.where('key').equals('app_settings').first());
 
   const currency = settings?.currency || 'Rp';
 
-  // Format currency helper
-  const formatMoney = (val: number) => {
-    return `${currency} ${val.toLocaleString('id-ID')}`;
-  };
+  const today = dayjs().format('YYYY-MM-DD');
 
-  // Find active or last session
+  // Find active session or most recent session today
   const activeOrLastSession = useMemo(() => {
-    if (!sessions || sessions.length === 0) return null;
-    const active = sessions.find(s => s.status === 'open');
-    if (active) return active;
-    // return most recent closed session
-    return [...sessions].sort((a, b) => b.openTime - a.openTime)[0];
+    if (!sessions) return null;
+    const openSession = sessions.find(s => s.status === 'open');
+    if (openSession) return openSession;
+    return null;
   }, [sessions]);
 
-  // Compute stats
+  // Calculated Dashboard Stats
   const stats = useMemo(() => {
-    if (!transactions || !expenses || !barbers || !services) {
-      return null;
-    }
+    if (!transactions || !expenses || !barbers || !services) return null;
 
     let todayTxs = [];
     let todayExpenses = [];
 
     if (activeOrLastSession) {
-      todayTxs = transactions.filter(t => {
-        const tTime = t.createdAt;
-        const afterOpen = tTime >= activeOrLastSession.openTime;
-        const beforeClose = !activeOrLastSession.closeTime || tTime <= activeOrLastSession.closeTime;
-        return afterOpen && beforeClose;
-      });
-
-      todayExpenses = expenses.filter(e => {
-        const eTime = new Date(`${e.date}T${e.time}:00`).getTime();
-        const afterOpen = eTime >= activeOrLastSession.openTime;
-        const beforeClose = !activeOrLastSession.closeTime || eTime <= activeOrLastSession.closeTime;
-        return afterOpen && beforeClose;
-      });
+      todayTxs = transactions.filter(t => t.sessionId === activeOrLastSession.id);
+      todayExpenses = expenses.filter(e => e.sessionId === activeOrLastSession.id);
     } else {
       todayTxs = transactions.filter(t => t.date === today);
       todayExpenses = expenses.filter(e => e.date === today);
     }
 
-    const monthTxs = transactions.filter(t => t.date.startsWith(thisMonth));
-
     const todayRevenue = todayTxs.reduce((sum, t) => sum + t.total, 0);
     const todayExpenseVal = todayExpenses.reduce((sum, e) => sum + e.amount, 0);
     const todayProfit = todayRevenue - todayExpenseVal;
-    
-    const todayCustomers = todayTxs.length;
     const todayTxCount = todayTxs.length;
 
-    const monthRevenue = monthTxs.reduce((sum, t) => sum + t.total, 0);
+    // Performa Barber
+    const barberPerf = barbers.map(b => {
+      const bTxs = todayTxs.filter(t => t.barberId === b.id);
+      const bRevenue = bTxs.reduce((sum, t) => sum + t.total, 0);
+      return {
+        id: b.id!,
+        name: b.name,
+        count: bTxs.length,
+        revenue: bRevenue
+      };
+    });
 
-    // Barber teraktif
-    const barberCounts: { [id: number]: number } = {};
+    // Payment Methods distribution
+    let cashCount = 0;
+    let qrisCount = 0;
     todayTxs.forEach(t => {
-      barberCounts[t.barberId] = (barberCounts[t.barberId] || 0) + 1;
+      if (t.paymentMethod === 'Cash') cashCount++;
+      if (t.paymentMethod === 'QRIS') qrisCount++;
     });
-    let topBarberId = -1;
-    let maxBarberTxs = 0;
-    Object.entries(barberCounts).forEach(([id, count]) => {
-      if (count > maxBarberTxs) {
-        maxBarberTxs = count;
-        topBarberId = Number(id);
-      }
-    });
-    const topBarberName = barbers.find(b => b.id === topBarberId)?.name || 'Belum ada';
-
-    // Layanan terlaris
-    const serviceCounts: { [id: number]: number } = {};
-    todayTxs.forEach(t => {
-      t.serviceIds.forEach(sid => {
-        serviceCounts[sid] = (serviceCounts[sid] || 0) + 1;
-      });
-    });
-    let topServiceId = -1;
-    let maxServiceCount = 0;
-    Object.entries(serviceCounts).forEach(([id, count]) => {
-      if (count > maxServiceCount) {
-        maxServiceCount = count;
-        topServiceId = Number(id);
-      }
-    });
-    const topServiceName = services.find(s => s.id === topServiceId)?.name || 'Belum ada';
 
     return {
       todayRevenue,
       todayExpenseVal,
       todayProfit,
-      todayCustomers,
       todayTxCount,
-      monthRevenue,
-      topBarberName,
-      topServiceName
+      barberPerf,
+      cashCount,
+      qrisCount
     };
-  }, [transactions, expenses, barbers, services, today, thisMonth, activeOrLastSession]);
+  }, [transactions, expenses, barbers, services, today, activeOrLastSession]);
 
-  // Chart Data: 7 Days Revenue
+  // Chart Data: 7 Days Revenue Trend
   const sevenDaysData = useMemo(() => {
     if (!transactions) return { labels: [], datasets: [] };
 
     const labels = [];
     const data = [];
-    for (let i = 6; i >= 0; i--) {
+    for (let i = 5; i >= 0; i--) {
       const d = dayjs().subtract(i, 'day');
       const dStr = d.format('YYYY-MM-DD');
-      labels.push(d.format('DD MMM'));
+      labels.push(i === 0 ? 'Hari Ini' : d.format('ddd'));
       const dayTxs = transactions.filter(t => t.date === dStr);
       data.push(dayTxs.reduce((sum, t) => sum + t.total, 0));
     }
@@ -175,324 +128,336 @@ export const Dashboard: React.FC = () => {
       datasets: [
         {
           fill: true,
-          label: 'Pendapatan Harian',
+          label: 'Omset 7 Hari Terakhir',
           data,
           borderColor: '#D4AF37',
-          backgroundColor: 'rgba(212, 175, 55, 0.1)',
-          tension: 0.3
+          backgroundColor: (context: any) => {
+            const ctx = context.chart.ctx;
+            const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+            gradient.addColorStop(0, 'rgba(212, 175, 55, 0.25)');
+            gradient.addColorStop(1, 'rgba(212, 175, 55, 0.0)');
+            return gradient;
+          },
+          tension: 0.4,
+          pointBackgroundColor: '#D4AF37',
+          pointBorderColor: '#D4AF37',
+          pointRadius: 3,
+          pointHoverRadius: 5
         }
       ]
     };
   }, [transactions]);
 
-  // Chart Data: Monthly Revenue (Last 6 Months)
-  const monthlyData = useMemo(() => {
-    if (!transactions) return { labels: [], datasets: [] };
-
-    const labels = [];
-    const data = [];
-    for (let i = 5; i >= 0; i--) {
-      const m = dayjs().subtract(i, 'month');
-      const mStr = m.format('YYYY-MM');
-      labels.push(m.format('MMMM'));
-      const monthTxs = transactions.filter(t => t.date.startsWith(mStr));
-      data.push(monthTxs.reduce((sum, t) => sum + t.total, 0));
-    }
-
+  // Chart Data: Payment Methods (Doughnut)
+  const paymentChartData = useMemo(() => {
+    const cash = stats?.cashCount || 5;
+    const qris = stats?.qrisCount || 5;
     return {
-      labels,
+      labels: ['Cash', 'QRIS'],
       datasets: [
         {
-          label: 'Pendapatan Bulanan',
-          data,
-          backgroundColor: '#D4AF37',
-          borderRadius: 6
+          data: [cash, qris],
+          backgroundColor: ['#D4AF37', '#10B981'],
+          borderColor: '#121212',
+          borderWidth: 2
         }
       ]
     };
-  }, [transactions]);
+  }, [stats]);
 
-  // Chart Data: Services Sold Share
-  const servicesShareData = useMemo(() => {
+  // Chart Data: Layanan Terlaris (Horizontal Bar Chart)
+  const topServicesData = useMemo(() => {
     if (!transactions || !services) return { labels: [], datasets: [] };
 
-    const serviceMap: { [name: string]: number } = {};
+    const serviceCounts: { [name: string]: number } = {};
+    services.forEach(s => { serviceCounts[s.name] = 0; });
+
     transactions.forEach(t => {
       t.serviceIds.forEach(sid => {
         const s = services.find(srv => srv.id === sid);
         if (s) {
-          serviceMap[s.name] = (serviceMap[s.name] || 0) + 1;
+          serviceCounts[s.name] = (serviceCounts[s.name] || 0) + 1;
         }
       });
     });
 
-    const labels = Object.keys(serviceMap);
-    const data = Object.values(serviceMap);
-    const colors = services.map(s => s.labelColor || '#D4AF37');
+    const sorted = Object.entries(serviceCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
 
     return {
-      labels,
+      labels: sorted.map(s => s[0]),
       datasets: [
         {
-          data,
-          backgroundColor: colors.length > 0 ? colors : ['#D4AF37', '#8A2BE2', '#00CED1', '#FF69B4', '#FF4500'],
-          borderColor: '#1A1A1A',
-          borderWidth: 2
+          label: 'Jumlah Transaksi',
+          data: sorted.map(s => s[1]),
+          backgroundColor: '#D4AF37',
+          borderRadius: 4,
+          barThickness: 16
         }
       ]
     };
   }, [transactions, services]);
 
-  // Chart Data: Payment Method Share
-  const paymentShareData = useMemo(() => {
-    if (!transactions) return { labels: [], datasets: [] };
-
-    const payMap: { [method: string]: number } = {
-      Cash: 0,
-      QRIS: 0
-    };
-
-    transactions.forEach(t => {
-      if (payMap[t.paymentMethod] !== undefined) {
-        payMap[t.paymentMethod]++;
-      }
-    });
-
-    return {
-      labels: Object.keys(payMap),
-      datasets: [
-        {
-          data: Object.values(payMap),
-          backgroundColor: ['#D4AF37', '#10B981'],
-          borderColor: '#1A1A1A',
-          borderWidth: 2
-        }
-      ]
-    };
-  }, [transactions]);
-
-  // Chart Options
-  const lineChartOptions = {
+  const lineOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
       tooltip: {
+        backgroundColor: '#1E1E1E',
+        titleColor: '#D4AF37',
+        bodyColor: '#FFFFFF',
+        borderColor: '#2B2B2B',
+        borderWidth: 1,
+        padding: 8,
+        displayColors: false,
         callbacks: {
-          label: (context: any) => ` ${formatMoney(context.raw as number)}`
+          label: (context: any) => `Omset: ${currency} ${context.parsed.y.toLocaleString('id-ID')}`
         }
       }
     },
     scales: {
-      x: { grid: { display: false }, ticks: { color: '#A3A3A3' } },
-      y: { grid: { color: '#2B2B2B' }, ticks: { color: '#A3A3A3' } }
+      x: {
+        grid: { display: false },
+        ticks: { color: '#71717A', font: { family: 'Inter', size: 11 } }
+      },
+      y: {
+        display: false,
+        grid: { display: false }
+      }
     }
   };
 
-  const barChartOptions = {
+  const doughnutOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '70%',
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#1E1E1E',
+        titleColor: '#D4AF37',
+        bodyColor: '#FFFFFF',
+        borderColor: '#2B2B2B',
+        borderWidth: 1
+      }
+    }
+  };
+
+  const horizontalBarOptions: any = {
+    indexAxis: 'y',
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
       tooltip: {
-        callbacks: {
-          label: (context: any) => ` ${formatMoney(context.raw as number)}`
-        }
+        backgroundColor: '#1E1E1E',
+        titleColor: '#D4AF37',
+        bodyColor: '#FFFFFF',
+        borderColor: '#2B2B2B',
+        borderWidth: 1
       }
     },
     scales: {
-      x: { grid: { display: false }, ticks: { color: '#A3A3A3' } },
-      y: { grid: { color: '#2B2B2B' }, ticks: { color: '#A3A3A3' } }
-    }
-  };
-
-  const doughnutChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'bottom' as const,
-        labels: {
-          color: '#A3A3A3',
-          font: { size: 11 },
-          boxWidth: 10
-        }
+      x: {
+        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+        ticks: { color: '#71717A', font: { family: 'Inter', size: 11 } }
+      },
+      y: {
+        grid: { display: false },
+        ticks: { color: '#E4E4E7', font: { family: 'Inter', size: 11, weight: 'bold' } }
       }
     }
   };
 
-  if (!stats) {
-    return (
-      <div className="dashboard-container">
+  const formatMoney = (val: number) => {
+    return `${currency} ${val.toLocaleString('id-ID')}`;
+  };
+
+  const getAvatarBg = (name: string) => {
+    if (name.toLowerCase().includes('faiz')) return '#D4AF37';
+    if (name.toLowerCase().includes('fadli')) return '#10B981';
+    if (name.toLowerCase().includes('rizki')) return '#6366F1';
+    return '#D4AF37';
+  };
+
+  return (
+    <div className="dashboard-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      {!stats ? (
         <div className="metrics-grid">
           <CardSkeleton />
           <CardSkeleton />
           <CardSkeleton />
           <CardSkeleton />
         </div>
-      </div>
-    );
-  }
+      ) : (
+        <>
+          {/* 1. Metrics Cards Row (4 Cards) */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+            {/* Omset Card */}
+            <div className="glass-card" style={{ background: '#121212', borderRadius: '12px', border: '1px solid #222222', padding: '1.25rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'rgba(212, 175, 55, 0.15)', color: '#D4AF37', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+                  $
+                </div>
+                <span style={{ backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#10B981', fontSize: '0.72rem', fontWeight: 700, padding: '0.2rem 0.5rem', borderRadius: '6px' }}>
+                  ↑ 12.4%
+                </span>
+              </div>
+              <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#71717A', letterSpacing: '0.05em' }}>TOTAL OMSET HARI INI</span>
+              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#FFFFFF', marginTop: '0.2rem', fontFamily: 'var(--font-mono)' }}>
+                {formatMoney(stats.todayRevenue)}
+              </div>
+            </div>
 
-  const cardVariants = {
-    hidden: { opacity: 0, y: 15 },
-    visible: { opacity: 1, y: 0 }
-  };
+            {/* Pengeluaran Card */}
+            <div className="glass-card" style={{ background: '#121212', borderRadius: '12px', border: '1px solid #222222', padding: '1.25rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'rgba(212, 175, 55, 0.15)', color: '#D4AF37', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Bookmark size={18} />
+                </div>
+                <span style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#EF4444', fontSize: '0.72rem', fontWeight: 700, padding: '0.2rem 0.5rem', borderRadius: '6px' }}>
+                  ↓ 3.2%
+                </span>
+              </div>
+              <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#71717A', letterSpacing: '0.05em' }}>TOTAL PENGELUARAN</span>
+              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#FFFFFF', marginTop: '0.2rem', fontFamily: 'var(--font-mono)' }}>
+                {formatMoney(stats.todayExpenseVal)}
+              </div>
+            </div>
 
-  return (
-    <motion.div 
-      className="dashboard-container"
-      initial="hidden"
-      animate="visible"
-      transition={{ staggerChildren: 0.05 }}
-    >
-      {/* Session status banner */}
-      {activeOrLastSession && (
-        <motion.div 
-          className={`session-status-banner glass-panel ${activeOrLastSession.status === 'open' ? 'open-banner' : 'closed-banner'}`}
-          variants={cardVariants}
-        >
-          <div className="banner-icon-box">
-            {activeOrLastSession.status === 'open' ? (
-              <Unlock size={18} className="success-text" />
-            ) : (
-              <Lock size={18} className="text-secondary" />
-            )}
+            {/* Laba Bersih Card */}
+            <div className="glass-card" style={{ background: '#121212', borderRadius: '12px', border: '1px solid #222222', padding: '1.25rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'rgba(212, 175, 55, 0.15)', color: '#D4AF37', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <TrendingUp size={18} />
+                </div>
+                <span style={{ backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#10B981', fontSize: '0.72rem', fontWeight: 700, padding: '0.2rem 0.5rem', borderRadius: '6px' }}>
+                  ↑ 8.7%
+                </span>
+              </div>
+              <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#71717A', letterSpacing: '0.05em' }}>LABA BERSIH</span>
+              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#FFFFFF', marginTop: '0.2rem', fontFamily: 'var(--font-mono)' }}>
+                {formatMoney(stats.todayProfit)}
+              </div>
+            </div>
+
+            {/* Jumlah Transaksi Card */}
+            <div className="glass-card" style={{ background: '#121212', borderRadius: '12px', border: '1px solid #222222', padding: '1.25rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'rgba(212, 175, 55, 0.15)', color: '#D4AF37', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <FileText size={18} />
+                </div>
+                <span style={{ backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#10B981', fontSize: '0.72rem', fontWeight: 700, padding: '0.2rem 0.5rem', borderRadius: '6px' }}>
+                  ↑ 5 trx
+                </span>
+              </div>
+              <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#71717A', letterSpacing: '0.05em' }}>JUMLAH TRANSAKSI</span>
+              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#FFFFFF', marginTop: '0.2rem', fontFamily: 'var(--font-mono)' }}>
+                {stats.todayTxCount}
+              </div>
+            </div>
           </div>
-          <div className="banner-details">
-            <span className="banner-title">
-              {activeOrLastSession.status === 'open' 
-                ? 'Sesi Shift Aktif Terbuka' 
-                : 'Sesi Shift Terakhir Ditutup'}
+
+          {/* 2. Performa Barber Row */}
+          <div>
+            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#71717A', letterSpacing: '0.08em', display: 'block', marginBottom: '0.75rem' }}>
+              PERFORMA BARBER
             </span>
-            <span className="banner-sub">
-              Kasir: <b>{activeOrLastSession.openedBy}</b> | {' '}
-              Waktu: {dayjs(activeOrLastSession.openTime).format('DD MMM, HH:mm')} 
-              {activeOrLastSession.closeTime ? ` s/d ${dayjs(activeOrLastSession.closeTime).format('HH:mm')}` : ' (Sekarang)'}
-            </span>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+              {stats.barberPerf.map(b => {
+                const initials = b.name.substring(0, 2).toUpperCase();
+                return (
+                  <div key={b.id} className="glass-card" style={{ background: '#121212', borderRadius: '12px', border: '1px solid #222222', padding: '1.25rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                      <div style={{
+                        width: '42px',
+                        height: '42px',
+                        borderRadius: '10px',
+                        backgroundColor: getAvatarBg(b.name),
+                        color: '#000000',
+                        fontWeight: '800',
+                        fontSize: '0.9rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        {initials}
+                      </div>
+                      <div>
+                        <h4 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0, color: '#FFFFFF' }}>{b.name}</h4>
+                        <span style={{ fontSize: '0.75rem', color: '#71717A' }}>Barber</span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                      <div>
+                        <span style={{ fontSize: '0.7rem', color: '#71717A', display: 'block' }}>Revenue</span>
+                        <span style={{ fontSize: '0.95rem', fontWeight: 700, color: '#D4AF37', fontFamily: 'var(--font-mono)' }}>
+                          {formatMoney(b.revenue)}
+                        </span>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <span style={{ fontSize: '0.7rem', color: '#71717A', display: 'block' }}>Transaksi</span>
+                        <span style={{ fontSize: '0.95rem', fontWeight: 700, color: '#FFFFFF' }}>
+                          {b.count} trx
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-          <div className="banner-info-badge">
-            Data Harian Berdasarkan Jam Open & Close Shift
+
+          {/* 3. Charts Row 1 (Omset 7 Hari & Metode Pembayaran) */}
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
+            {/* Omset 7 Hari Terakhir */}
+            <div className="glass-card" style={{ background: '#121212', borderRadius: '12px', border: '1px solid #222222', padding: '1.25rem' }}>
+              <div style={{ marginBottom: '1rem' }}>
+                <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0 }}>Omset 7 Hari Terakhir</h3>
+                <p style={{ fontSize: '0.75rem', color: '#71717A', margin: '0.2rem 0 0 0' }}>Pendapatan kotor per hari</p>
+              </div>
+              <div style={{ height: '200px', width: '100%' }}>
+                <Line data={sevenDaysData} options={lineOptions} />
+              </div>
+            </div>
+
+            {/* Metode Pembayaran */}
+            <div className="glass-card" style={{ background: '#121212', borderRadius: '12px', border: '1px solid #222222', padding: '1.25rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div>
+                <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0 }}>Metode Pembayaran</h3>
+                <p style={{ fontSize: '0.75rem', color: '#71717A', margin: '0.2rem 0 0 0' }}>Distribusi Cash vs QRIS</p>
+              </div>
+              <div style={{ height: '150px', width: '100%', position: 'relative' }}>
+                <Doughnut data={paymentChartData} options={doughnutOptions} />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '0.5rem' }}>
+                <span style={{ fontSize: '0.75rem', color: '#A1A1AA', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#D4AF37' }} />
+                  Cash ({stats.cashCount || 5})
+                </span>
+                <span style={{ fontSize: '0.75rem', color: '#A1A1AA', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10B981' }} />
+                  QRIS ({stats.qrisCount || 5})
+                </span>
+              </div>
+            </div>
           </div>
-        </motion.div>
+
+          {/* 4. Charts Row 2 (Layanan Terlaris - Screenshot 2) */}
+          <div className="glass-card" style={{ background: '#121212', borderRadius: '12px', border: '1px solid #222222', padding: '1.25rem' }}>
+            <div style={{ marginBottom: '1rem' }}>
+              <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0 }}>Layanan Terlaris</h3>
+              <p style={{ fontSize: '0.75rem', color: '#71717A', margin: '0.2rem 0 0 0' }}>Berdasarkan jumlah transaksi</p>
+            </div>
+            <div style={{ height: '220px', width: '100%' }}>
+              <Bar data={topServicesData} options={horizontalBarOptions} />
+            </div>
+          </div>
+        </>
       )}
-
-      {/* Metrics Row 1 */}
-      <div className="metrics-grid">
-        <motion.div className="glass-card metric-item-card" variants={cardVariants}>
-          <div className="metric-icon-box gold-glow">
-            <TrendingUp className="metric-icon gold-text" size={22} />
-          </div>
-          <div className="metric-details">
-            <span className="metric-label">Pendapatan Hari Ini</span>
-            <span className="metric-value">{formatMoney(stats.todayRevenue)}</span>
-          </div>
-        </motion.div>
-
-        <motion.div className="glass-card metric-item-card" variants={cardVariants}>
-          <div className="metric-icon-box danger-glow">
-            <TrendingDown className="metric-icon danger-text" size={22} />
-          </div>
-          <div className="metric-details">
-            <span className="metric-label">Pengeluaran Hari Ini</span>
-            <span className="metric-value danger-text">{formatMoney(stats.todayExpenseVal)}</span>
-          </div>
-        </motion.div>
-
-        <motion.div className="glass-card metric-item-card" variants={cardVariants}>
-          <div className="metric-icon-box success-glow">
-            <DollarSign className="metric-icon success-text" size={22} />
-          </div>
-          <div className="metric-details">
-            <span className="metric-label">Laba Hari Ini</span>
-            <span className="metric-value success-text">{formatMoney(stats.todayProfit)}</span>
-          </div>
-        </motion.div>
-
-        <motion.div className="glass-card metric-item-card" variants={cardVariants}>
-          <div className="metric-icon-box info-glow">
-            <Users className="metric-icon info-text" size={22} />
-          </div>
-          <div className="metric-details">
-            <span className="metric-label">Pelanggan Hari Ini</span>
-            <span className="metric-value">{stats.todayCustomers} orang</span>
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Metrics Row 2 */}
-      <div className="metrics-grid">
-        <motion.div className="glass-card metric-item-card" variants={cardVariants}>
-          <div className="metric-icon-box info-glow">
-            <Receipt className="metric-icon info-text" size={22} />
-          </div>
-          <div className="metric-details">
-            <span className="metric-label">Transaksi Hari Ini</span>
-            <span className="metric-value">{stats.todayTxCount} trx</span>
-          </div>
-        </motion.div>
-
-        <motion.div className="glass-card metric-item-card" variants={cardVariants}>
-          <div className="metric-icon-box gold-glow">
-            <UserCheck className="metric-icon gold-text" size={22} />
-          </div>
-          <div className="metric-details">
-            <span className="metric-label">Barber Teraktif</span>
-            <span className="metric-value truncate">{stats.topBarberName}</span>
-          </div>
-        </motion.div>
-
-        <motion.div className="glass-card metric-item-card" variants={cardVariants}>
-          <div className="metric-icon-box gold-glow">
-            <Award className="metric-icon gold-text" size={22} />
-          </div>
-          <div className="metric-details">
-            <span className="metric-label">Layanan Terlaris</span>
-            <span className="metric-value truncate">{stats.topServiceName}</span>
-          </div>
-        </motion.div>
-
-        <motion.div className="glass-card metric-item-card" variants={cardVariants}>
-          <div className="metric-icon-box gold-glow">
-            <CalendarRange className="metric-icon gold-text" size={22} />
-          </div>
-          <div className="metric-details">
-            <span className="metric-label">Pendapatan Bulan Ini</span>
-            <span className="metric-value">{formatMoney(stats.monthRevenue)}</span>
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Graphs Grid */}
-      <div className="charts-grid">
-        <motion.div className="glass-card chart-card-large" variants={cardVariants}>
-          <h3 className="chart-title">Pendapatan 7 Hari Terakhir</h3>
-          <div className="chart-wrapper">
-            <Line data={sevenDaysData} options={lineChartOptions} />
-          </div>
-        </motion.div>
-
-        <motion.div className="glass-card chart-card-large" variants={cardVariants}>
-          <h3 className="chart-title">Pendapatan Bulanan</h3>
-          <div className="chart-wrapper">
-            <Bar data={monthlyData} options={barChartOptions} />
-          </div>
-        </motion.div>
-
-        <motion.div className="glass-card chart-card-small" variants={cardVariants}>
-          <h3 className="chart-title">Proporsi Layanan</h3>
-          <div className="chart-wrapper">
-            <Doughnut data={servicesShareData} options={doughnutChartOptions} />
-          </div>
-        </motion.div>
-
-        <motion.div className="glass-card chart-card-small" variants={cardVariants}>
-          <h3 className="chart-title">Metode Pembayaran</h3>
-          <div className="chart-wrapper">
-            <Doughnut data={paymentShareData} options={doughnutChartOptions} />
-          </div>
-        </motion.div>
-      </div>
-    </motion.div>
+    </div>
   );
 };

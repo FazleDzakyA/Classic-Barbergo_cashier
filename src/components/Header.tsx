@@ -1,12 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useLocation } from 'react-router-dom';
-import { Menu, X, Clock, Calendar } from 'lucide-react';
-import dayjs from 'dayjs';
-import 'dayjs/locale/id'; // Indonesian locale
+import { Menu, X, LogOut } from 'lucide-react';
+import { useAuth } from '../store/AuthContext';
+import { useSession } from '../store/SessionContext';
 import './Header.css';
-
-// Set locale to Indonesian
-dayjs.locale('id');
 
 interface HeaderProps {
   sidebarOpen: boolean;
@@ -14,56 +11,57 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ sidebarOpen, setSidebarOpen }) => {
-  const [time, setTime] = useState(dayjs());
   const location = useLocation();
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTime(dayjs());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+  const { logout } = useAuth();
+  const { currentSession } = useSession();
 
   // Determine page title based on path
   const getPageTitle = () => {
     const path = location.pathname;
     if (path.startsWith('/dashboard')) return 'Dashboard';
-    if (path.startsWith('/cashier')) return 'Kasir / Transaksi';
-    if (path.startsWith('/history')) return 'Riwayat Transaksi';
-    if (path.startsWith('/expenses')) return 'Pengeluaran Operasional';
-    if (path.startsWith('/barbers')) return 'Manajemen Barber';
-    if (path.startsWith('/services')) return 'Daftar Layanan';
-    if (path.startsWith('/reports')) return 'Laporan Keuangan';
-    if (path.startsWith('/settings')) return 'Pengaturan Aplikasi';
-    if (path.startsWith('/backup')) return 'Backup & Restore';
-    return 'BarberFlow';
+    if (path.startsWith('/cashier')) return 'Kasir / POS';
+    if (path.startsWith('/history')) return 'Riwayat';
+    if (path.startsWith('/expenses')) return 'Pengeluaran';
+    if (path.startsWith('/barbers')) return 'Barber';
+    if (path.startsWith('/services')) return 'Layanan';
+    if (path.startsWith('/reports')) return 'Laporan';
+    if (path.startsWith('/settings')) return 'Pengaturan';
+    return 'Dashboard';
   };
 
   return (
-    <header className="header-container glass-panel">
+    <header className="header-container">
       <div className="header-left">
         <button 
           className="sidebar-toggle-btn"
           onClick={() => setSidebarOpen(!sidebarOpen)}
           aria-label="Toggle navigation menu"
         >
-          {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
+          {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
-        <h1 className="page-title">{getPageTitle()}</h1>
+        <div>
+          <h1 className="header-page-title">{getPageTitle()}</h1>
+          <p className="header-page-subtitle">Classic Barber Go — Premium Grooming Management</p>
+        </div>
       </div>
 
       <div className="header-right">
-        <div className="datetime-widget">
-          <div className="datetime-item">
-            <Calendar size={15} className="gold-icon" />
-            <span>{time.format('dddd, D MMMM YYYY')}</span>
+        {currentSession && currentSession.status === 'open' ? (
+          <div className="shift-status-badge active">
+            <span className="shift-dot-green" />
+            <span>Shift Aktif</span>
           </div>
-          <div className="datetime-divider"></div>
-          <div className="datetime-item font-mono">
-            <Clock size={15} className="gold-icon" />
-            <span>{time.format('HH:mm:ss')}</span>
+        ) : (
+          <div className="shift-status-badge inactive">
+            <span className="shift-dot-gray" />
+            <span>Shift Tutup</span>
           </div>
-        </div>
+        )}
+
+        <button className="header-logout-btn" onClick={logout} title="Logout">
+          <LogOut size={16} />
+          <span>Logout</span>
+        </button>
       </div>
     </header>
   );

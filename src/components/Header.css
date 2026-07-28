@@ -1,14 +1,13 @@
 .header-container {
-  height: 70px;
+  height: 65px;
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 0 2rem;
-  border-bottom: 1px solid var(--border-color);
-  position: fixed;
+  align-items: center;
+  padding: 0 1.5rem;
+  background-color: #0F0F0F;
+  border-bottom: 1px solid #1E1E1E;
+  position: sticky;
   top: 0;
-  left: 260px;
-  right: 0;
   z-index: 90;
 }
 
@@ -19,107 +18,82 @@
 }
 
 .sidebar-toggle-btn {
-  display: none;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  padding: 0.5rem;
-  border-radius: var(--radius-sm);
+  background: none;
+  border: none;
+  color: #71717A;
   cursor: pointer;
-  align-items: center;
-  justify-content: center;
-  transition: all var(--transition-fast);
+  display: none;
+  padding: 0;
 }
 
-.sidebar-toggle-btn:hover {
-  border-color: var(--primary);
-  color: var(--primary);
-}
-
-.page-title {
-  font-size: 1.25rem;
+.header-page-title {
+  font-size: 1.15rem;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  color: #FFFFFF;
+  margin: 0;
+}
+
+.header-page-subtitle {
+  font-size: 0.72rem;
+  color: #71717A;
+  margin: 0.1rem 0 0 0;
 }
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-}
-
-.datetime-widget {
-  display: flex;
-  align-items: center;
   gap: 0.75rem;
-  background: rgba(0, 0, 0, 0.3);
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
-  font-size: 0.85rem;
-  font-weight: 500;
 }
 
-.datetime-item {
+.shift-status-badge {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--text-secondary);
+  padding: 0.4rem 0.85rem;
+  border-radius: 20px;
+  background: #18181B;
+  border: 1px solid #27272A;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #E4E4E7;
 }
 
-.datetime-divider {
-  width: 1px;
-  height: 14px;
-  background: var(--border-color);
+.shift-dot-green {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #10B981;
+  box-shadow: 0 0 8px #10B981;
 }
 
-.font-mono {
-  font-family: 'Courier New', Courier, monospace;
+.shift-dot-gray {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #71717A;
 }
 
-.gold-icon {
-  color: var(--primary);
+.header-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: none;
+  border: none;
+  color: #71717A;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  transition: color 0.15s ease;
+}
+
+.header-logout-btn:hover {
+  color: #FFFFFF;
 }
 
 @media (max-width: 992px) {
-  .header-container {
-    left: 0;
-    padding: 0 1.25rem;
-  }
-  
   .sidebar-toggle-btn {
     display: flex;
-  }
-  
-  .datetime-widget {
-    padding: 0.4rem 0.75rem;
-    font-size: 0.75rem;
-  }
-  
-  .datetime-item span {
-    display: none; /* Hide date/time string details on very narrow screens if needed, wait, let's just make it wrap or adjust size */
-  }
-  
-  .datetime-item:first-child span {
-    display: block; /* Show date */
-  }
-  
-  .datetime-item:last-child span {
-    display: block; /* Show time */
-  }
-}
-
-@media (max-width: 576px) {
-  .datetime-widget {
-    background: transparent;
-    border: none;
-    padding: 0;
-    gap: 0.5rem;
-  }
-  .datetime-divider {
-    display: none;
-  }
-  .datetime-item:first-child {
-    display: none; /* Hide date on small mobile */
   }
 }
