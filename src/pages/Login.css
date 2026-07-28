@@ -7,7 +7,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #050505;
+  background-color: #09090B;
   z-index: 1000;
   overflow: hidden;
 }
@@ -18,33 +18,32 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle at 10% 20%, rgba(212, 175, 55, 0.08) 0%, transparent 40%),
-              radial-gradient(circle at 90% 80%, rgba(212, 175, 55, 0.08) 0%, transparent 40%);
+  background: radial-gradient(circle at 50% 40%, rgba(212, 175, 55, 0.1) 0%, transparent 60%);
   pointer-events: none;
   z-index: 1;
 }
 
 .login-card {
   width: 100%;
-  max-width: 420px;
-  padding: 2.5rem;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg), 0 0 40px rgba(0, 0, 0, 0.5);
-  z-index: 2;
-  margin: 1rem;
+  padding: 2.25rem;
+  border-radius: 16px;
+  background: #121212;
+  border: 1px solid #222222;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+  margin-bottom: 1.5rem;
 }
 
 .login-header {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.75rem;
 }
 
 .login-logo-container {
-  width: 60px;
-  height: 60px;
-  border-radius: var(--radius-full);
-  background: rgba(212, 175, 55, 0.1);
-  border: 1px solid rgba(212, 175, 55, 0.3);
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #EAB308, #CA8A04);
+  box-shadow: 0 0 20px rgba(234, 179, 8, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -52,26 +51,37 @@
 }
 
 .login-logo-icon {
-  color: var(--primary);
-  filter: drop-shadow(0 0 5px var(--primary));
+  color: #000000;
 }
 
 .login-title {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 800;
-  letter-spacing: 0.05em;
+  color: #EAB308;
   margin-bottom: 0.25rem;
+  letter-spacing: -0.01em;
 }
 
 .login-subtitle {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  font-weight: 500;
+  font-size: 0.72rem;
+  color: #71717A;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .login-form {
   display: flex;
   flex-direction: column;
+  gap: 1.25rem;
+}
+
+.uppercase-label {
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  color: #A1A1AA !important;
+  letter-spacing: 0.05em !important;
+  margin-bottom: 0.4rem !important;
 }
 
 .input-with-icon {
@@ -83,7 +93,7 @@
 .input-icon {
   position: absolute;
   left: 12px;
-  color: var(--text-muted);
+  color: #71717A;
   pointer-events: none;
   transition: color var(--transition-fast);
 }
@@ -91,103 +101,105 @@
 .form-input.icon-padding {
   padding-left: 2.5rem;
   padding-right: 2.5rem;
+  background: #18181B;
+  border: 1px solid #27272A;
+  color: #FFFFFF;
+  border-radius: 8px;
+  height: 44px;
+}
+
+.form-input:focus {
+  border-color: #EAB308 !important;
+  box-shadow: 0 0 0 2px rgba(234, 179, 8, 0.15) !important;
 }
 
 .form-input:focus + .input-icon {
-  color: var(--primary);
+  color: #EAB308;
 }
 
 .password-toggle {
   position: absolute;
   right: 12px;
-  background: transparent;
+  background: none;
   border: none;
-  color: var(--text-muted);
+  color: #71717A;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.25rem;
+  padding: 0;
 }
 
 .password-toggle:hover {
-  color: var(--text-primary);
-}
-
-.error-border {
-  border-color: var(--danger) !important;
+  color: #FFFFFF;
 }
 
 .login-options {
-  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  margin-top: -0.25rem;
 }
 
 .checkbox-container {
   display: flex;
   align-items: center;
-  position: relative;
-  padding-left: 28px;
+  gap: 0.5rem;
   cursor: pointer;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
   user-select: none;
 }
 
-.checkbox-container input {
-  position: absolute;
-  opacity: 0;
-  cursor: pointer;
-  height: 0;
-  width: 0;
-}
-
-.checkmark {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  left: 0;
-  height: 18px;
-  width: 18px;
-  background-color: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  transition: all var(--transition-fast);
-}
-
-.checkbox-container:hover input ~ .checkmark {
-  border-color: var(--primary);
-}
-
-.checkbox-container input:checked ~ .checkmark {
-  background-color: var(--primary);
-  border-color: var(--primary);
-}
-
-.checkmark:after {
-  content: "";
-  position: absolute;
-  display: none;
-}
-
-.checkbox-container input:checked ~ .checkmark:after {
-  display: block;
-}
-
-.checkbox-container .checkmark:after {
-  left: 6px;
-  top: 2px;
-  width: 4px;
-  height: 9px;
-  border: solid #000000;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
+.checkbox-label {
+  font-size: 0.85rem;
+  color: #A1A1AA;
 }
 
 .login-submit-btn {
-  padding: 0.8rem;
-  font-size: 0.95rem;
-  letter-spacing: 0.05em;
+  width: 100%;
+  height: 44px;
+  background: #EAB308 !important;
+  color: #000000 !important;
+  font-weight: 700 !important;
+  font-size: 0.95rem !important;
+  border-radius: 8px !important;
+  border: none !important;
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.15s ease;
   margin-top: 0.5rem;
+}
+
+.login-submit-btn:hover {
+  background: #FACC15 !important;
+  transform: translateY(-1px);
+}
+
+.login-card-divider {
+  width: 100%;
+  height: 1px;
+  background: #222222;
+  margin: 1.5rem 0 1.25rem 0;
+}
+
+.login-credentials-box {
+  text-align: center;
+}
+
+.credentials-info {
+  font-size: 0.78rem;
+  color: #52525B;
+  margin: 0;
+}
+
+.login-outer-footer {
+  font-size: 0.8rem;
+  color: #52525B;
+  text-align: center;
+  margin: 0;
+}
+
+.form-error {
+  font-size: 0.75rem;
+  color: #EF4444;
+  margin-top: 0.25rem;
 }
 
 .login-spinner {
@@ -197,24 +209,7 @@
   border-top-color: #000000;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
-}
-
-.login-footer {
-  text-align: center;
-  margin-top: 2rem;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.credentials-info {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid var(--border-color);
-  padding: 0.5rem;
-  border-radius: var(--radius-sm);
-  color: var(--text-secondary);
+  margin: 0 auto;
 }
 
 @keyframes spin {

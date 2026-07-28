@@ -23,7 +23,7 @@ ON DUPLICATE KEY UPDATE username=username;
 -- 2. Table Barbers
 CREATE TABLE IF NOT EXISTS barbers (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
+  name VARCHAR(100) UNIQUE NOT NULL,
   phone VARCHAR(30),
   address TEXT,
   shift VARCHAR(20),
@@ -37,12 +37,13 @@ INSERT INTO barbers (name, phone, address, shift, isActive, photo, joinedDate)
 VALUES 
 ('Faiz', '+62 812 1856 7781', 'Jl. Mr. Koesbiyono Tjondrowibowo Jl. Raya Muntal, Patemon, Kec. Gn. Pati, Kota Semarang, Jawa Tengah 50228', 'Pagi', TRUE, NULL, '2026-07-24'),
 ('Fadli', '+62 823-2213-9938', 'Jl. Mr. Koesbiyono Tjondrowibowo Jl. Raya Muntal, Patemon, Kec. Gn. Pati, Kota Semarang, Jawa Tengah 50228', 'Siang', TRUE, NULL, '2026-07-24'),
-('Rizki', '+62 882 0038 74460', 'Jl. Mr. Koesbiyono Tjondrowibowo Jl. Raya Muntal, Patemon, Kec. Gn. Pati, Kota Semarang, Jawa Tengah 50228', 'Malam', TRUE, NULL, '2026-07-24');
+('Rizki', '+62 882 0038 74460', 'Jl. Mr. Koesbiyono Tjondrowibowo Jl. Raya Muntal, Patemon, Kec. Gn. Pati, Kota Semarang, Jawa Tengah 50228', 'Malam', TRUE, NULL, '2026-07-24')
+ON DUPLICATE KEY UPDATE name=name;
 
 -- 3. Table Services
 CREATE TABLE IF NOT EXISTS services (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
+  name VARCHAR(100) UNIQUE NOT NULL,
   category VARCHAR(50),
   price INT NOT NULL,
   duration INT,
@@ -63,7 +64,8 @@ VALUES
 ('Hair Tonic Besar', 'Treatment', 30000, 15, '#2E8B57', TRUE),
 ('Pomade', 'Product', 25000, 5, '#CD853F', TRUE),
 ('Creambath', 'Treatment', 50000, 45, '#FF8C00', TRUE),
-('Smoting', 'Treatment', 60000, 90, '#4682B4', TRUE);
+('Smoting', 'Treatment', 60000, 90, '#4682B4', TRUE)
+ON DUPLICATE KEY UPDATE name=name;
 
 -- 4. Table Sessions
 CREATE TABLE IF NOT EXISTS sessions (

@@ -48,89 +48,96 @@ export const Login: React.FC = () => {
     <div className="login-page-container">
       <div className="login-background-overlay" />
       
-      <motion.div 
-        className="login-card glass-panel"
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
-      >
-        <div className="login-header">
-          <div className="login-logo-container animate-pulse-gold">
-            <Scissors size={28} className="login-logo-icon" />
-          </div>
-          <h2 className="login-title">
-            Barber<span className="gold-text">Go!</span>
-          </h2>
-          <p className="login-subtitle">Smart Barbershop Management System</p>
-        </div>
-
-        <form className="login-form" onSubmit={handleSubmit(onSubmit)}>
-          <div className="form-group">
-            <label className="form-label" htmlFor="username">Username</label>
-            <div className="input-with-icon">
-              <UserIcon size={18} className="input-icon" />
-              <input
-                id="username"
-                type="text"
-                className={`form-input icon-padding ${errors.username ? 'error-border' : ''}`}
-                placeholder="Masukkan username"
-                {...register('username')}
-              />
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 2, width: '100%', maxWidth: '420px' }}>
+        <motion.div 
+          className="login-card glass-panel"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
+        >
+          <div className="login-header">
+            <div className="login-logo-container">
+              <Scissors size={24} className="login-logo-icon" />
             </div>
-            {errors.username && <span className="form-error">{errors.username.message}</span>}
+            <h2 className="login-title">
+              Classic Barber Go
+            </h2>
+            <p className="login-subtitle">PREMIUM GROOMING EXPERIENCE</p>
           </div>
 
-          <div className="form-group">
-            <label className="form-label" htmlFor="password">Password</label>
-            <div className="input-with-icon">
-              <Lock size={18} className="input-icon" />
-              <input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                className={`form-input icon-padding ${errors.password ? 'error-border' : ''}`}
-                placeholder="Masukkan password"
-                {...register('password')}
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => setShowPassword(!showPassword)}
-                tabIndex={-1}
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
+          <form className="login-form" onSubmit={handleSubmit(onSubmit)}>
+            <div className="form-group">
+              <label className="form-label uppercase-label" htmlFor="username">USERNAME</label>
+              <div className="input-with-icon">
+                <UserIcon size={18} className="input-icon" />
+                <input
+                  id="username"
+                  type="text"
+                  className={`form-input icon-padding ${errors.username ? 'error-border' : ''}`}
+                  placeholder="Masukkan username"
+                  {...register('username')}
+                />
+              </div>
+              {errors.username && <span className="form-error">{errors.username.message}</span>}
             </div>
-            {errors.password && <span className="form-error">{errors.password.message}</span>}
+
+            <div className="form-group">
+              <label className="form-label uppercase-label" htmlFor="password">PASSWORD</label>
+              <div className="input-with-icon">
+                <Lock size={18} className="input-icon" />
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  className={`form-input icon-padding ${errors.password ? 'error-border' : ''}`}
+                  placeholder="Masukkan password"
+                  {...register('password')}
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              {errors.password && <span className="form-error">{errors.password.message}</span>}
+            </div>
+
+            <div className="login-options">
+              <label className="checkbox-container">
+                <input type="checkbox" {...register('remember')} />
+                <span className="checkmark" />
+                <span className="checkbox-label">Ingat Saya</span>
+              </label>
+            </div>
+
+            <button 
+              type="submit" 
+              className="btn btn-primary login-submit-btn" 
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <div className="login-spinner"></div>
+              ) : (
+                'Masuk Aplikasi'
+              )}
+            </button>
+          </form>
+
+          <div className="login-card-divider" />
+
+          <div className="login-credentials-box">
+            <p className="credentials-info font-mono">
+              Default: admin/admin123 | kasir/kasir123
+            </p>
           </div>
+        </motion.div>
 
-          <div className="login-options">
-            <label className="checkbox-container">
-              <input type="checkbox" {...register('remember')} />
-              <span className="checkmark" />
-              <span className="checkbox-label">Ingat Saya</span>
-            </label>
-          </div>
-
-          <button 
-            type="submit" 
-            className="btn btn-primary login-submit-btn" 
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <div className="login-spinner"></div>
-            ) : (
-              'Masuk Aplikasi'
-            )}
-          </button>
-        </form>
-
-        <div className="login-footer">
-          <p>Created by Fazaa 2026 | XII PPLG 1</p>
-          <p className="credentials-info">
-            Default: admin/admin123 | kasir/kasir123
-          </p>
-        </div>
-      </motion.div>
+        <p className="login-outer-footer">
+          Created by Fazaa 2026 | XII PPLG 1
+        </p>
+      </div>
     </div>
   );
 };
