@@ -1,16 +1,8 @@
-# PROPOSAL PEMBUATAN APLIKASI WEB
+# PROPOSAL PEMBUATAN WEB
 **"BarberFlow - Classic Barber Go"**
 
-**KELOMPOK 2**  
-**XII PPLG 1**  
+1. Fazaa / Fazle Dzaky Aryaguna (15)
 
-**ANGGOTA KELOMPOK:**
-1. Dhafa Achmad Favian (10)
-2. Dirdadivina Marir Farandena (11)
-3. Fazaa / Fazle Dzaky Aryaguna (15)
-4. Hizkia Aditya Dwi Anggoro (16)
-5. Kireina Thohirotunnida (20)
-6. Titanium Akbar Pasa (35)
 
 ---
 
@@ -126,7 +118,7 @@ Tim dukungan pelanggan siap membantu setiap kendala teknis maupun administratif 
 | :--- | :--- | :--- |
 | **WhatsApp Support** | 08.00 – 21.00 WIB | *Fast response* untuk kendala teknis operasional kasir |
 | **Email Support** | 24 Jam | Penanganan resmi untuk laporan bug dan update database |
-| **Telepon Langsung** | Jam Kerja (Senin–Jumat) | Konsultasi langsung dengan tim teknis pengembang |
+| **Telepon Langsung** | Jam Kerja (Senin-Minggu) | Konsultasi langsung dengan tim teknis pengembang |
 
 ### 5. Komitmen Layanan
 Kami berkomitmen memberikan layanan yang cepat, ramah, dan solutif. Tim *BarberFlow* berusaha memastikan setiap pemilik toko dan kasir mendapatkan pengalaman terbaik — mulai dari tahap implementasi awal, penggunaan harian di kasir, hingga pengembangan jangka panjang.
