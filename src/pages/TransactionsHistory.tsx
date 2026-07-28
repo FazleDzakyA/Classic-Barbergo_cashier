@@ -4,8 +4,7 @@ import type { Transaction } from '../types';
 import { 
   Search, 
   Trash2, 
-  Edit, 
-  X,
+  Eye, 
   FileText,
   ChevronLeft,
   ChevronRight,
@@ -43,48 +42,10 @@ export const TransactionsHistory: React.FC = () => {
 
   // Modals States
   const [viewingReceipt, setViewingReceipt] = useState<Transaction | null>(null);
-  const [editingTrx, setEditingTrx] = useState<Transaction | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
-
-  // Edit fields state (since we are not using a heavy form hook for a quick modal edit)
-  const [editName, setEditName] = useState('');
-  const [editBarberId, setEditBarberId] = useState<number>(0);
-  const [editPayment, setEditPayment] = useState<'Cash' | 'QRIS'>('Cash');
-  const [editNotes, setEditNotes] = useState('');
 
   const formatMoney = (val: number) => {
     return `${currency} ${val.toLocaleString('id-ID')}`;
-  };
-
-  // Open Edit Modal
-  const handleOpenEdit = (trx: Transaction) => {
-    setEditingTrx(trx);
-    setEditName(trx.customerName);
-    setEditBarberId(trx.barberId);
-    setEditPayment(trx.paymentMethod === 'QRIS' ? 'QRIS' : 'Cash');
-    setEditNotes(trx.notes);
-  };
-
-  // Save Edit Transaction
-  const handleSaveEdit = async () => {
-    if (!editingTrx) return;
-    if (editName.trim() === '') {
-      toast.error('Nama pelanggan tidak boleh kosong');
-      return;
-    }
-    try {
-      await db.transactions.update(editingTrx.id, {
-        customerName: editName,
-        barberId: editBarberId,
-        paymentMethod: editPayment,
-        notes: editNotes
-      });
-      toast.success('Transaksi berhasil diperbarui');
-      setEditingTrx(null);
-    } catch (err) {
-      console.error(err);
-      toast.error('Gagal memperbarui transaksi');
-    }
   };
 
   // Delete Transaction
@@ -317,61 +278,84 @@ export const TransactionsHistory: React.FC = () => {
             <table className="custom-table">
               <thead>
                 <tr>
-                  <th>No. TRX</th>
+                  <th>NO. TRX</th>
                   <th onClick={() => toggleSort('date')} className="sortable-th">
-                    Waktu Transaksi {sortBy === 'date' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
+                    TANGGAL {sortBy === 'date' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
                   </th>
-                  <th>Pelanggan</th>
-                  <th>Barber</th>
-                  <th>Layanan</th>
-                  <th>Pembayaran</th>
+                  <th>PELANGGAN</th>
+                  <th>BARBER</th>
+                  <th>LAYANAN</th>
                   <th onClick={() => toggleSort('total')} className="sortable-th">
-                    Total {sortBy === 'total' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
+                    TOTAL {sortBy === 'total' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
                   </th>
-                  <th style={{ textAlign: 'right' }}>Aksi</th>
+                  <th>METODE</th>
+                  <th style={{ textAlign: 'right' }}>AKSI</th>
                 </tr>
               </thead>
               <tbody>
                 {paginatedTransactions.map((trx) => {
-                  const bName = barbers?.find(b => b.id === trx.barberId)?.name || 'Unknown';
+                  const barberObj = barbers?.find(b => b.id === trx.barberId);
+                  const bName = barberObj?.name || 'Unknown';
+                  const initials = bName.substring(0, 2).toUpperCase();
                   const serviceNames = trx.serviceIds
                     .map(sid => services?.find(s => s.id === sid)?.name)
                     .filter(Boolean)
                     .join(', ');
 
+                  // Avatar background color helper based on barber initials
+                  const getAvatarBg = (name: string) => {
+                    if (name.toLowerCase().includes('faiz')) return '#D4AF37';
+                    if (name.toLowerCase().includes('fadli')) return '#10B981';
+                    if (name.toLowerCase().includes('rizki')) return '#6366F1';
+                    return '#D4AF37';
+                  };
+
                   return (
                     <tr key={trx.id}>
-                      <td className="font-mono font-bold gold-text">{trx.id}</td>
+                      <td className="font-mono text-muted">{trx.id}</td>
                       <td>
                         <span className="table-main-text">{trx.date}</span>
-                        <span className="table-sub-text">{trx.time}</span>
                       </td>
-                      <td>{trx.customerName}</td>
-                      <td>{bName}</td>
+                      <td className="font-bold">{trx.customerName}</td>
+                      <td>
+                        <div className="barber-cell-flex" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span className="barber-avatar-sm" style={{
+                            width: '26px',
+                            height: '26px',
+                            borderRadius: '6px',
+                            backgroundColor: getAvatarBg(bName),
+                            color: '#000',
+                            fontSize: '0.75rem',
+                            fontWeight: '700',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}>
+                            {initials}
+                          </span>
+                          <span>{bName}</span>
+                        </div>
+                      </td>
                       <td className="truncate-cell" title={serviceNames}>
                         {serviceNames}
+                      </td>
+                      <td className="font-bold gold-text" style={{ color: '#D4AF37' }}>
+                        {formatMoney(trx.total)}
                       </td>
                       <td>
                         <span className={`badge-payment ${trx.paymentMethod.toLowerCase()}`}>
                           {trx.paymentMethod}
                         </span>
                       </td>
-                      <td className="font-bold">{formatMoney(trx.total)}</td>
                       <td style={{ textAlign: 'right' }}>
-                        <div className="actions-cell-wrapper">
+                        <div className="actions-cell-wrapper" style={{ display: 'flex', gap: '0.35rem', justifyContent: 'flex-end' }}>
                           <button 
                             className="btn btn-secondary btn-icon"
                             onClick={() => setViewingReceipt(trx)}
                             title="Lihat Struk"
+                            style={{ color: '#D4AF37', background: 'rgba(212, 175, 55, 0.1)', borderColor: 'rgba(212, 175, 55, 0.2)' }}
                           >
-                            <FileText size={15} />
-                          </button>
-                          <button 
-                            className="btn btn-secondary btn-icon"
-                            onClick={() => handleOpenEdit(trx)}
-                            title="Edit Transaksi"
-                          >
-                            <Edit size={15} />
+                            <Eye size={15} />
                           </button>
                           <button 
                             className="btn btn-danger btn-icon"
@@ -417,99 +401,7 @@ export const TransactionsHistory: React.FC = () => {
         </div>
       )}
 
-      {/* Edit Transaction Modal */}
-      <AnimatePresence>
-        {editingTrx && (
-          <div className="modal-overlay">
-            <motion.div 
-              className="modal-box glass-panel"
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-            >
-              <div className="modal-header">
-                <h3>Edit Informasi Transaksi</h3>
-                <button className="modal-close" onClick={() => setEditingTrx(null)}>
-                  <X size={20} />
-                </button>
-              </div>
 
-              <div className="modal-form">
-                <div className="form-group">
-                  <label className="form-label">ID Transaksi</label>
-                  <input type="text" className="form-input" disabled value={editingTrx.id} />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label" htmlFor="editCustName">Nama Pelanggan</label>
-                  <input
-                    id="editCustName"
-                    type="text"
-                    className="form-input"
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                  />
-                </div>
-
-                <div className="form-row-2">
-                  <div className="form-group">
-                    <label className="form-label" htmlFor="editBarber">Barber</label>
-                    <select
-                      id="editBarber"
-                      className="form-input select-input"
-                      value={editBarberId}
-                      onChange={(e) => setEditBarberId(Number(e.target.value))}
-                    >
-                      {barbers?.map(b => (
-                        <option key={b.id} value={b.id}>{b.name}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label" htmlFor="editPay">Pembayaran</label>
-                    <select
-                      id="editPay"
-                      className="form-input select-input"
-                      value={editPayment}
-                      onChange={(e) => setEditPayment(e.target.value as any)}
-                    >
-                      <option value="Cash">Cash</option>
-                      <option value="QRIS">QRIS</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label" htmlFor="editNotes">Catatan</label>
-                  <textarea
-                    id="editNotes"
-                    className="form-input textarea-input"
-                    rows={2}
-                    value={editNotes}
-                    onChange={(e) => setEditNotes(e.target.value)}
-                  />
-                </div>
-
-                <div className="modal-footer">
-                  <button 
-                    className="btn btn-secondary"
-                    onClick={() => setEditingTrx(null)}
-                  >
-                    Batal
-                  </button>
-                  <button 
-                    className="btn btn-primary"
-                    onClick={handleSaveEdit}
-                  >
-                    Simpan Perubahan
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
       {/* Delete Confirmation Modal */}
       <AnimatePresence>
