@@ -6,18 +6,38 @@ import {
   FileSpreadsheet, 
   TrendingUp, 
   TrendingDown, 
-  DollarSign, 
-  CalendarRange
+  Equal
 } from 'lucide-react';
 import dayjs from 'dayjs';
 import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable'; // jsPDF plugin for tables
+import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
 import { CardSkeleton } from '../components/SkeletonLoader';
 import './Reports.css';
 
-// Declare jspdf-autotable globally or import it. jsPDF has autoTable.
-// Wait, we can import autoTable directly or call it as a function: doc.autoTable(...) or autoTable(doc, ...)
+// Register ChartJS components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
 
 type ReportType = 'Harian' | 'Mingguan' | 'Bulanan' | 'Tahunan';
 
@@ -32,7 +52,7 @@ export const Reports: React.FC = () => {
   const currency = settings?.currency || 'Rp';
 
   // State
-  const [reportType, setReportType] = useState<ReportType>('Harian');
+  const [reportType, setReportType] = useState<ReportType>('Bulanan');
   const [selectedDate, setSelectedDate] = useState(dayjs().format('YYYY-MM-DD'));
   const [selectedMonth, setSelectedMonth] = useState(dayjs().format('YYYY-MM'));
   const [selectedYear, setSelectedYear] = useState(dayjs().format('YYYY'));
@@ -46,7 +66,6 @@ export const Reports: React.FC = () => {
       start = dayjs(selectedDate).startOf('day');
       end = dayjs(selectedDate).endOf('day');
     } else if (reportType === 'Mingguan') {
-      // 7 days starting from selected date
       start = dayjs(selectedDate).startOf('day');
       end = dayjs(selectedDate).add(6, 'day').endOf('day');
     } else if (reportType === 'Bulanan') {
@@ -84,7 +103,6 @@ export const Reports: React.FC = () => {
     const totalExpenses = rangeExpenses.reduce((sum, e) => sum + e.amount, 0);
     const netProfit = totalRevenue - totalExpenses;
     const txCount = rangeTxs.length;
-    const customerCount = rangeTxs.length;
 
     // Revenue per Barber
     const barberRevenue: { [id: number]: number } = {};
@@ -98,22 +116,14 @@ export const Reports: React.FC = () => {
       barberTxCount[t.barberId] = (barberTxCount[t.barberId] || 0) + 1;
     });
     const barberBreakdown = barbers.map(b => ({
+      id: b.id!,
       name: b.name,
       revenue: barberRevenue[b.id!] || 0,
-      count: barberTxCount[b.id!] || 0
+      count: barberTxCount[b.id!] || 0,
+      share: totalRevenue > 0 ? Math.round(((barberRevenue[b.id!] || 0) / totalRevenue) * 100) : 0
     })).sort((a, b) => b.revenue - a.revenue);
 
-    // Productivity & Best Barber
-    let topBarberName = 'Belum ada';
-    let maxBarberRevenue = -1;
-    barberBreakdown.forEach(b => {
-      if (b.revenue > maxBarberRevenue && b.revenue > 0) {
-        maxBarberRevenue = b.revenue;
-        topBarberName = b.name;
-      }
-    });
-
-    // Revenue per Service & count
+    // Service Breakdown
     const serviceSalesCount: { [id: number]: number } = {};
     const serviceSalesRev: { [id: number]: number } = {};
     services.forEach(s => {
@@ -125,8 +135,6 @@ export const Reports: React.FC = () => {
         const s = services.find(srv => srv.id === sid);
         if (s) {
           serviceSalesCount[sid] = (serviceSalesCount[sid] || 0) + 1;
-          // Calculate proportional revenue per service
-          // In simple transactions, we can sum their prices
           serviceSalesRev[sid] = (serviceSalesRev[sid] || 0) + s.price;
         }
       });
@@ -138,70 +146,115 @@ export const Reports: React.FC = () => {
       revenue: serviceSalesRev[s.id!] || 0
     })).sort((a, b) => b.count - a.count);
 
-    // Best Selling Service
-    let topServiceName = 'Belum ada';
-    let maxServiceCount = -1;
-    serviceBreakdown.forEach(s => {
-      if (s.count > maxServiceCount && s.count > 0) {
-        maxServiceCount = s.count;
-        topServiceName = s.name;
-      }
-    });
-
-    // Payment method share
-    const paymentMethods: { [method: string]: number } = { Cash: 0, QRIS: 0 };
-    rangeTxs.forEach(t => {
-      if (paymentMethods[t.paymentMethod] !== undefined) {
-        paymentMethods[t.paymentMethod] += t.total;
-      }
-    });
-
     return {
       totalRevenue,
       totalExpenses,
       netProfit,
       txCount,
-      customerCount,
       barberBreakdown,
-      topBarberName,
-      serviceBreakdown,
-      topServiceName,
-      paymentMethods
+      serviceBreakdown
     };
   }, [transactions, expenses, barbers, services, reportRange]);
+
+  // Chart Data: 6 Months Revenue Trend
+  const monthlyChartData = useMemo(() => {
+    if (!transactions) return { labels: [], datasets: [] };
+
+    const labels = [];
+    const data = [];
+    for (let i = 5; i >= 0; i--) {
+      const m = dayjs().subtract(i, 'month');
+      const mStr = m.format('YYYY-MM');
+      labels.push(m.format('MMM'));
+      const monthTxs = transactions.filter(t => t.date.startsWith(mStr));
+      data.push(monthTxs.reduce((sum, t) => sum + t.total, 0));
+    }
+
+    return {
+      labels,
+      datasets: [
+        {
+          fill: true,
+          label: 'Omset Bulanan',
+          data,
+          borderColor: '#D4AF37',
+          backgroundColor: (context: any) => {
+            const ctx = context.chart.ctx;
+            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, 'rgba(212, 175, 55, 0.25)');
+            gradient.addColorStop(1, 'rgba(212, 175, 55, 0.0)');
+            return gradient;
+          },
+          tension: 0.4,
+          pointBackgroundColor: '#D4AF37',
+          pointBorderColor: '#D4AF37',
+          pointRadius: 4,
+          pointHoverRadius: 6
+        }
+      ]
+    };
+  }, [transactions]);
+
+  const lineChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#1E1E1E',
+        titleColor: '#D4AF37',
+        bodyColor: '#FFFFFF',
+        borderColor: '#2B2B2B',
+        borderWidth: 1,
+        padding: 10,
+        displayColors: false,
+        callbacks: {
+          label: (context: any) => `Omset: ${currency} ${context.parsed.y.toLocaleString('id-ID')}`
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: { color: '#71717A', font: { family: 'Inter', size: 11 } }
+      },
+      y: {
+        display: false,
+        grid: { display: false }
+      }
+    }
+  };
 
   const formatMoney = (val: number) => {
     return `${currency} ${val.toLocaleString('id-ID')}`;
   };
 
-  // Get printable period text
   const getPeriodText = () => {
-    const { start, end } = reportRange;
-    if (reportType === 'Harian') {
-      return start.format('D MMMM YYYY');
-    } else if (reportType === 'Mingguan') {
-      return `${start.format('D MMM YYYY')} s/d ${end.format('D MMM YYYY')}`;
-    } else if (reportType === 'Bulanan') {
-      return start.format('MMMM YYYY');
-    } else if (reportType === 'Tahunan') {
-      return start.format('YYYY');
-    }
+    if (reportType === 'Harian') return dayjs(selectedDate).format('D MMMM YYYY');
+    if (reportType === 'Mingguan') return `${dayjs(selectedDate).format('D MMM')} - ${dayjs(selectedDate).add(6, 'day').format('D MMM YYYY')}`;
+    if (reportType === 'Bulanan') return dayjs(selectedMonth + '-01').format('MMMM YYYY');
+    if (reportType === 'Tahunan') return `Tahun ${selectedYear}`;
     return '';
   };
 
-  // Print Report (utilizes browser printing with special report page styles)
+  // Avatar background helper
+  const getAvatarBg = (name: string) => {
+    if (name.toLowerCase().includes('faiz')) return '#D4AF37';
+    if (name.toLowerCase().includes('fadli')) return '#10B981';
+    if (name.toLowerCase().includes('rizki')) return '#6366F1';
+    return '#D4AF37';
+  };
+
   const handlePrintReport = () => {
     window.print();
   };
 
-  // Export to PDF
   const handleExportPDF = () => {
     if (!reportData) return;
     const doc = new jsPDF();
     const periodStr = getPeriodText();
     const shopName = settings?.name || 'BarberFlow';
 
-    // Document Title
     doc.setFontSize(18);
     doc.text(`LAPORAN KEUANGAN - ${shopName}`, 14, 20);
     doc.setFontSize(11);
@@ -209,15 +262,11 @@ export const Reports: React.FC = () => {
     doc.text(`Periode: ${periodStr}`, 14, 33);
     doc.text(`Dicetak Pada: ${dayjs().format('D MMMM YYYY HH:mm')}`, 14, 39);
 
-    // Summary Table
     const summaryData = [
-      ['Total Pendapatan', formatMoney(reportData.totalRevenue)],
+      ['Total Omset', formatMoney(reportData.totalRevenue)],
       ['Total Pengeluaran', formatMoney(reportData.totalExpenses)],
       ['Laba Bersih', formatMoney(reportData.netProfit)],
-      ['Jumlah Transaksi', `${reportData.txCount} Transaksi`],
-      ['Total Pelanggan', `${reportData.customerCount} Orang`],
-      ['Barber Terproduktif', reportData.topBarberName],
-      ['Layanan Terlaris', reportData.topServiceName]
+      ['Jumlah Transaksi', `${reportData.txCount} Transaksi`]
     ];
     
     doc.setFontSize(13);
@@ -230,33 +279,17 @@ export const Reports: React.FC = () => {
       headStyles: { fillColor: [212, 175, 55] }
     });
 
-    // Barber Table
-    doc.text('2. Kinerja Pendapatan Per Barber', 14, (doc as any).lastAutoTable.finalY + 12);
+    doc.text('2. Performa Barber', 14, (doc as any).lastAutoTable.finalY + 12);
     const barberRows = reportData.barberBreakdown.map(b => [
       b.name,
       `${b.count} trx`,
-      formatMoney(b.revenue)
+      formatMoney(b.revenue),
+      `${b.share}%`
     ]);
     autoTable(doc, {
       startY: (doc as any).lastAutoTable.finalY + 15,
-      head: [['Nama Barber', 'Jumlah Melayani', 'Total Pendapatan']],
+      head: [['Nama Barber', 'Jumlah Transaksi', 'Total Revenue', 'Share']],
       body: barberRows,
-      theme: 'grid',
-      headStyles: { fillColor: [212, 175, 55] }
-    });
-
-    // Service Table
-    doc.text('3. Detail Penjualan Layanan', 14, (doc as any).lastAutoTable.finalY + 12);
-    const serviceRows = reportData.serviceBreakdown.map(s => [
-      s.name,
-      s.category,
-      `${s.count} kali`,
-      formatMoney(s.revenue)
-    ]);
-    autoTable(doc, {
-      startY: (doc as any).lastAutoTable.finalY + 15,
-      head: [['Nama Layanan', 'Kategori', 'Jumlah Terjual', 'Provisional Revenue']],
-      body: serviceRows,
       theme: 'grid',
       headStyles: { fillColor: [212, 175, 55] }
     });
@@ -264,95 +297,76 @@ export const Reports: React.FC = () => {
     doc.save(`Laporan_${reportType}_${periodStr.replace(/\s+/g, '_')}.pdf`);
   };
 
-  // Export to Excel (Multiple Sheets)
   const handleExportExcel = () => {
     if (!reportData) return;
     const periodStr = getPeriodText();
     const wb = XLSX.utils.book_new();
 
-    // Sheet 1: Ringkasan
     const summaryRows = [
       { 'Indikator Laporan': 'Nama Toko', Nilai: settings?.name || 'BarberFlow' },
       { 'Indikator Laporan': 'Tipe Laporan', Nilai: reportType },
       { 'Indikator Laporan': 'Periode', Nilai: periodStr },
-      { 'Indikator Laporan': 'Total Pendapatan', Nilai: reportData.totalRevenue },
+      { 'Indikator Laporan': 'Total Omset', Nilai: reportData.totalRevenue },
       { 'Indikator Laporan': 'Total Pengeluaran', Nilai: reportData.totalExpenses },
       { 'Indikator Laporan': 'Laba Bersih', Nilai: reportData.netProfit },
-      { 'Indikator Laporan': 'Jumlah Transaksi', Nilai: reportData.txCount },
-      { 'Indikator Laporan': 'Total Pelanggan', Nilai: reportData.customerCount },
-      { 'Indikator Laporan': 'Barber Terproduktif', Nilai: reportData.topBarberName },
-      { 'Indikator Laporan': 'Layanan Terlaris', Nilai: reportData.topServiceName }
+      { 'Indikator Laporan': 'Jumlah Transaksi', Nilai: reportData.txCount }
     ];
     const wsSummary = XLSX.utils.json_to_sheet(summaryRows);
     XLSX.utils.book_append_sheet(wb, wsSummary, 'Ringkasan');
 
-    // Sheet 2: Barber
     const barberRows = reportData.barberBreakdown.map(b => ({
       'Nama Barber': b.name,
       'Jumlah Transaksi': b.count,
-      'Total Pendapatan': b.revenue
+      'Total Revenue': b.revenue,
+      'Share (%)': b.share
     }));
     const wsBarber = XLSX.utils.json_to_sheet(barberRows);
-    XLSX.utils.book_append_sheet(wb, wsBarber, 'Kinerja Barber');
-
-    // Sheet 3: Layanan
-    const serviceRows = reportData.serviceBreakdown.map(s => ({
-      'Nama Layanan': s.name,
-      Kategori: s.category,
-      'Jumlah Terjual': s.count,
-      'Perkiraan Pendapatan': s.revenue
-    }));
-    const wsService = XLSX.utils.json_to_sheet(serviceRows);
-    XLSX.utils.book_append_sheet(wb, wsService, 'Penjualan Layanan');
-
-    // Sheet 4: Pembayaran
-    const payRows = Object.entries(reportData.paymentMethods).map(([method, total]) => ({
-      'Metode Pembayaran': method,
-      'Total Nominal': total
-    }));
-    const wsPay = XLSX.utils.json_to_sheet(payRows);
-    XLSX.utils.book_append_sheet(wb, wsPay, 'Metode Pembayaran');
+    XLSX.utils.book_append_sheet(wb, wsBarber, 'Performa Barber');
 
     XLSX.writeFile(wb, `Laporan_${reportType}_${periodStr.replace(/\s+/g, '_')}.xlsx`);
   };
 
   return (
     <div className="reports-page-container">
-      {/* Date selector toolbar */}
-      <div className="glass-card page-actions-card no-print">
-        <div className="search-filter-wrapper report-selectors">
-          <div className="select-wrapper">
+      {/* Top Header & Export Toolbar */}
+      <div className="reports-header-row no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>Laporan Keuangan</h1>
+          <p style={{ color: '#71717A', fontSize: '0.85rem', marginTop: '0.2rem' }}>Ringkasan semua transaksi</p>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          {/* Period selector */}
+          <div className="select-wrapper" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <select
               value={reportType}
               onChange={(e) => setReportType(e.target.value as ReportType)}
               className="form-input select-input"
+              style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}
             >
               <option value="Harian">Laporan Harian</option>
-              <option value="Mingguan">Laporan Mingguan (7 Hari)</option>
+              <option value="Mingguan">Laporan Mingguan</option>
               <option value="Bulanan">Laporan Bulanan</option>
               <option value="Tahunan">Laporan Tahunan</option>
             </select>
-          </div>
 
-          <div className="report-period-picker">
             {reportType === 'Harian' && (
               <input
                 type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
                 className="form-input"
+                style={{ padding: '0.4rem 0.6rem', fontSize: '0.85rem' }}
               />
             )}
             {reportType === 'Mingguan' && (
-              <div className="week-picker-helper">
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="form-input"
-                />
-                <span className="week-range-hint">s/d {dayjs(selectedDate).add(6, 'day').format('DD/MM/YYYY')}</span>
-              </div>
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="form-input"
+                style={{ padding: '0.4rem 0.6rem', fontSize: '0.85rem' }}
+              />
             )}
             {reportType === 'Bulanan' && (
               <input
@@ -360,6 +374,7 @@ export const Reports: React.FC = () => {
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
                 className="form-input"
+                style={{ padding: '0.4rem 0.6rem', fontSize: '0.85rem' }}
               />
             )}
             {reportType === 'Tahunan' && (
@@ -367,6 +382,7 @@ export const Reports: React.FC = () => {
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(e.target.value)}
                 className="form-input select-input"
+                style={{ padding: '0.4rem 0.6rem', fontSize: '0.85rem' }}
               >
                 {['2024', '2025', '2026', '2027', '2028'].map(yr => (
                   <option key={yr} value={yr}>{yr}</option>
@@ -374,24 +390,37 @@ export const Reports: React.FC = () => {
               </select>
             )}
           </div>
-        </div>
 
-        <div className="export-buttons-group">
-          <button className="btn btn-secondary btn-icon" onClick={handlePrintReport} title="Print Laporan">
-            <Printer size={16} />
-          </button>
-          <button className="btn btn-secondary" onClick={handleExportExcel} title="Export ke Excel">
-            <FileSpreadsheet size={16} />
-            <span>Excel</span>
-          </button>
-          <button className="btn btn-primary" onClick={handleExportPDF} title="Download PDF">
-            <Download size={16} />
-            <span>PDF</span>
-          </button>
+          {/* Export Buttons */}
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <button 
+              className="btn" 
+              onClick={handleExportPDF} 
+              style={{ backgroundColor: '#EF4444', color: '#FFFFFF', padding: '0.5rem 1rem', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+            >
+              <Download size={15} />
+              <span>PDF</span>
+            </button>
+            <button 
+              className="btn" 
+              onClick={handleExportExcel} 
+              style={{ border: '1px solid #10B981', color: '#10B981', backgroundColor: 'transparent', padding: '0.5rem 1rem', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+            >
+              <FileSpreadsheet size={15} />
+              <span>Excel</span>
+            </button>
+            <button 
+              className="btn" 
+              onClick={handlePrintReport} 
+              style={{ backgroundColor: '#242424', color: '#FFFFFF', border: '1px solid #333', padding: '0.5rem 1rem', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+            >
+              <Printer size={15} />
+              <span>Print</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Main report presentation */}
       {!reportData ? (
         <div className="metrics-grid">
           <CardSkeleton />
@@ -399,8 +428,8 @@ export const Reports: React.FC = () => {
           <CardSkeleton />
         </div>
       ) : (
-        <div className="printable-report-area">
-          {/* Header visible ONLY during printing */}
+        <div className="printable-report-area" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          {/* Print Header */}
           <div className="print-report-header">
             <h2>{settings?.name || 'BarberFlow'}</h2>
             <p>{settings?.address}</p>
@@ -409,169 +438,131 @@ export const Reports: React.FC = () => {
             <p>Periode: {getPeriodText()}</p>
           </div>
 
-          <div className="report-title-section no-print">
-            <CalendarRange className="gold-text" size={24} />
-            <h2>Laporan Keuangan {reportType} ({getPeriodText()})</h2>
-          </div>
-
-          {/* Cards metrics */}
-          <div className="metrics-grid">
-            <div className="glass-card metric-item-card">
-              <div className="metric-icon-box gold-glow">
-                <TrendingUp className="metric-icon gold-text" size={22} />
+          {/* Metrics Row (3 Cards matching Figma) */}
+          <div className="metrics-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+            {/* Total Omset Card */}
+            <div className="glass-card" style={{ background: '#121212', borderRadius: '12px', border: '1px solid #222222', padding: '1.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.75rem' }}>
+                <span style={{ width: '24px', height: '24px', borderRadius: '6px', backgroundColor: 'rgba(212, 175, 55, 0.15)', color: '#D4AF37', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <TrendingUp size={14} />
+                </span>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#A1A1AA', letterSpacing: '0.05em' }}>TOTAL OMSET</span>
               </div>
-              <div className="metric-details">
-                <span className="metric-label">Total Pendapatan</span>
-                <span className="metric-value">{formatMoney(reportData.totalRevenue)}</span>
+              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#D4AF37', fontFamily: 'var(--font-mono)' }}>
+                {formatMoney(reportData.totalRevenue)}
               </div>
             </div>
 
-            <div className="glass-card metric-item-card">
-              <div className="metric-icon-box danger-glow">
-                <TrendingDown className="metric-icon danger-text" size={22} />
+            {/* Total Pengeluaran Card */}
+            <div className="glass-card" style={{ background: '#121212', borderRadius: '12px', border: '1px solid #222222', padding: '1.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.75rem' }}>
+                <span style={{ width: '24px', height: '24px', borderRadius: '6px', backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <TrendingDown size={14} />
+                </span>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#A1A1AA', letterSpacing: '0.05em' }}>TOTAL PENGELUARAN</span>
               </div>
-              <div className="metric-details">
-                <span className="metric-label">Total Pengeluaran</span>
-                <span className="metric-value danger-text">{formatMoney(reportData.totalExpenses)}</span>
-              </div>
-            </div>
-
-            <div className="glass-card metric-item-card">
-              <div className="metric-icon-box success-glow">
-                <DollarSign className="metric-icon success-text" size={22} />
-              </div>
-              <div className="metric-details">
-                <span className="metric-label">Laba Bersih</span>
-                <span className="metric-value success-text">{formatMoney(reportData.netProfit)}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="metrics-grid col-4">
-            <div className="glass-card metric-item-card smaller-padding">
-              <div className="metric-details">
-                <span className="metric-label">Jumlah Transaksi</span>
-                <span className="metric-value font-1-1">{reportData.txCount} transaksi</span>
+              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#EF4444', fontFamily: 'var(--font-mono)' }}>
+                {formatMoney(reportData.totalExpenses)}
               </div>
             </div>
 
-            <div className="glass-card metric-item-card smaller-padding">
-              <div className="metric-details">
-                <span className="metric-label">Total Pelanggan</span>
-                <span className="metric-value font-1-1">{reportData.customerCount} orang</span>
+            {/* Laba Bersih Card */}
+            <div className="glass-card" style={{ background: '#121212', borderRadius: '12px', border: '1px solid #222222', padding: '1.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.75rem' }}>
+                <span style={{ width: '24px', height: '24px', borderRadius: '6px', backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Equal size={14} />
+                </span>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#A1A1AA', letterSpacing: '0.05em' }}>LABA BERSIH</span>
               </div>
-            </div>
-
-            <div className="glass-card metric-item-card smaller-padding">
-              <div className="metric-details">
-                <span className="metric-label">Barber Terproduktif</span>
-                <span className="metric-value font-1-1 truncate">{reportData.topBarberName}</span>
-              </div>
-            </div>
-
-            <div className="glass-card metric-item-card smaller-padding">
-              <div className="metric-details">
-                <span className="metric-label">Layanan Terlaris</span>
-                <span className="metric-value font-1-1 truncate">{reportData.topServiceName}</span>
+              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#10B981', fontFamily: 'var(--font-mono)' }}>
+                {formatMoney(reportData.netProfit)}
               </div>
             </div>
           </div>
 
-          {/* Breakdown grids */}
-          <div className="report-details-grid">
-            {/* Barber Breakdown */}
-            <div className="glass-card report-detail-card">
-              <h3 className="chart-title">Pendapatan Per Barber</h3>
-              <div className="table-container header-transparent border-none">
-                <table className="custom-table smaller-row">
-                  <thead>
-                    <tr>
-                      <th>Nama Barber</th>
-                      <th>Jumlah Melayani</th>
-                      <th style={{ textAlign: 'right' }}>Total Omset</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {reportData.barberBreakdown.map((b, idx) => (
-                      <tr key={idx}>
-                        <td>{b.name}</td>
+          {/* Chart Card: Omset Bulanan */}
+          <div className="glass-card" style={{ background: '#121212', borderRadius: '12px', border: '1px solid #222222', padding: '1.5rem' }}>
+            <div style={{ marginBottom: '1rem' }}>
+              <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>Omset Bulanan</h3>
+              <p style={{ fontSize: '0.78rem', color: '#71717A', margin: '0.2rem 0 0 0' }}>Tren pendapatan 6 bulan terakhir</p>
+            </div>
+            <div style={{ height: '220px', width: '100%' }}>
+              <Line data={monthlyChartData} options={lineChartOptions} />
+            </div>
+          </div>
+
+          {/* Barber Performance Table */}
+          <div className="glass-card" style={{ background: '#121212', borderRadius: '12px', border: '1px solid #222222', padding: '1.5rem' }}>
+            <div style={{ marginBottom: '1rem' }}>
+              <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>Performa Barber</h3>
+            </div>
+
+            <div className="table-container" style={{ border: 'none', background: 'transparent' }}>
+              <table className="custom-table">
+                <thead>
+                  <tr>
+                    <th>BARBER</th>
+                    <th>JUMLAH TRANSAKSI</th>
+                    <th>TOTAL REVENUE</th>
+                    <th style={{ width: '220px' }}>SHARE</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reportData.barberBreakdown.map((b) => {
+                    const initials = b.name.substring(0, 2).toUpperCase();
+                    return (
+                      <tr key={b.id}>
+                        <td>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                            <span style={{
+                              width: '28px',
+                              height: '28px',
+                              borderRadius: '6px',
+                              backgroundColor: getAvatarBg(b.name),
+                              color: '#000',
+                              fontSize: '0.75rem',
+                              fontWeight: '700',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}>
+                              {initials}
+                            </span>
+                            <span style={{ fontWeight: 600 }}>{b.name}</span>
+                          </div>
+                        </td>
                         <td>{b.count} trx</td>
-                        <td style={{ textAlign: 'right' }} className="font-bold gold-text">
+                        <td className="font-bold gold-text" style={{ color: '#D4AF37' }}>
                           {formatMoney(b.revenue)}
                         </td>
-                      </tr>
-                    ))}
-                    {reportData.barberBreakdown.length === 0 && (
-                      <tr>
-                        <td colSpan={3} style={{ textAlign: 'center' }} className="text-muted">
-                          Belum ada transaksi
+                        <td>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <div style={{ flex: 1, height: '6px', borderRadius: '4px', backgroundColor: '#222222', overflow: 'hidden' }}>
+                              <div style={{
+                                width: `${b.share}%`,
+                                height: '100%',
+                                backgroundColor: getAvatarBg(b.name),
+                                borderRadius: '4px',
+                                transition: 'width 0.5s ease'
+                              }} />
+                            </div>
+                            <span style={{ fontSize: '0.75rem', color: '#A1A1AA', minWidth: '30px', textAlign: 'right' }}>
+                              {b.share}%
+                            </span>
+                          </div>
                         </td>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Payment Method Breakdown */}
-            <div className="glass-card report-detail-card">
-              <h3 className="chart-title">Metode Pembayaran</h3>
-              <div className="table-container header-transparent border-none">
-                <table className="custom-table smaller-row">
-                  <thead>
+                    );
+                  })}
+                  {reportData.barberBreakdown.length === 0 && (
                     <tr>
-                      <th>Metode</th>
-                      <th style={{ textAlign: 'right' }}>Nominal</th>
+                      <td colSpan={4} style={{ textAlign: 'center', color: '#71717A' }}>
+                        Belum ada data transaksi
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {Object.entries(reportData.paymentMethods).map(([method, total]) => (
-                      <tr key={method}>
-                        <td>{method}</td>
-                        <td style={{ textAlign: 'right' }} className="font-bold">
-                          {formatMoney(total)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Service Breakdown (Col span 2) */}
-            <div className="glass-card report-detail-card col-span-2">
-              <h3 className="chart-title">Detail Penjualan Layanan</h3>
-              <div className="table-container header-transparent border-none">
-                <table className="custom-table smaller-row">
-                  <thead>
-                    <tr>
-                      <th>Nama Layanan</th>
-                      <th>Kategori</th>
-                      <th>Jumlah Terjual</th>
-                      <th style={{ textAlign: 'right' }}>Estimasi Omset</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {reportData.serviceBreakdown.map((s, idx) => (
-                      <tr key={idx}>
-                        <td className="font-bold">{s.name}</td>
-                        <td>{s.category}</td>
-                        <td>{s.count} kali</td>
-                        <td style={{ textAlign: 'right' }} className="gold-text">
-                          {formatMoney(s.revenue)}
-                        </td>
-                      </tr>
-                    ))}
-                    {reportData.serviceBreakdown.length === 0 && (
-                      <tr>
-                        <td colSpan={4} style={{ textAlign: 'center' }} className="text-muted">
-                          Belum ada data penjualan
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
