@@ -9,7 +9,6 @@ import {
   Search, 
   Edit, 
   Trash2, 
-  UserPlus, 
   X, 
   Camera,
   ChevronLeft,
@@ -41,9 +40,6 @@ export const BarberManagement: React.FC = () => {
 
   // Component States
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('Semua');
-  const [sortBy, setSortBy] = useState<'name' | 'joinedDate'>('name');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -155,15 +151,7 @@ export const BarberManagement: React.FC = () => {
     }
   };
 
-  // Sorting Handler
-  const toggleSort = (field: 'name' | 'joinedDate') => {
-    if (sortBy === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(field);
-      setSortOrder('asc');
-    }
-  };
+
 
   // Process data (Search, Filter, Sort, Paginate)
   const processedBarbers = useMemo(() => {
@@ -175,29 +163,12 @@ export const BarberManagement: React.FC = () => {
     if (searchTerm.trim() !== '') {
       const term = searchTerm.toLowerCase();
       result = result.filter(
-        b => b.name.toLowerCase().includes(term) || b.phone.includes(term)
+        b => b.name.toLowerCase().includes(term) || b.phone.includes(term) || b.address.toLowerCase().includes(term)
       );
     }
 
-    // Filter by Status
-    if (statusFilter !== 'Semua') {
-      const isActive = statusFilter === 'Aktif';
-      result = result.filter(b => b.isActive === isActive);
-    }
-
-    // Sort
-    result.sort((a, b) => {
-      let comparison = 0;
-      if (sortBy === 'name') {
-        comparison = a.name.localeCompare(b.name);
-      } else if (sortBy === 'joinedDate') {
-        comparison = a.joinedDate.localeCompare(b.joinedDate);
-      }
-      return sortOrder === 'asc' ? comparison : -comparison;
-    });
-
     return result;
-  }, [barbers, searchTerm, statusFilter, sortBy, sortOrder]);
+  }, [barbers, searchTerm]);
 
   // Paginated Data
   const paginatedBarbers = useMemo(() => {
@@ -207,49 +178,44 @@ export const BarberManagement: React.FC = () => {
 
   const totalPages = Math.ceil(processedBarbers.length / itemsPerPage);
 
+  const activeBarbersCount = barbers ? barbers.filter(b => b.isActive).length : 0;
+
   return (
-    <div className="barber-page-container">
-      {/* Header bar / Search & Filter */}
-      <div className="glass-card page-actions-card">
-        <div className="search-filter-wrapper">
-          <div className="search-box-container">
-            <Search size={18} className="search-icon" />
-            <input
-              type="text"
-              placeholder="Cari nama atau No HP..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="form-input search-input"
-            />
-          </div>
-          <div className="filters-container">
-            <div className="select-wrapper">
-              <select
-                value={statusFilter}
-                onChange={(e) => {
-                  setStatusFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="form-input select-input"
-              >
-                <option value="Semua">Semua Status</option>
-                <option value="Aktif">Aktif</option>
-                <option value="Nonaktif">Nonaktif</option>
-              </select>
-            </div>
-          </div>
+    <div className="barber-page-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      {/* Top Header & Add Button */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <h1 style={{ fontSize: '1.4rem', fontWeight: 700, margin: 0, color: '#FFFFFF' }}>Manajemen Barber</h1>
+          <p style={{ color: '#71717A', fontSize: '0.85rem', marginTop: '0.2rem' }}>{activeBarbersCount} barber aktif</p>
         </div>
 
-        <button className="btn btn-primary add-barber-btn" onClick={handleOpenAdd}>
-          <UserPlus size={18} />
+        <button 
+          className="btn" 
+          onClick={handleOpenAdd}
+          style={{ backgroundColor: '#EAB308', color: '#000000', padding: '0.55rem 1.1rem', borderRadius: '8px', fontWeight: 700, fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '0.4rem', border: 'none', cursor: 'pointer' }}
+        >
+          <Plus size={16} />
           <span>Tambah Barber</span>
         </button>
       </div>
 
-      {/* Main Table / Grid representation */}
+      {/* Search Bar */}
+      <div style={{ maxWidth: '400px', position: 'relative' }}>
+        <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#71717A' }} />
+        <input
+          type="text"
+          placeholder="Cari barber..."
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setCurrentPage(1);
+          }}
+          className="form-input"
+          style={{ paddingLeft: '2.4rem', background: '#121212', borderColor: '#222222', borderRadius: '8px', height: '40px', fontSize: '0.85rem' }}
+        />
+      </div>
+
+      {/* Main Table Card */}
       {!barbers ? (
         <div className="glass-card">
           <TableSkeleton cols={5} rows={5} />
@@ -266,68 +232,86 @@ export const BarberManagement: React.FC = () => {
           }
         />
       ) : (
-        <div className="table-wrapper">
-          <div className="table-container">
+        <div className="glass-card" style={{ background: '#121212', borderRadius: '12px', border: '1px solid #222222', padding: '1rem' }}>
+          <div className="table-container" style={{ border: 'none', background: 'transparent' }}>
             <table className="custom-table">
               <thead>
                 <tr>
-                  <th>Foto</th>
-                  <th onClick={() => toggleSort('name')} className="sortable-th">
-                    Nama Barber {sortBy === 'name' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
-                  </th>
-                  <th>No HP</th>
-                  <th onClick={() => toggleSort('joinedDate')} className="sortable-th">
-                    Tgl Bergabung {sortBy === 'joinedDate' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
-                  </th>
-                  <th>Status</th>
-                  <th style={{ textAlign: 'right' }}>Aksi</th>
+                  <th>BARBER</th>
+                  <th>NO. HP</th>
+                  <th>ALAMAT</th>
+                  <th>STATUS</th>
+                  <th style={{ textAlign: 'right' }}>AKSI</th>
                 </tr>
               </thead>
               <tbody>
-                {paginatedBarbers.map((barber) => (
-                  <tr key={barber.id}>
-                    <td>
-                      <div className="barber-avatar-cell">
-                        {barber.photo ? (
-                          <img src={barber.photo} alt={barber.name} className="avatar-img" />
-                        ) : (
-                          <div className="avatar-letter">
-                            {barber.name.charAt(0).toUpperCase()}
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td>
-                      <span className="barber-name-text">{barber.name}</span>
-                      <span className="barber-address-text">{barber.address}</span>
-                    </td>
-                    <td>{barber.phone}</td>
-                    <td>{barber.joinedDate}</td>
-                    <td>
-                      <span className={`badge-status ${barber.isActive ? 'active' : 'inactive'}`}>
-                        {barber.isActive ? 'Aktif' : 'Nonaktif'}
-                      </span>
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <div className="actions-cell-wrapper">
-                        <button 
-                          className="btn btn-secondary btn-icon"
-                          onClick={() => handleOpenEdit(barber)}
-                          title="Edit Barber"
-                        >
-                          <Edit size={15} />
-                        </button>
-                        <button 
-                          className="btn btn-danger btn-icon"
-                          onClick={() => setDeleteConfirmId(barber.id!)}
-                          title="Hapus Barber"
-                        >
-                          <Trash2 size={15} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {paginatedBarbers.map((barber) => {
+                  const initials = barber.name.substring(0, 2).toUpperCase();
+                  const getAvatarBg = (name: string) => {
+                    if (name.toLowerCase().includes('faiz')) return '#D4AF37';
+                    if (name.toLowerCase().includes('fadli')) return '#10B981';
+                    if (name.toLowerCase().includes('rizki')) return '#6366F1';
+                    return '#D4AF37';
+                  };
+
+                  return (
+                    <tr key={barber.id}>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                          <span style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '8px',
+                            backgroundColor: getAvatarBg(barber.name),
+                            color: '#000000',
+                            fontSize: '0.8rem',
+                            fontWeight: '800',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}>
+                            {initials}
+                          </span>
+                          <span style={{ fontWeight: 700, color: '#FFFFFF', fontSize: '0.9rem' }}>{barber.name}</span>
+                        </div>
+                      </td>
+                      <td className="font-mono text-muted">{barber.phone}</td>
+                      <td style={{ color: '#A1A1AA', fontSize: '0.85rem' }}>{barber.address}</td>
+                      <td>
+                        <span style={{
+                          backgroundColor: barber.isActive ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                          color: barber.isActive ? '#10B981' : '#EF4444',
+                          padding: '0.25rem 0.65rem',
+                          borderRadius: '6px',
+                          fontSize: '0.75rem',
+                          fontWeight: 700
+                        }}>
+                          {barber.isActive ? 'Aktif' : 'Nonaktif'}
+                        </span>
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
+                          <button 
+                            className="btn btn-icon"
+                            onClick={() => handleOpenEdit(barber)}
+                            title="Edit Barber"
+                            style={{ backgroundColor: 'rgba(59, 130, 246, 0.15)', color: '#3B82F6', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: '6px', padding: '0.4rem' }}
+                          >
+                            <Edit size={14} />
+                          </button>
+                          <button 
+                            className="btn btn-icon"
+                            onClick={() => setDeleteConfirmId(barber.id!)}
+                            title="Hapus Barber"
+                            style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#EF4444', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '6px', padding: '0.4rem' }}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
