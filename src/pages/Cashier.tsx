@@ -27,6 +27,7 @@ import './Cashier.css';
 // Schema validation using Zod (No discounts)
 const cashierSchema = zod.object({
   customerName: zod.string().min(1, 'Nama pelanggan tidak boleh kosong'),
+  customerPhone: zod.string().optional(),
   barberId: zod.number().gt(0, 'Pilih barber harus diisi'),
   serviceIds: zod.array(zod.number()).min(1, 'Pilih minimal 1 layanan'),
   notes: zod.string(),
@@ -82,6 +83,7 @@ export const Cashier: React.FC = () => {
     resolver: zodResolver(cashierSchema),
     defaultValues: {
       customerName: '',
+      customerPhone: '',
       barberId: 0,
       serviceIds: [],
       notes: '',
@@ -121,7 +123,7 @@ export const Cashier: React.FC = () => {
       setTrxId(`${prefix}-${numStr}`);
     } catch (err) {
       console.error('Error generating transaction ID:', err);
-      setTrxId(`${prefix}-${Math.floor(1000 + Math.random() * 9000)}`);
+      setTrxId(`${prefix}-0001`);
     }
   };
 
@@ -148,6 +150,11 @@ export const Cashier: React.FC = () => {
     });
   }, [services, searchService, selectedCategory]);
 
+  const selectedServicesList = useMemo(() => {
+    if (!services) return [];
+    return watchedServiceIds.map(id => services.find(s => s.id === id)).filter(Boolean) as any[];
+  }, [services, watchedServiceIds]);
+
   // Calculate pricing metrics
   const pricing = useMemo(() => {
     if (!services) return { subtotal: 0, total: 0 };
@@ -158,7 +165,7 @@ export const Cashier: React.FC = () => {
     return { subtotal, total: subtotal };
   }, [services, watchedServiceIds]);
 
-  // Handle open session
+  // Handle open shift
   const handleOpenShift = async () => {
     if (startingCashInput < 0) {
       toast.error('Modal awal tidak boleh minus');
@@ -268,9 +275,26 @@ export const Cashier: React.FC = () => {
       
       setSavedTransaction(transactionObj);
 
+      // Auto-trigger WhatsApp message if customerPhone is provided
+      if (data.customerPhone && data.customerPhone.trim().length >= 4) {
+        let phone = data.customerPhone.trim().replace(/[^0-9]/g, '');
+        if (phone.startsWith('0')) phone = '62' + phone.substring(1);
+        
+        const bName = barbers?.find(b => b.id === data.barberId)?.name || '';
+        const sList = selectedServicesList.map(s => `• ${s.name} (${currency} ${s.price.toLocaleString('id-ID')})`).join('\n');
+        let text = `✂ *${(settings?.name || 'CLASSIC BARBER GO').toUpperCase()}* ✂\n*BarberFlow Premium Grooming*\n----------------------------------------\n*No. TRX*: ${trxId}\n*Tanggal*: ${currentDate} ${currentTime}\n*Pelanggan*: ${data.customerName}\n*Barber*: ${bName}\n----------------------------------------\n*Detail Layanan*:\n${sList}\n----------------------------------------\n*TOTAL AKHIR*: *${currency} ${pricing.total.toLocaleString('id-ID')}*\n*Metode Bayar*: ${data.paymentMethod}\n`;
+        if (data.paymentMethod === 'Cash') {
+          text += `*Uang Tunai*: ${currency} ${cashReceived.toLocaleString('id-ID')}\n*Kembalian*: ${currency} ${changeAmount.toLocaleString('id-ID')}\n`;
+        }
+        text += `----------------------------------------\n_Terima kasih atas kunjungan Anda!_`;
+        
+        window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(text)}`, '_blank');
+      }
+
       // Reset POS form
       reset({
         customerName: '',
+        customerPhone: '',
         barberId: data.barberId, // keep barber for cashier speed
         serviceIds: [],
         notes: '',
@@ -489,6 +513,17 @@ export const Cashier: React.FC = () => {
                 />
               </div>
               {errors.customerName && <span className="form-error">{errors.customerName.message}</span>}
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" htmlFor="custPhone">No. WA Pelanggan (Struk Otomatis)</label>
+              <input
+                id="custPhone"
+                type="text"
+                className="form-input"
+                placeholder="Contoh: 081234567890 (opsional)"
+                {...register('customerPhone')}
+              />
             </div>
 
             <div className="form-group">

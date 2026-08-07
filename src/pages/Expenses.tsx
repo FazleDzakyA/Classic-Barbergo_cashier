@@ -431,20 +431,18 @@ export const Expenses: React.FC = () => {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label" htmlFor="expHandler">Penanggung Jawab (PJ)</label>
+                  <label className="form-label" htmlFor="expHandler">Penanggung Jawab (Barber)</label>
                   <select
                     id="expHandler"
                     className={`form-input select-input ${errors.handler ? 'error-border' : ''}`}
                     {...register('handler')}
                   >
-                    <option value="">-- Pilih Penanggung Jawab --</option>
+                    <option value="">-- Pilih Barber Penanggung Jawab --</option>
                     {barbersList.map(b => (
                       <option key={b.id} value={`${b.name} (${b.shift})`}>
-                        {b.name} — Barber (Shift {b.shift})
+                        {b.name} — Shift {b.shift}
                       </option>
                     ))}
-                    <option value="Administrator (Admin)">Administrator (Admin)</option>
-                    <option value="Kasir On Duty">Kasir On Duty</option>
                   </select>
                   {errors.handler && <span className="form-error">{errors.handler.message}</span>}
                 </div>

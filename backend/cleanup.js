@@ -35,19 +35,22 @@ async function cleanupDB() {
   // 2. Cleanup Services
   await conn.query('DELETE FROM services');
   await conn.query('ALTER TABLE services AUTO_INCREMENT = 1');
+  try {
+    await conn.query('ALTER TABLE services ADD COLUMN stock INT DEFAULT NULL');
+  } catch (e) { /* column exists */ }
   await conn.query(`
-    INSERT INTO services (id, name, category, price, duration, labelColor, isActive) VALUES
-    (1, 'Potong', 'Haircut', 20000, 30, '#D4AF37', 1),
-    (2, 'Potong Kramas', 'Haircut', 23000, 40, '#4169E1', 1),
-    (3, 'Shaving', 'Treatment', 10000, 15, '#20B2AA', 1),
-    (4, 'Hair Color Mulai', 'Hair Color', 70000, 60, '#FF69B4', 1),
-    (5, 'Highlight Mulai', 'Hair Color', 80000, 60, '#BA55D3', 1),
-    (6, 'Semir Hitam', 'Hair Color', 60000, 45, '#778899', 1),
-    (7, 'Hair Tonic', 'Treatment', 25000, 10, '#3CB371', 1),
-    (8, 'Hair Tonic Besar', 'Treatment', 30000, 15, '#2E8B57', 1),
-    (9, 'Pomade', 'Product', 25000, 5, '#CD853F', 1),
-    (10, 'Creambath', 'Treatment', 50000, 45, '#FF8C00', 1),
-    (11, 'Smoting', 'Treatment', 60000, 90, '#4682B4', 1)
+    INSERT INTO services (id, name, category, price, duration, labelColor, isActive, stock) VALUES
+    (1, 'Potong', 'Haircut', 20000, 30, '#D4AF37', 1, NULL),
+    (2, 'Potong Kramas', 'Haircut', 23000, 40, '#4169E1', 1, NULL),
+    (3, 'Shaving', 'Treatment', 10000, 15, '#20B2AA', 1, NULL),
+    (4, 'Hair Color Mulai', 'Hair Color', 70000, 60, '#FF69B4', 1, NULL),
+    (5, 'Highlight Mulai', 'Hair Color', 80000, 60, '#BA55D3', 1, NULL),
+    (6, 'Semir Hitam', 'Hair Color', 60000, 45, '#778899', 1, NULL),
+    (7, 'Hair Tonic', 'Treatment', 25000, 10, '#3CB371', 1, NULL),
+    (8, 'Hair Tonic Besar', 'Treatment', 30000, 15, '#2E8B57', 1, NULL),
+    (9, 'Pomade', 'Product', 25000, 5, '#CD853F', 1, 25),
+    (10, 'Creambath', 'Treatment', 50000, 45, '#FF8C00', 1, NULL),
+    (11, 'Smoting', 'Treatment', 60000, 90, '#4682B4', 1, NULL)
   `);
 
   // Ensure UNIQUE index on services(name)
