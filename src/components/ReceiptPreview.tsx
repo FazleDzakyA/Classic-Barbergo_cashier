@@ -119,52 +119,41 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ transaction, onC
     }
   };
 
-  // WhatsApp Share Handler with Web Share API File Attachment
+  // WhatsApp Share Handler with Direct Customer Number Targeting
   const handleSendWhatsApp = async () => {
     try {
+      let rawPhone = transaction.customerPhone;
+      if (!rawPhone || rawPhone.trim().length < 4) {
+        rawPhone = window.prompt('Masukkan nomor WhatsApp pelanggan (contoh: 081234567890):', '') || '';
+      }
+
+      if (!rawPhone || rawPhone.trim().length < 4) {
+        toast.error('Nomor WhatsApp pelanggan tidak diisi');
+        return;
+      }
+
+      let targetPhone = rawPhone.trim().replace(/[^0-9]/g, '');
+      if (targetPhone.startsWith('0')) targetPhone = '62' + targetPhone.substring(1);
+
       const canvas = await captureFullReceiptCanvas();
       if (!canvas) return;
       
       canvas.toBlob(async (blob) => {
-        if (!blob) return;
-        const file = new File([blob], `struk-${transaction.id}.png`, { type: 'image/png' });
-        
-        let rawPhone = transaction.customerPhone || window.prompt('Masukkan nomor WhatsApp pelanggan (contoh: 081234567890):', '');
-        let targetPhone = '';
-        if (rawPhone && rawPhone.trim().length >= 4) {
-          targetPhone = rawPhone.trim().replace(/[^0-9]/g, '');
-          if (targetPhone.startsWith('0')) targetPhone = '62' + targetPhone.substring(1);
-        }
-
-        // Try Web Share API (Mobile / Native WhatsApp App File Share)
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        if (blob) {
+          // Copy Image to Clipboard if possible
           try {
-            await navigator.share({
-              files: [file],
-              title: `Struk ${transaction.id}`,
-              text: `Struk Belanja ${settings?.name || 'Classic Barber Go'}`
-            });
-            toast.success('Struk berhasil dikirim!');
-            return;
+            await navigator.clipboard.write([
+              new ClipboardItem({ 'image/png': blob })
+            ]);
+            toast.success('Gambar Struk disalin ke Clipboard! Siap dipaste di WA.');
           } catch (e) {
-            // User cancelled share or fallback
+            // Auto download fallback
+            const imgData = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.href = imgData;
+            link.download = `struk-${transaction.id}.png`;
+            link.click();
           }
-        }
-
-        // Fallback: Copy Image Blob to Clipboard & Download PNG file
-        try {
-          await navigator.clipboard.write([
-            new ClipboardItem({ 'image/png': blob })
-          ]);
-          toast.success('Gambar Struk disalin ke Clipboard! Tekan Ctrl+V di WA.');
-        } catch (e) {
-          // Download link fallback
-          const imgData = canvas.toDataURL('image/png');
-          const link = document.createElement('a');
-          link.href = imgData;
-          link.download = `struk-${transaction.id}.png`;
-          link.click();
-          toast.success('Gambar Struk PNG diunduh! Silakan lampirkan di WA.');
         }
 
         const shopName = settings?.name || 'Classic Barber Go';
@@ -180,16 +169,17 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ transaction, onC
         text += `*Detail Layanan*:\n${serviceNames}\n`;
         text += `----------------------------------------\n`;
         text += `*TOTAL AKHIR*: *${formatMoney(transaction.total)}*\n`;
+        text += `*Metode Bayar*: ${transaction.paymentMethod}\n`;
+        if (transaction.paymentMethod === 'Cash' && transaction.cashReceived !== undefined) {
+          text += `*Uang Tunai*: ${formatMoney(transaction.cashReceived)}\n`;
+          text += `*Kembalian*: ${formatMoney(transaction.changeReturned || 0)}\n`;
+        }
         text += `----------------------------------------\n`;
-        text += `_Lampirkan gambar struk yang sudah di-copy/download._\n`;
-        text += `_Terima kasih atas kunjungan Anda!_`;
+        text += `_Terima kasih atas kunjungan Anda!_\n`;
+        text += `_Classic Barber Go — Premium Grooming Experience_`;
 
         const encodedText = encodeURIComponent(text);
-        if (targetPhone) {
-          window.open(`https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodedText}`, '_blank');
-        } else {
-          window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
-        }
+        window.open(`https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodedText}`, '_blank');
       }, 'image/png');
     } catch (e) {
       console.error(e);
