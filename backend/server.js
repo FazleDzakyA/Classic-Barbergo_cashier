@@ -586,7 +586,11 @@ app.post('/api/database/import', async (req, res) => {
 
 // Start backend server
 initDatabase().then(() => {
-  app.listen(PORT, () => {
-    console.log(`BarberFlow backend API listening on port ${PORT}`);
-  });
+  if (require.main === module) {
+    app.listen(PORT, () => {
+      console.log(`BarberFlow backend API listening on port ${PORT}`);
+    });
+  }
 });
+
+module.exports = app;
