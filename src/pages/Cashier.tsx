@@ -272,6 +272,15 @@ export const Cashier: React.FC = () => {
       };
 
       await db.transactions.add(transactionObj);
+
+      // Decrement stock for services with stock limit
+      for (const s of selectedServicesList) {
+        if (s && s.id && s.stock !== undefined && s.stock !== null) {
+          const newStock = Math.max(0, s.stock - 1);
+          await db.services.update(s.id, { stock: newStock });
+        }
+      }
+
       toast.success('Transaksi berhasil disimpan!');
       
       setSavedTransaction(transactionObj);

@@ -68,12 +68,22 @@ export const Expenses: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [modalTab, setModalTab] = useState<'general' | 'restock'>('general');
+  const [restockPcs, setRestockPcs] = useState<number>(10);
+  const [selectedProductId, setSelectedProductId] = useState<number | 0>(0);
+
+  const services = useLiveQuery(() => db.services.toArray());
+  const productServices = useMemo(() => {
+    if (!services) return [];
+    return services.filter(s => s.category.toLowerCase().includes('product') || s.name.toLowerCase().includes('pomade') || s.stock !== null);
+  }, [services]);
 
   // Form Setup
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors }
   } = useForm<ExpenseFormValues>({
     resolver: zodResolver(expenseSchema)
@@ -86,10 +96,16 @@ export const Expenses: React.FC = () => {
   // Open Modal Add
   const handleOpenAdd = () => {
     setEditingExpense(null);
+    setModalTab('general');
+    setRestockPcs(10);
+    const defaultPomade = productServices.find(p => p.name.toLowerCase().includes('pomade')) || productServices[0];
+    if (defaultPomade && defaultPomade.id) {
+      setSelectedProductId(defaultPomade.id);
+    }
     reset({
       date: new Date().toISOString().split('T')[0],
       time: new Date().toTimeString().split(' ')[0].substring(0, 5),
-      category: 'Pomade',
+      category: 'Perlengkapan',
       amount: 0,
       handler: '',
       notes: ''
@@ -100,6 +116,7 @@ export const Expenses: React.FC = () => {
   // Open Modal Edit
   const handleOpenEdit = (expense: Expense) => {
     setEditingExpense(expense);
+    setModalTab('general');
     reset({
       date: expense.date,
       time: expense.time,
@@ -118,8 +135,27 @@ export const Expenses: React.FC = () => {
         await db.expenses.update(editingExpense.id!, data);
         toast.success('Pengeluaran berhasil diubah');
       } else {
-        await db.expenses.add(data);
-        toast.success('Pengeluaran berhasil disimpan');
+        if (modalTab === 'restock') {
+          const targetProd = productServices.find(p => p.id === Number(selectedProductId)) || productServices[0];
+          if (targetProd && targetProd.id) {
+            const currentStk = targetProd.stock || 0;
+            const newStk = currentStk + Number(restockPcs);
+            await db.services.update(targetProd.id, { stock: newStk });
+
+            const expenseData: ExpenseFormValues = {
+              ...data,
+              category: `Pembelian ${targetProd.name} (${restockPcs} Pcs)`
+            };
+            await db.expenses.add(expenseData);
+            toast.success(`Stok ${targetProd.name} bertambah +${restockPcs} Pcs! Total: ${newStk} Pcs`);
+          } else {
+            await db.expenses.add(data);
+            toast.success('Pengeluaran berhasil disimpan');
+          }
+        } else {
+          await db.expenses.add(data);
+          toast.success('Pengeluaran berhasil disimpan');
+        }
       }
       setIsModalOpen(false);
       reset();
@@ -372,7 +408,82 @@ export const Expenses: React.FC = () => {
                 </button>
               </div>
 
+              {!editingExpense && (
+                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', borderBottom: '1px solid #222', paddingBottom: '0.75rem' }}>
+                  <button
+                    type="button"
+                    className={`btn ${modalTab === 'general' ? 'btn-primary' : 'btn-secondary'}`}
+                    style={{ flex: 1, fontSize: '0.82rem', padding: '0.5rem' }}
+                    onClick={() => {
+                      setModalTab('general');
+                      setValue('category', 'Perlengkapan');
+                    }}
+                  >
+                    Pengeluaran Bebas
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn ${modalTab === 'restock' ? 'btn-primary' : 'btn-secondary'}`}
+                    style={{ flex: 1, fontSize: '0.82rem', padding: '0.5rem' }}
+                    onClick={() => {
+                      setModalTab('restock');
+                      const prod = productServices.find(p => p.name.toLowerCase().includes('pomade')) || productServices[0];
+                      if (prod) {
+                        setSelectedProductId(prod.id!);
+                        setValue('category', `Pembelian ${prod.name} (${restockPcs} Pcs)`);
+                      }
+                    }}
+                  >
+                    📦 Restok Pomade (+Stok)
+                  </button>
+                </div>
+              )}
+
               <form onSubmit={handleSubmit(onSubmit)} className="modal-form">
+                {modalTab === 'restock' && !editingExpense && (
+                  <div className="form-row-2" style={{ background: 'rgba(234, 179, 8, 0.08)', padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem', border: '1px solid rgba(234, 179, 8, 0.2)' }}>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label" style={{ color: '#EAB308', fontWeight: 700 }}>Pilih Produk Restok</label>
+                      <select
+                        className="form-input select-input"
+                        value={selectedProductId}
+                        onChange={(e) => {
+                          const id = Number(e.target.value);
+                          setSelectedProductId(id);
+                          const prod = productServices.find(p => p.id === id);
+                          if (prod) {
+                            setValue('category', `Pembelian ${prod.name} (${restockPcs} Pcs)`);
+                          }
+                        }}
+                      >
+                        {productServices.map(p => (
+                          <option key={p.id} value={p.id}>
+                            {p.name} (Stok Sekarang: {p.stock ?? 0} Pcs)
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label" style={{ color: '#EAB308', fontWeight: 700 }}>Tambah Jumlah (Pcs)</label>
+                      <input
+                        type="number"
+                        min={1}
+                        className="form-input"
+                        value={restockPcs}
+                        onChange={(e) => {
+                          const val = Math.max(1, Number(e.target.value));
+                          setRestockPcs(val);
+                          const prod = productServices.find(p => p.id === selectedProductId);
+                          if (prod) {
+                            setValue('category', `Pembelian ${prod.name} (${val} Pcs)`);
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
                 <div className="form-row-2">
                   <div className="form-group">
                     <label className="form-label" htmlFor="expDate">Tanggal</label>

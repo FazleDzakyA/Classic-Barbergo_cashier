@@ -1,8 +1,10 @@
 import React, { useMemo } from 'react';
 import { db, useLiveQuery } from '../database/db';
 import type { Transaction } from '../types';
+import html2canvas from 'html2canvas';
 import { Printer, Download, X, MessageSquare } from 'lucide-react';
 import { jsPDF } from 'jspdf';
+import toast from 'react-hot-toast';
 import './ReceiptPreview.css';
 
 interface ReceiptPreviewProps {
@@ -60,7 +62,6 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ transaction, onC
     doc.setFont('courier', 'normal');
     doc.setFontSize(10);
     
-    // Header
     let y = 10;
     doc.text(shopName, 40, y, { align: 'center' });
     doc.setFontSize(8);
@@ -82,7 +83,6 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ transaction, onC
     doc.text('--------------------------------', 40, y, { align: 'center' });
     y += 5;
 
-    // Info
     doc.text(`No. TRX : ${transaction.id}`, 5, y);
     y += 4;
     doc.text(`Tanggal : ${transaction.date} ${transaction.time}`, 5, y);
@@ -94,10 +94,8 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ transaction, onC
     doc.text('--------------------------------', 40, y, { align: 'center' });
     y += 5;
 
-    // Services
-    selectedServices.forEach((s) => {
+    selectedServices.forEach((s: any) => {
       if (s) {
-        // Left align name, right align price
         doc.text(s.name.substring(0, 18), 5, y);
         doc.text(s.price.toLocaleString('id-ID'), 75, y, { align: 'right' });
         y += 4;
@@ -107,25 +105,6 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ transaction, onC
     doc.text('--------------------------------', 40, y, { align: 'center' });
     y += 5;
 
-    // Subtotal
-    doc.text('Subtotal:', 5, y);
-    doc.text(transaction.subtotal.toLocaleString('id-ID'), 75, y, { align: 'right' });
-    y += 4;
-
-    if (transaction.discountNominal > 0) {
-      doc.text(`Diskon (${transaction.discountPercent}%):`, 5, y);
-      doc.text(`-${transaction.discountNominal.toLocaleString('id-ID')}`, 75, y, { align: 'right' });
-      y += 4;
-    }
-
-    doc.text(`Pajak (${transaction.taxPercent}%):`, 5, y);
-    doc.text(transaction.taxNominal.toLocaleString('id-ID'), 75, y, { align: 'right' });
-    y += 4;
-
-    doc.text('--------------------------------', 40, y, { align: 'center' });
-    y += 5;
-
-    // Total
     doc.setFont('courier', 'bold');
     doc.text('TOTAL:', 5, y);
     doc.text(`${currency} ${transaction.total.toLocaleString('id-ID')}`, 75, y, { align: 'right' });
@@ -143,11 +122,9 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ transaction, onC
     }
 
     y += 2;
-
     doc.text('--------------------------------', 40, y, { align: 'center' });
     y += 6;
 
-    // Footer
     if (footer) {
       const footerLines = doc.splitTextToSize(footer, 70);
       footerLines.forEach((line: string) => {
@@ -159,8 +136,29 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ transaction, onC
     doc.save(`receipt-${transaction.id}.pdf`);
   };
 
+  // Download High-Res PNG Image of Receipt
+  const handleDownloadImagePNG = async () => {
+    const el = document.getElementById('printable-receipt');
+    if (!el) return;
+    try {
+      const canvas = await html2canvas(el, { scale: 3, backgroundColor: '#FFFFFF' });
+      const imgData = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = imgData;
+      link.download = `struk-${transaction.id}.png`;
+      link.click();
+      toast.success('Gambar Struk (PNG) berhasil diunduh!');
+    } catch (e) {
+      console.error(e);
+      toast.error('Gagal mengunduh gambar struk');
+    }
+  };
+
   // WhatsApp Share Handler
-  const handleSendWhatsApp = () => {
+  const handleSendWhatsApp = async () => {
+    // Automatically trigger PNG download so cashier can attach image
+    await handleDownloadImagePNG();
+
     const shopName = settings?.name || 'Classic Barber Go';
     const serviceNames = selectedServices.map(s => `• ${s?.name} (${formatMoney(s?.price || 0)})`).join('\n');
     
@@ -181,6 +179,7 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ transaction, onC
       text += `*Kembalian*: ${formatMoney(transaction.changeReturned || 0)}\n`;
     }
     text += `----------------------------------------\n`;
+    text += `_Gambar Struk (PNG) sudah otomatis diunduh untuk dilampirkan._\n`;
     text += `_Terima kasih atas kunjungan Anda!_\n`;
     text += `_Classic Barber Go — Premium Grooming Experience_`;
 
