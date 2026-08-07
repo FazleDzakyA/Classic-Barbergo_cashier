@@ -35,6 +35,7 @@ export interface Transaction {
   date: string; // YYYY-MM-DD
   time: string; // HH:mm
   customerName: string;
+  customerPhone?: string;
   barberId: number;
   serviceIds: number[]; // Array of Service IDs
   subtotal: number;

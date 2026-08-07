@@ -437,10 +437,10 @@ export const Expenses: React.FC = () => {
                     className={`form-input select-input ${errors.handler ? 'error-border' : ''}`}
                     {...register('handler')}
                   >
-                    <option value="">-- Pilih Barber Penanggung Jawab --</option>
+                    <option value="">-- Pilih Barber --</option>
                     {barbersList.map(b => (
-                      <option key={b.id} value={`${b.name} (${b.shift})`}>
-                        {b.name} — Shift {b.shift}
+                      <option key={b.id} value={b.name}>
+                        {b.name}
                       </option>
                     ))}
                   </select>

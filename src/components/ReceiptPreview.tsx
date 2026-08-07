@@ -185,7 +185,16 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ transaction, onC
     text += `_Classic Barber Go — Premium Grooming Experience_`;
 
     const encodedText = encodeURIComponent(text);
-    window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
+    
+    let rawPhone = transaction.customerPhone || window.prompt('Masukkan nomor WhatsApp pelanggan (contoh: 081234567890):', '');
+    
+    if (rawPhone && rawPhone.trim().length >= 4) {
+      let phone = rawPhone.trim().replace(/[^0-9]/g, '');
+      if (phone.startsWith('0')) phone = '62' + phone.substring(1);
+      window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${encodedText}`, '_blank');
+    } else {
+      window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
+    }
   };
 
   return (

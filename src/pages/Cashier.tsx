@@ -254,6 +254,7 @@ export const Cashier: React.FC = () => {
         date: currentDate,
         time: currentTime,
         customerName: data.customerName,
+        customerPhone: data.customerPhone,
         barberId: data.barberId,
         serviceIds: data.serviceIds,
         subtotal: pricing.subtotal,
