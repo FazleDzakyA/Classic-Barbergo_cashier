@@ -18,6 +18,8 @@ import {
   LinearScale,
   PointElement,
   LineElement,
+  BarElement,
+  ArcElement,
   Title,
   Tooltip,
   Legend,
@@ -33,6 +35,8 @@ ChartJS.register(
   LinearScale,
   PointElement,
   LineElement,
+  BarElement,
+  ArcElement,
   Title,
   Tooltip,
   Legend,
@@ -251,6 +255,56 @@ export const Reports: React.FC = () => {
     window.print();
   };
 
+  // Helper: render an off-screen canvas chart and return base64 png
+  const renderChartToBase64 = (
+    type: 'bar' | 'pie',
+    labels: string[],
+    data: number[],
+    colors: string[],
+    width = 600,
+    height = 320
+  ): string => {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d')!;
+    // White background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, width, height);
+    const chart = new ChartJS(ctx, {
+      type,
+      data: {
+        labels,
+        datasets: [{
+          data,
+          backgroundColor: colors,
+          borderColor: type === 'bar' ? colors.map(c => c + 'cc') : '#fff',
+          borderWidth: type === 'bar' ? 0 : 2,
+          borderRadius: type === 'bar' ? 6 : 0
+        }]
+      },
+      options: {
+        animation: false as any,
+        responsive: false,
+        plugins: {
+          legend: {
+            display: type === 'pie',
+            position: 'right',
+            labels: { font: { size: 13 }, padding: 12 }
+          },
+          tooltip: { enabled: false }
+        },
+        scales: type === 'bar' ? {
+          x: { grid: { display: false }, ticks: { font: { size: 12 } } },
+          y: { grid: { color: '#eee' }, ticks: { font: { size: 11 } } }
+        } : undefined
+      }
+    });
+    const b64 = canvas.toDataURL('image/png');
+    chart.destroy();
+    return b64;
+  };
+
   // Executive Luxury PDF Generator
   const handleExportPDF = () => {
     if (!reportData) return;
@@ -265,93 +319,92 @@ export const Reports: React.FC = () => {
     const address = settings?.address || 'Jl. Mr. Koesbiyono Tjondrowibowo, Semarang';
     const phone = settings?.phone || '0812-3456-7890';
 
-    // 1. Top Header Dark Banner
-    doc.setFillColor(15, 15, 15);
-    doc.rect(0, 0, 210, 36, 'F');
+    // ═══════════════════════════════════════════
+    // 1. HEADER — Dark premium banner with gold accents
+    // ═══════════════════════════════════════════
 
-    // Header Gold Line
+    // Background header full-width
+    doc.setFillColor(12, 12, 18);
+    doc.rect(0, 0, 210, 42, 'F');
+
+    // Left gold vertical accent stripe
     doc.setFillColor(212, 175, 55);
-    doc.rect(0, 36, 210, 2, 'F');
+    doc.rect(0, 0, 5, 42, 'F');
 
-    // Logo Scissor Icon / Title
+    // Bottom gold separator line
+    doc.setFillColor(212, 175, 55);
+    doc.rect(0, 42, 210, 1.5, 'F');
+
+    // Shop name — large gold bold
     doc.setTextColor(212, 175, 55);
-    doc.setFontSize(20);
+    doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text('✂ ' + shopName.toUpperCase(), 14, 16);
+    doc.text(shopName.toUpperCase(), 14, 14);
 
-    doc.setTextColor(220, 220, 220);
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    doc.text('BARBERFLOW POS — FINANCIAL & OPERATIONAL REPORT', 14, 23);
-    doc.text(`${address} | Telp: ${phone}`, 14, 29);
-
-    doc.setTextColor(212, 175, 55);
+    // Tagline subtitle
+    doc.setTextColor(180, 175, 165);
     doc.setFontSize(8);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`PERIODE: ${periodStr.toUpperCase()}`, 145, 16, { align: 'left' });
-    doc.setTextColor(180, 180, 180);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Tipe: Laporan ${reportType}`, 145, 22);
-    doc.text(`Cetak: ${dayjs().format('DD/MM/YYYY HH:mm')}`, 145, 28);
+    doc.text('LAPORAN KEUANGAN & OPERASIONAL — BARBERFLOW POS SYSTEM', 14, 21);
+    doc.text(`${address}`, 14, 27);
+    doc.text(`Telp: ${phone}`, 14, 32);
 
-    // 2. KPI Summary Highlight Boxes (4 Metric Cards)
-    const cardY = 44;
-    const cardW = 43;
-    const cardH = 18;
-    const gap = 5;
-
-    // Card 1: Total Revenue
-    doc.setFillColor(245, 245, 245);
+    // Right side — report meta block
+    doc.setFillColor(30, 28, 20);
     doc.setDrawColor(212, 175, 55);
-    doc.rect(14, cardY, cardW, cardH, 'FD');
-    doc.setFontSize(7);
-    doc.setTextColor(100, 100, 100);
-    doc.text('TOTAL OMSET (GROSS)', 18, cardY + 5);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(18, 18, 18);
-    doc.text(formatMoney(reportData.totalRevenue), 18, cardY + 13);
+    doc.roundedRect(136, 7, 65, 30, 2, 2, 'FD');
 
-    // Card 2: Expenses
-    doc.setFillColor(245, 245, 245);
-    doc.setDrawColor(239, 68, 68);
-    doc.rect(14 + cardW + gap, cardY, cardW, cardH, 'FD');
+    doc.setTextColor(212, 175, 55);
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'bold');
+    doc.text('PERIODE LAPORAN', 139, 13);
+    doc.setFontSize(9);
+    doc.text(periodStr.toUpperCase(), 139, 19);
+    doc.setTextColor(180, 175, 165);
     doc.setFontSize(7);
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100, 100, 100);
-    doc.text('TOTAL PENGELUARAN', 18 + cardW + gap, cardY + 5);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(220, 38, 38);
-    doc.text(formatMoney(reportData.totalExpenses), 18 + cardW + gap, cardY + 13);
+    doc.text(`Tipe: Laporan ${reportType}`, 139, 25);
+    doc.text(`Cetak: ${dayjs().format('DD/MM/YYYY  HH:mm')}`, 139, 30);
 
-    // Card 3: Net Profit
-    doc.setFillColor(245, 245, 245);
-    doc.setDrawColor(16, 185, 129);
-    doc.rect(14 + (cardW + gap) * 2, cardY, cardW, cardH, 'FD');
-    doc.setFontSize(7);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100, 100, 100);
-    doc.text('LABA BERSIH (NET)', 18 + (cardW + gap) * 2, cardY + 5);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(5, 150, 105);
-    doc.text(formatMoney(reportData.netProfit), 18 + (cardW + gap) * 2, cardY + 13);
+    // ═══════════════════════════════════════════
+    // 2. KPI METRIC CARDS (4 cards in a row)
+    // ═══════════════════════════════════════════
+    const cardY = 50;
+    const cardW = 43;
+    const cardH = 20;
+    const gap = 4;
 
-    // Card 4: Transactions
-    doc.setFillColor(245, 245, 245);
-    doc.setDrawColor(59, 130, 246);
-    doc.rect(14 + (cardW + gap) * 3, cardY, cardW, cardH, 'FD');
-    doc.setFontSize(7);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100, 100, 100);
-    doc.text('TOTAL TRANSAKSI', 18 + (cardW + gap) * 3, cardY + 5);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(37, 99, 235);
-    doc.text(`${reportData.txCount} Transaksi`, 18 + (cardW + gap) * 3, cardY + 13);
+    const cards = [
+      { label: 'TOTAL OMSET', value: formatMoney(reportData.totalRevenue), border: [212, 175, 55] as [number,number,number], textColor: [15, 15, 15] as [number,number,number] },
+      { label: 'TOTAL PENGELUARAN', value: formatMoney(reportData.totalExpenses), border: [220, 38, 38] as [number,number,number], textColor: [180, 20, 20] as [number,number,number] },
+      { label: 'LABA BERSIH', value: formatMoney(reportData.netProfit), border: [16, 185, 129] as [number,number,number], textColor: [5, 130, 90] as [number,number,number] },
+      { label: 'TOTAL TRANSAKSI', value: `${reportData.txCount} Trx`, border: [99, 102, 241] as [number,number,number], textColor: [60, 50, 200] as [number,number,number] }
+    ];
 
-    let currentY = 70;
+    cards.forEach((card, i) => {
+      const cx = 14 + i * (cardW + gap);
+      // Card background
+      doc.setFillColor(248, 248, 252);
+      doc.setDrawColor(...card.border);
+      doc.setLineWidth(0.6);
+      doc.roundedRect(cx, cardY, cardW, cardH, 2, 2, 'FD');
+      // Top colored band
+      doc.setFillColor(...card.border);
+      doc.roundedRect(cx, cardY, cardW, 5, 2, 2, 'F');
+      doc.rect(cx, cardY + 3, cardW, 2, 'F'); // square bottom of rounded top
+      // Label
+      doc.setFontSize(6.5);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 255, 255);
+      doc.text(card.label, cx + 3, cardY + 3.8);
+      // Value
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...card.textColor);
+      doc.text(card.value, cx + 3, cardY + 14, { maxWidth: cardW - 6 });
+    });
+
+    let currentY = 78;
 
     // 3. Section 1: Executive Financial Summary Table
     doc.setFontSize(11);
@@ -376,13 +429,50 @@ export const Reports: React.FC = () => {
       columnStyles: { 0: { fontStyle: 'bold', cellWidth: 60 }, 1: { fontStyle: 'bold', cellWidth: 45 } }
     });
 
-    currentY = (doc as any).lastAutoTable.finalY + 9;
+    currentY = (doc as any).lastAutoTable.finalY + 10;
 
-    // 4. Section 2: Barber Performance Report Table
+    // ═══ CHART 1: Omset per Barber (Bar Chart) ═══
+    if (reportData.barberBreakdown.length > 0) {
+      const barLabels = reportData.barberBreakdown.map(b => b.name);
+      const barData   = reportData.barberBreakdown.map(b => b.revenue);
+      const barColors = ['#D4AF37', '#10B981', '#6366F1', '#F59E0B', '#EF4444'];
+
+      if (currentY > 210) { doc.addPage(); currentY = 20; }
+
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(18, 18, 18);
+      doc.text('2. Grafik Performa Omset Barber', 14, currentY);
+
+      const barChartB64 = renderChartToBase64('bar', barLabels, barData, barColors.slice(0, barLabels.length), 580, 300);
+      doc.addImage(barChartB64, 'PNG', 14, currentY + 3, 182, 52);
+      currentY += 58;
+    }
+
+    // ═══ CHART 2: Kontribusi Barber (Pie Chart) ═══
+    if (reportData.barberBreakdown.length > 0 && reportData.totalRevenue > 0) {
+      const pieLabels = reportData.barberBreakdown.map(b => `${b.name} (${b.share}%)`);
+      const pieData   = reportData.barberBreakdown.map(b => b.revenue);
+      const pieColors = ['#D4AF37', '#10B981', '#6366F1', '#F59E0B', '#EF4444'];
+
+      if (currentY > 210) { doc.addPage(); currentY = 20; }
+
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(18, 18, 18);
+      doc.text('3. Grafik Kontribusi Omset per Barber', 14, currentY);
+
+      const pieChartB64 = renderChartToBase64('pie', pieLabels, pieData, pieColors.slice(0, pieLabels.length), 600, 300);
+      doc.addImage(pieChartB64, 'PNG', 30, currentY + 3, 150, 55);
+      currentY += 62;
+    }
+
+    // 4. Section: Barber Performance Report Table
+    if (currentY > 220) { doc.addPage(); currentY = 20; }
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(18, 18, 18);
-    doc.text('2. Laporan Performa Kinerja Barber', 14, currentY);
+    doc.text('4. Tabel Performa Kinerja Barber', 14, currentY);
 
     const barberRows = reportData.barberBreakdown.map((b, idx) => [
       `#${idx + 1}`,
@@ -404,11 +494,12 @@ export const Reports: React.FC = () => {
 
     currentY = (doc as any).lastAutoTable.finalY + 9;
 
-    // 5. Section 3: Popular Services & Pomade Sales
+    // 5. Section: Popular Services & Pomade Sales
+    if (currentY > 220) { doc.addPage(); currentY = 20; }
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(18, 18, 18);
-    doc.text('3. Laporan Layanan & Produk Pomade Terlaris', 14, currentY);
+    doc.text('5. Tabel Layanan & Produk Pomade Terlaris', 14, currentY);
 
     const serviceRows = reportData.serviceBreakdown.slice(0, 8).map((s, idx) => [
       `#${idx + 1}`,
@@ -430,16 +521,13 @@ export const Reports: React.FC = () => {
 
     currentY = (doc as any).lastAutoTable.finalY + 9;
 
-    // 6. Section 4: Income Transactions List
-    if (currentY > 230) {
-      doc.addPage();
-      currentY = 20;
-    }
+    // 6. Section: Income Transactions List
+    if (currentY > 220) { doc.addPage(); currentY = 20; }
 
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(18, 18, 18);
-    doc.text('4. Rincian Pemasukan Transaksi (Terbaru)', 14, currentY);
+    doc.text('6. Rincian Pemasukan Transaksi (Terbaru)', 14, currentY);
 
     const txRows = reportData.rangeTxs.slice(0, 10).map(t => {
       const bName = barbers?.find(b => b.id === t.barberId)?.name || '-';
@@ -464,16 +552,13 @@ export const Reports: React.FC = () => {
 
     currentY = (doc as any).lastAutoTable.finalY + 9;
 
-    // 7. Section 5: Store Expenses List
-    if (currentY > 230) {
-      doc.addPage();
-      currentY = 20;
-    }
+    // 7. Section: Store Expenses List
+    if (currentY > 220) { doc.addPage(); currentY = 20; }
 
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(18, 18, 18);
-    doc.text('5. Rincian Pengeluaran Toko', 14, currentY);
+    doc.text('7. Rincian Pengeluaran Toko', 14, currentY);
 
     const expenseRows = reportData.rangeExpenses.slice(0, 10).map(e => [
       `${e.date} ${e.time}`,
