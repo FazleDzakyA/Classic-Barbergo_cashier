@@ -107,7 +107,7 @@ export const Expenses: React.FC = () => {
       time: new Date().toTimeString().split(' ')[0].substring(0, 5),
       category: 'Perlengkapan',
       amount: 0,
-      handler: '',
+      handler: barbersList[0]?.name || 'Faiz',
       notes: ''
     });
     setIsModalOpen(true);
@@ -131,8 +131,15 @@ export const Expenses: React.FC = () => {
   // Save / Update
   const onSubmit = async (data: ExpenseFormValues) => {
     try {
+      // Find active shift session
+      const activeSession = await db.sessions.where('status').equals('open').first();
+      const payload = {
+        ...data,
+        sessionId: activeSession ? activeSession.id : undefined
+      };
+
       if (editingExpense) {
-        await db.expenses.update(editingExpense.id!, data);
+        await db.expenses.update(editingExpense.id!, payload);
         toast.success('Pengeluaran berhasil diubah');
       } else {
         if (modalTab === 'restock') {
@@ -142,18 +149,18 @@ export const Expenses: React.FC = () => {
             const newStk = currentStk + Number(restockPcs);
             await db.services.update(targetProd.id, { stock: newStk });
 
-            const expenseData: ExpenseFormValues = {
-              ...data,
+            const expenseData = {
+              ...payload,
               category: `Pembelian ${targetProd.name} (${restockPcs} Pcs)`
             };
             await db.expenses.add(expenseData);
             toast.success(`Stok ${targetProd.name} bertambah +${restockPcs} Pcs! Total: ${newStk} Pcs`);
           } else {
-            await db.expenses.add(data);
+            await db.expenses.add(payload);
             toast.success('Pengeluaran berhasil disimpan');
           }
         } else {
-          await db.expenses.add(data);
+          await db.expenses.add(payload);
           toast.success('Pengeluaran berhasil disimpan');
         }
       }

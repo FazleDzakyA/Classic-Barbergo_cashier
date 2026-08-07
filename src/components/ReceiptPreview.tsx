@@ -154,45 +154,83 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ transaction, onC
     }
   };
 
-  // WhatsApp Share Handler
+  // WhatsApp Share Handler with Web Share API File Attachment
   const handleSendWhatsApp = async () => {
-    // Automatically trigger PNG download so cashier can attach image
-    await handleDownloadImagePNG();
+    const el = document.getElementById('printable-receipt');
+    if (!el) return;
 
-    const shopName = settings?.name || 'Classic Barber Go';
-    const serviceNames = selectedServices.map(s => `• ${s?.name} (${formatMoney(s?.price || 0)})`).join('\n');
-    
-    let text = `✂ *${shopName.toUpperCase()}* ✂\n`;
-    text += `*BarberFlow Premium Grooming*\n`;
-    text += `----------------------------------------\n`;
-    text += `*No. TRX*: ${transaction.id}\n`;
-    text += `*Tanggal*: ${transaction.date} ${transaction.time}\n`;
-    text += `*Pelanggan*: ${transaction.customerName}\n`;
-    text += `*Barber*: ${barberName}\n`;
-    text += `----------------------------------------\n`;
-    text += `*Detail Layanan*:\n${serviceNames}\n`;
-    text += `----------------------------------------\n`;
-    text += `*TOTAL AKHIR*: *${formatMoney(transaction.total)}*\n`;
-    text += `*Metode Bayar*: ${transaction.paymentMethod}\n`;
-    if (transaction.paymentMethod === 'Cash' && transaction.cashReceived !== undefined) {
-      text += `*Uang Tunai*: ${formatMoney(transaction.cashReceived)}\n`;
-      text += `*Kembalian*: ${formatMoney(transaction.changeReturned || 0)}\n`;
-    }
-    text += `----------------------------------------\n`;
-    text += `_Gambar Struk (PNG) sudah otomatis diunduh untuk dilampirkan._\n`;
-    text += `_Terima kasih atas kunjungan Anda!_\n`;
-    text += `_Classic Barber Go — Premium Grooming Experience_`;
+    try {
+      const canvas = await html2canvas(el, { scale: 3, backgroundColor: '#FFFFFF' });
+      
+      canvas.toBlob(async (blob) => {
+        if (!blob) return;
+        const file = new File([blob], `struk-${transaction.id}.png`, { type: 'image/png' });
+        
+        let rawPhone = transaction.customerPhone || window.prompt('Masukkan nomor WhatsApp pelanggan (contoh: 081234567890):', '');
+        let targetPhone = '';
+        if (rawPhone && rawPhone.trim().length >= 4) {
+          targetPhone = rawPhone.trim().replace(/[^0-9]/g, '');
+          if (targetPhone.startsWith('0')) targetPhone = '62' + targetPhone.substring(1);
+        }
 
-    const encodedText = encodeURIComponent(text);
-    
-    let rawPhone = transaction.customerPhone || window.prompt('Masukkan nomor WhatsApp pelanggan (contoh: 081234567890):', '');
-    
-    if (rawPhone && rawPhone.trim().length >= 4) {
-      let phone = rawPhone.trim().replace(/[^0-9]/g, '');
-      if (phone.startsWith('0')) phone = '62' + phone.substring(1);
-      window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${encodedText}`, '_blank');
-    } else {
-      window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
+        // Try Web Share API (Mobile / Native WhatsApp App File Share)
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: `Struk ${transaction.id}`,
+              text: `Struk Belanja ${settings?.name || 'Classic Barber Go'}`
+            });
+            toast.success('Struk berhasil dikirim!');
+            return;
+          } catch (e) {
+            // User cancelled share or fallback
+          }
+        }
+
+        // Fallback: Copy Image Blob to Clipboard & Download PNG file
+        try {
+          await navigator.clipboard.write([
+            new ClipboardItem({ 'image/png': blob })
+          ]);
+          toast.success('Gambar Struk disalin ke Clipboard! Tekan Ctrl+V di WA.');
+        } catch (e) {
+          // Download link fallback
+          const imgData = canvas.toDataURL('image/png');
+          const link = document.createElement('a');
+          link.href = imgData;
+          link.download = `struk-${transaction.id}.png`;
+          link.click();
+          toast.success('Gambar Struk PNG diunduh! Silakan lampirkan di WA.');
+        }
+
+        const shopName = settings?.name || 'Classic Barber Go';
+        const serviceNames = selectedServices.map(s => `• ${s?.name} (${formatMoney(s?.price || 0)})`).join('\n');
+        let text = `✂ *${shopName.toUpperCase()}* ✂\n`;
+        text += `*BarberFlow Premium Grooming*\n`;
+        text += `----------------------------------------\n`;
+        text += `*No. TRX*: ${transaction.id}\n`;
+        text += `*Tanggal*: ${transaction.date} ${transaction.time}\n`;
+        text += `*Pelanggan*: ${transaction.customerName}\n`;
+        text += `*Barber*: ${barberName}\n`;
+        text += `----------------------------------------\n`;
+        text += `*Detail Layanan*:\n${serviceNames}\n`;
+        text += `----------------------------------------\n`;
+        text += `*TOTAL AKHIR*: *${formatMoney(transaction.total)}*\n`;
+        text += `----------------------------------------\n`;
+        text += `_Lampirkan gambar struk yang sudah di-copy/download._\n`;
+        text += `_Terima kasih atas kunjungan Anda!_`;
+
+        const encodedText = encodeURIComponent(text);
+        if (targetPhone) {
+          window.open(`https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodedText}`, '_blank');
+        } else {
+          window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
+        }
+      }, 'image/png');
+    } catch (e) {
+      console.error(e);
+      toast.error('Gagal memproses gambar struk');
     }
   };
 
@@ -200,7 +238,7 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ transaction, onC
     <div className="receipt-overlay no-print">
       <div className="receipt-modal-box glass-panel">
         <div className="receipt-modal-header">
-          <h3>Pratinjau Struk</h3>
+          <h3>Pratinjau Struk Thermal</h3>
           <button className="receipt-close-btn" onClick={onClose}>
             <X size={20} />
           </button>
@@ -215,12 +253,12 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ transaction, onC
               ) : (
                 <div className="receipt-fallback-logo">✂</div>
               )}
-              <h2 className="receipt-shop-name">{settings?.name || 'BarberFlow'}</h2>
-              <p className="receipt-shop-info">{settings?.address}</p>
-              <p className="receipt-shop-info">{settings?.phone ? `Telp: ${settings.phone}` : ''}</p>
+              <h2 className="receipt-shop-name">{settings?.name || 'CLASSIC BARBER GO'}</h2>
+              <p className="receipt-shop-info">{settings?.address || 'Jl. Mr. Koesbiyono Tjondrowibowo, Semarang'}</p>
+              <p className="receipt-shop-info">{settings?.phone ? `Telp: ${settings.phone}` : 'Telp: 0812-3456-7890'}</p>
             </div>
 
-            <div className="receipt-divider"></div>
+            <div className="receipt-divider">=== STRUK PEMBAYARAN ===</div>
 
             <div className="receipt-meta-info">
               <div className="receipt-meta-row">
@@ -241,21 +279,21 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ transaction, onC
               </div>
             </div>
 
-            <div className="receipt-divider"></div>
+            <div className="receipt-divider">--------------------------------</div>
 
             <div className="receipt-items-list">
               {selectedServices.map((s, idx) => s && (
                 <div className="receipt-item-row" key={idx}>
                   <div className="receipt-item-desc">
                     <span className="item-name">{s.name}</span>
-                    <span className="item-dur">{s.duration}m</span>
+                    <span className="item-dur">({s.duration} mnt)</span>
                   </div>
                   <span className="item-price">{formatMoney(s.price)}</span>
                 </div>
               ))}
             </div>
 
-            <div className="receipt-divider"></div>
+            <div className="receipt-divider">--------------------------------</div>
 
             <div className="receipt-summary-list">
               <div className="receipt-summary-row">
@@ -275,16 +313,16 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ transaction, onC
                 <span>{formatMoney(transaction.taxNominal)}</span>
               </div>
               
-              <div className="receipt-divider dotted"></div>
+              <div className="receipt-divider dotted">--------------------------------</div>
 
-              <div className="receipt-summary-row total-row">
-                <span>TOTAL:</span>
+              <div className="receipt-summary-row total-row" style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
+                <span>TOTAL AKHIR:</span>
                 <span>{formatMoney(transaction.total)}</span>
               </div>
               
-              <div className="receipt-summary-row payment-method-row">
+              <div className="receipt-summary-row payment-method-row" style={{ marginTop: '0.4rem' }}>
                 <span>Metode Pembayaran:</span>
-                <span className="badge-payment-method">{transaction.paymentMethod}</span>
+                <span className="badge-payment-method" style={{ background: '#000', color: '#FFF', padding: '2px 8px', borderRadius: '4px' }}>{transaction.paymentMethod}</span>
               </div>
 
               {transaction.paymentMethod === 'Cash' && transaction.cashReceived !== undefined && (
@@ -301,12 +339,22 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ transaction, onC
               )}
             </div>
 
-            <div className="receipt-divider"></div>
+            <div className="receipt-divider">--------------------------------</div>
 
-            <div className="receipt-footer">
-              {settings?.receiptFooter.split('\n').map((line, idx) => (
-                <p key={idx}>{line}</p>
-              ))}
+            <div className="receipt-footer" style={{ textAlign: 'center', marginTop: '0.75rem', fontSize: '0.78rem' }}>
+              <p style={{ fontWeight: 'bold', margin: '0 0 4px 0' }}>Terima Kasih Atas Kunjungan Anda!</p>
+              <p style={{ margin: '0 0 8px 0', fontSize: '0.72rem', color: '#555' }}>Classic Barber Go — Premium Grooming</p>
+
+              {/* Barcode Mock Visual */}
+              <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                <div style={{
+                  width: '80%',
+                  height: '35px',
+                  background: 'repeating-linear-gradient(90deg, #000 0, #000 2px, #fff 2px, #fff 4px, #000 4px, #000 7px, #fff 7px, #fff 9px)',
+                  margin: '0 auto'
+                }}></div>
+                <span style={{ fontSize: '0.65rem', fontFamily: 'monospace' }}>*{transaction.id}*</span>
+              </div>
             </div>
           </div>
         </div>
@@ -318,7 +366,11 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ transaction, onC
             style={{ backgroundColor: '#25D366', color: '#FFFFFF', fontWeight: 700, borderRadius: '8px', border: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}
           >
             <MessageSquare size={16} />
-            <span>Struk WA</span>
+            <span>Struk WA (File/Gambar)</span>
+          </button>
+          <button className="btn btn-secondary" onClick={handleDownloadImagePNG}>
+            <Download size={16} />
+            <span>Gambar PNG</span>
           </button>
           <button className="btn btn-secondary" onClick={handleDownloadPDF}>
             <Download size={16} />

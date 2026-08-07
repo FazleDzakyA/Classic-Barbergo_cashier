@@ -66,8 +66,8 @@ export const Dashboard: React.FC = () => {
     let todayExpenses = [];
 
     if (activeOrLastSession) {
-      todayTxs = transactions.filter(t => t.sessionId === activeOrLastSession.id);
-      todayExpenses = expenses.filter(e => e.sessionId === activeOrLastSession.id);
+      todayTxs = transactions.filter(t => t.sessionId === activeOrLastSession.id || t.date === today);
+      todayExpenses = expenses.filter(e => e.sessionId === activeOrLastSession.id || e.date === today);
     } else {
       todayTxs = transactions.filter(t => t.date === today);
       todayExpenses = expenses.filter(e => e.date === today);
