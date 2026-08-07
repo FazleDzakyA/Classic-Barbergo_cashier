@@ -119,7 +119,7 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ transaction, onC
     }
   };
 
-  // WhatsApp Share Handler with Direct Customer Number Targeting
+  // WhatsApp Share Handler with Direct Customer Number Targeting & Image Share
   const handleSendWhatsApp = async () => {
     try {
       let rawPhone = transaction.customerPhone;
@@ -139,22 +139,7 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ transaction, onC
       if (!canvas) return;
       
       canvas.toBlob(async (blob) => {
-        if (blob) {
-          // Copy Image to Clipboard if possible
-          try {
-            await navigator.clipboard.write([
-              new ClipboardItem({ 'image/png': blob })
-            ]);
-            toast.success('Gambar Struk disalin ke Clipboard! Siap dipaste di WA.');
-          } catch (e) {
-            // Auto download fallback
-            const imgData = canvas.toDataURL('image/png');
-            const link = document.createElement('a');
-            link.href = imgData;
-            link.download = `struk-${transaction.id}.png`;
-            link.click();
-          }
-        }
+        if (!blob) return;
 
         const shopName = settings?.name || 'Classic Barber Go';
         const serviceNames = selectedServices.map(s => `• ${s?.name} (${formatMoney(s?.price || 0)})`).join('\n');
@@ -177,6 +162,37 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ transaction, onC
         text += `----------------------------------------\n`;
         text += `_Terima kasih atas kunjungan Anda!_\n`;
         text += `_Classic Barber Go — Premium Grooming Experience_`;
+
+        // 1. Mobile Native Web Share API (Attaches PNG File Directly into WhatsApp App)
+        const file = new File([blob], `struk-${transaction.id}.png`, { type: 'image/png' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: `Struk ${transaction.id}`,
+              text: text
+            });
+            toast.success('Gambar Struk berhasil dikirim ke WhatsApp!');
+            return;
+          } catch (e) {
+            // User closed native share dialog, fallback to direct web link
+          }
+        }
+
+        // 2. Desktop Web Browser Fallback (Open direct chat target + Copy Image Blob)
+        try {
+          await navigator.clipboard.write([
+            new ClipboardItem({ 'image/png': blob })
+          ]);
+          toast.success(`Membuka WA ${targetPhone}! Gambar struk otomatis di-copy, tekan Ctrl+V di chat.`);
+        } catch (e) {
+          const imgData = canvas.toDataURL('image/png');
+          const link = document.createElement('a');
+          link.href = imgData;
+          link.download = `struk-${transaction.id}.png`;
+          link.click();
+          toast.success(`Membuka WA ${targetPhone}! Gambar struk diunduh untuk dilampirkan.`);
+        }
 
         const encodedText = encodeURIComponent(text);
         window.open(`https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodedText}`, '_blank');
