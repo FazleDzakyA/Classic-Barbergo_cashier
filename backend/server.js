@@ -244,12 +244,13 @@ app.post('/api/services', async (req, res) => {
 app.put('/api/services/:id', async (req, res) => {
   const { id } = req.params;
   const { name, category, price, duration, labelColor, isActive, stock } = req.body;
+  const parsedStock = (stock !== undefined && stock !== null && stock !== '') ? Number(stock) : null;
   try {
     await dbQuery(
       'UPDATE services SET name = ?, category = ?, price = ?, duration = ?, labelColor = ?, isActive = ?, stock = ? WHERE id = ?',
-      [name, category, price, duration, labelColor, isActive ? 1 : 0, stock !== undefined ? stock : null, id]
+      [name, category, price, duration, labelColor, isActive ? 1 : 0, parsedStock, id]
     );
-    res.json({ id: parseInt(id), name, category, price, duration, labelColor, isActive, stock });
+    res.json({ id: parseInt(id), name, category, price, duration, labelColor, isActive: !!isActive, stock: parsedStock });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

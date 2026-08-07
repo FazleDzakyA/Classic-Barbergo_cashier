@@ -174,13 +174,13 @@ class MockTable<T, PK extends string | number> {
 
     // Default update: fetch current, merge changes, send PUT
     const items = await this.toArray();
-    const existing = items.find((item: any) => (item.id || item.key || item.key_name) === id);
-    if (!existing) throw new Error(`Item not found for update`);
+    const existing = items.find((item: any) => String(item.id || item.key || item.key_name) === String(id));
+    const merged = existing ? { ...existing, ...changes } : { id, ...changes };
     
     const res = await fetch(`${API_URL}${this.apiPath}/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...existing, ...changes })
+      body: JSON.stringify(merged)
     });
     if (!res.ok) throw new Error(`Failed to update item in ${this.apiPath}`);
     notifyChange();
