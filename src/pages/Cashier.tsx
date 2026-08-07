@@ -277,7 +277,15 @@ export const Cashier: React.FC = () => {
       for (const s of selectedServicesList) {
         if (s && s.id && s.stock !== undefined && s.stock !== null) {
           const newStock = Math.max(0, s.stock - 1);
-          await db.services.update(s.id, { stock: newStock });
+          await db.services.update(s.id, {
+            name: s.name,
+            category: s.category,
+            price: s.price,
+            duration: s.duration,
+            labelColor: s.labelColor,
+            isActive: s.isActive,
+            stock: newStock
+          });
         }
       }
 

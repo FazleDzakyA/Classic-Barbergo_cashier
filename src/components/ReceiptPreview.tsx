@@ -46,108 +46,73 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ transaction, onC
     window.print();
   };
 
-  // PDF Generator using jsPDF
-  const handleDownloadPDF = () => {
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: [80, 150] // POS Roll 80mm format
+  // Helper to capture 100% full un-truncated canvas of printable receipt
+  const captureFullReceiptCanvas = async () => {
+    const el = document.getElementById('printable-receipt');
+    if (!el) return null;
+
+    const container = el.parentElement;
+    const oldMaxHeight = container ? container.style.maxHeight : '';
+    const oldOverflow = container ? container.style.overflow : '';
+
+    if (container) {
+      container.style.maxHeight = 'none';
+      container.style.overflow = 'visible';
+    }
+
+    const canvas = await html2canvas(el, {
+      scale: 3,
+      backgroundColor: '#FFFFFF',
+      useCORS: true,
+      logging: false,
+      scrollY: -window.scrollY
     });
 
-    const shopName = settings?.name || 'BarberFlow';
-    const address = settings?.address || '';
-    const phone = settings?.phone || '';
-    const footer = settings?.receiptFooter || '';
+    if (container) {
+      container.style.maxHeight = oldMaxHeight;
+      container.style.overflow = oldOverflow;
+    }
 
-    doc.setFont('courier', 'normal');
-    doc.setFontSize(10);
-    
-    let y = 10;
-    doc.text(shopName, 40, y, { align: 'center' });
-    doc.setFontSize(8);
-    
-    if (address) {
-      y += 5;
-      const addrLines = doc.splitTextToSize(address, 70);
-      addrLines.forEach((line: string) => {
-        doc.text(line, 40, y, { align: 'center' });
-        y += 4;
+    return canvas;
+  };
+
+  // PDF Generator using html2canvas -> jsPDF for 100% 1:1 perfect receipt matching
+  const handleDownloadPDF = async () => {
+    try {
+      const canvas = await captureFullReceiptCanvas();
+      if (!canvas) return;
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdfWidth = 80; // 80mm roll format
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: [pdfWidth, pdfHeight]
       });
+
+      doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      doc.save(`struk-${transaction.id}.pdf`);
+      toast.success('Struk PDF (Utuh 100%) berhasil diunduh!');
+    } catch (e) {
+      console.error(e);
+      toast.error('Gagal mengunduh PDF struk');
     }
-    
-    if (phone) {
-      doc.text(`Telp: ${phone}`, 40, y, { align: 'center' });
-      y += 5;
-    }
-
-    doc.text('--------------------------------', 40, y, { align: 'center' });
-    y += 5;
-
-    doc.text(`No. TRX : ${transaction.id}`, 5, y);
-    y += 4;
-    doc.text(`Tanggal : ${transaction.date} ${transaction.time}`, 5, y);
-    y += 4;
-    doc.text(`Pelang. : ${transaction.customerName}`, 5, y);
-    y += 4;
-    doc.text(`Barber  : ${barberName}`, 5, y);
-    y += 5;
-    doc.text('--------------------------------', 40, y, { align: 'center' });
-    y += 5;
-
-    selectedServices.forEach((s: any) => {
-      if (s) {
-        doc.text(s.name.substring(0, 18), 5, y);
-        doc.text(s.price.toLocaleString('id-ID'), 75, y, { align: 'right' });
-        y += 4;
-      }
-    });
-
-    doc.text('--------------------------------', 40, y, { align: 'center' });
-    y += 5;
-
-    doc.setFont('courier', 'bold');
-    doc.text('TOTAL:', 5, y);
-    doc.text(`${currency} ${transaction.total.toLocaleString('id-ID')}`, 75, y, { align: 'right' });
-    doc.setFont('courier', 'normal');
-    y += 5;
-
-    doc.text(`Bayar   : ${transaction.paymentMethod}`, 5, y);
-    y += 4;
-
-    if (transaction.paymentMethod === 'Cash' && transaction.cashReceived !== undefined) {
-      doc.text(`Tunai   : ${transaction.cashReceived.toLocaleString('id-ID')}`, 5, y);
-      y += 4;
-      doc.text(`Kembali : ${(transaction.changeReturned || 0).toLocaleString('id-ID')}`, 5, y);
-      y += 4;
-    }
-
-    y += 2;
-    doc.text('--------------------------------', 40, y, { align: 'center' });
-    y += 6;
-
-    if (footer) {
-      const footerLines = doc.splitTextToSize(footer, 70);
-      footerLines.forEach((line: string) => {
-        doc.text(line, 40, y, { align: 'center' });
-        y += 4;
-      });
-    }
-
-    doc.save(`receipt-${transaction.id}.pdf`);
   };
 
   // Download High-Res PNG Image of Receipt
   const handleDownloadImagePNG = async () => {
-    const el = document.getElementById('printable-receipt');
-    if (!el) return;
     try {
-      const canvas = await html2canvas(el, { scale: 3, backgroundColor: '#FFFFFF' });
+      const canvas = await captureFullReceiptCanvas();
+      if (!canvas) return;
+
       const imgData = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.href = imgData;
       link.download = `struk-${transaction.id}.png`;
       link.click();
-      toast.success('Gambar Struk (PNG) berhasil diunduh!');
+      toast.success('Gambar Struk PNG (Utuh 100%) berhasil diunduh!');
     } catch (e) {
       console.error(e);
       toast.error('Gagal mengunduh gambar struk');
@@ -156,11 +121,9 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ transaction, onC
 
   // WhatsApp Share Handler with Web Share API File Attachment
   const handleSendWhatsApp = async () => {
-    const el = document.getElementById('printable-receipt');
-    if (!el) return;
-
     try {
-      const canvas = await html2canvas(el, { scale: 3, backgroundColor: '#FFFFFF' });
+      const canvas = await captureFullReceiptCanvas();
+      if (!canvas) return;
       
       canvas.toBlob(async (blob) => {
         if (!blob) return;

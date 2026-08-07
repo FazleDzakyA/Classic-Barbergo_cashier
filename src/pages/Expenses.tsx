@@ -143,18 +143,28 @@ export const Expenses: React.FC = () => {
         toast.success('Pengeluaran berhasil diubah');
       } else {
         if (modalTab === 'restock') {
-          const targetProd = productServices.find(p => p.id === Number(selectedProductId)) || productServices[0];
+          const targetProd = productServices.find(p => p.id === Number(selectedProductId)) || productServices.find(p => p.name.toLowerCase().includes('pomade')) || productServices[0];
           if (targetProd && targetProd.id) {
-            const currentStk = targetProd.stock || 0;
-            const newStk = currentStk + Number(restockPcs);
-            await db.services.update(targetProd.id, { stock: newStk });
+            const currentStk = Number(targetProd.stock || 0);
+            const addPcs = Number(restockPcs || 1);
+            const newStk = currentStk + addPcs;
+            
+            await db.services.update(targetProd.id, { 
+              name: targetProd.name,
+              category: targetProd.category,
+              price: targetProd.price,
+              duration: targetProd.duration,
+              labelColor: targetProd.labelColor,
+              isActive: targetProd.isActive,
+              stock: newStk 
+            });
 
             const expenseData = {
               ...payload,
-              category: `Pembelian ${targetProd.name} (${restockPcs} Pcs)`
+              category: `Pembelian ${targetProd.name} (${addPcs} Pcs)`
             };
             await db.expenses.add(expenseData);
-            toast.success(`Stok ${targetProd.name} bertambah +${restockPcs} Pcs! Total: ${newStk} Pcs`);
+            toast.success(`Stok ${targetProd.name} bertambah +${addPcs} Pcs! Total: ${newStk} Pcs`);
           } else {
             await db.expenses.add(payload);
             toast.success('Pengeluaran berhasil disimpan');
