@@ -152,7 +152,9 @@ export const Reports: React.FC = () => {
       netProfit,
       txCount,
       barberBreakdown,
-      serviceBreakdown
+      serviceBreakdown,
+      rangeTxs,
+      rangeExpenses
     };
   }, [transactions, expenses, barbers, services, reportRange]);
 
@@ -249,81 +251,218 @@ export const Reports: React.FC = () => {
     window.print();
   };
 
+  // Comprehensive Professional PDF Generator
   const handleExportPDF = () => {
     if (!reportData) return;
     const doc = new jsPDF();
     const periodStr = getPeriodText();
-    const shopName = settings?.name || 'BarberFlow';
+    const shopName = settings?.name || 'Classic Barber Go';
+    const address = settings?.address || 'Semarang';
+    const phone = settings?.phone || '0812-3456-7890';
 
+    // Header Branding
+    doc.setFillColor(18, 18, 18);
+    doc.rect(0, 0, 210, 32, 'F');
+
+    doc.setTextColor(212, 175, 55);
     doc.setFontSize(18);
-    doc.text(`LAPORAN KEUANGAN - ${shopName}`, 14, 20);
-    doc.setFontSize(11);
-    doc.text(`Tipe Laporan: Laporan ${reportType}`, 14, 27);
-    doc.text(`Periode: ${periodStr}`, 14, 33);
-    doc.text(`Dicetak Pada: ${dayjs().format('D MMMM YYYY HH:mm')}`, 14, 39);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`LAPORAN KEUANGAN & OPERASIONAL`, 14, 15);
 
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${shopName.toUpperCase()} — ${address} (Telp: ${phone})`, 14, 23);
+
+    // Metadata Bar
+    doc.setTextColor(50, 50, 50);
+    doc.setFontSize(9);
+    doc.text(`Tipe Laporan: Laporan ${reportType}`, 14, 38);
+    doc.text(`Periode: ${periodStr}`, 14, 43);
+    doc.text(`Dicetak Pada: ${dayjs().format('D MMMM YYYY, HH:mm')}`, 140, 38);
+
+    // Section 1: Executive Financial Summary
     const summaryData = [
-      ['Total Omset', formatMoney(reportData.totalRevenue)],
-      ['Total Pengeluaran', formatMoney(reportData.totalExpenses)],
-      ['Laba Bersih', formatMoney(reportData.netProfit)],
-      ['Jumlah Transaksi', `${reportData.txCount} Transaksi`]
+      ['Total Pemasukan (Omset)', formatMoney(reportData.totalRevenue)],
+      ['Total Pengeluaran Toko', formatMoney(reportData.totalExpenses)],
+      ['Laba / Rugi Bersih', formatMoney(reportData.netProfit)],
+      ['Total Transaksi Selesai', `${reportData.txCount} Transaksi`]
     ];
-    
-    doc.setFontSize(13);
-    doc.text('1. Ringkasan Keuangan', 14, 50);
+
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('1. Ringkasan Eksekutif Keuangan', 14, 52);
+
     autoTable(doc, {
-      startY: 53,
-      head: [['Indikator', 'Nilai / Keterangan']],
+      startY: 55,
+      head: [['Indikator Keuangan', 'Nominal / Keterangan']],
       body: summaryData,
       theme: 'grid',
-      headStyles: { fillColor: [212, 175, 55] }
+      headStyles: { fillColor: [212, 175, 55], textColor: [0, 0, 0], fontStyle: 'bold' },
+      styles: { fontSize: 9 }
     });
 
-    doc.text('2. Performa Barber', 14, (doc as any).lastAutoTable.finalY + 12);
+    let currentY = (doc as any).lastAutoTable.finalY + 10;
+
+    // Section 2: Barber Performance
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('2. Laporan Performa Barber', 14, currentY);
+
     const barberRows = reportData.barberBreakdown.map(b => [
       b.name,
-      `${b.count} trx`,
+      `${b.count} Transaksi`,
       formatMoney(b.revenue),
       `${b.share}%`
     ]);
+
     autoTable(doc, {
-      startY: (doc as any).lastAutoTable.finalY + 15,
-      head: [['Nama Barber', 'Jumlah Transaksi', 'Total Revenue', 'Share']],
+      startY: currentY + 3,
+      head: [['Nama Barber', 'Jumlah Pemotongan', 'Total Pendapatan', 'Kontribusi (%)']],
       body: barberRows,
       theme: 'grid',
-      headStyles: { fillColor: [212, 175, 55] }
+      headStyles: { fillColor: [34, 34, 34], textColor: [212, 175, 55], fontStyle: 'bold' },
+      styles: { fontSize: 9 }
     });
 
-    doc.save(`Laporan_${reportType}_${periodStr.replace(/\s+/g, '_')}.pdf`);
+    currentY = (doc as any).lastAutoTable.finalY + 10;
+
+    // Section 3: Income Transactions
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('3. Rincian Transaksi Pemasukan', 14, currentY);
+
+    const txRows = reportData.rangeTxs.slice(0, 15).map(t => {
+      const bName = barbers?.find(b => b.id === t.barberId)?.name || '-';
+      return [
+        t.id,
+        `${t.date} ${t.time}`,
+        t.customerName,
+        bName,
+        formatMoney(t.total),
+        t.paymentMethod
+      ];
+    });
+
+    autoTable(doc, {
+      startY: currentY + 3,
+      head: [['No. TRX', 'Waktu', 'Pelanggan', 'Barber', 'Total', 'Metode']],
+      body: txRows.length > 0 ? txRows : [['-', '-', 'Tidak ada transaksi pada periode ini', '-', '-', '-']],
+      theme: 'striped',
+      headStyles: { fillColor: [16, 185, 129], textColor: [255, 255, 255] },
+      styles: { fontSize: 8 }
+    });
+
+    currentY = (doc as any).lastAutoTable.finalY + 10;
+
+    // Section 4: Expense Details
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('4. Rincian Pengeluaran Toko', 14, currentY);
+
+    const expenseRows = reportData.rangeExpenses.map(e => [
+      `${e.date} ${e.time}`,
+      e.category,
+      formatMoney(e.amount),
+      e.handler,
+      e.notes || '-'
+    ]);
+
+    autoTable(doc, {
+      startY: currentY + 3,
+      head: [['Waktu', 'Kategori / Keperluan', 'Nominal', 'Penanggung Jawab', 'Catatan']],
+      body: expenseRows.length > 0 ? expenseRows : [['-', 'Tidak ada pengeluaran pada periode ini', '-', '-', '-']],
+      theme: 'striped',
+      headStyles: { fillColor: [239, 68, 68], textColor: [255, 255, 255] },
+      styles: { fontSize: 8 }
+    });
+
+    // Signature Footer Box
+    currentY = (doc as any).lastAutoTable.finalY + 15;
+    if (currentY > 240) {
+      doc.addPage();
+      currentY = 20;
+    }
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Semarang, ${dayjs().format('D MMMM YYYY')}`, 140, currentY);
+    doc.text('Manajer / Owner Barber', 140, currentY + 5);
+    doc.text('(_______________________)', 140, currentY + 25);
+
+    doc.save(`Laporan_Lengkap_${reportType}_${periodStr.replace(/\s+/g, '_')}.pdf`);
   };
 
+  // Comprehensive Multi-Sheet Excel Generator
   const handleExportExcel = () => {
     if (!reportData) return;
     const periodStr = getPeriodText();
     const wb = XLSX.utils.book_new();
 
+    // 1. Ringkasan Sheet
     const summaryRows = [
-      { 'Indikator Laporan': 'Nama Toko', Nilai: settings?.name || 'BarberFlow' },
-      { 'Indikator Laporan': 'Tipe Laporan', Nilai: reportType },
-      { 'Indikator Laporan': 'Periode', Nilai: periodStr },
-      { 'Indikator Laporan': 'Total Omset', Nilai: reportData.totalRevenue },
-      { 'Indikator Laporan': 'Total Pengeluaran', Nilai: reportData.totalExpenses },
-      { 'Indikator Laporan': 'Laba Bersih', Nilai: reportData.netProfit },
-      { 'Indikator Laporan': 'Jumlah Transaksi', Nilai: reportData.txCount }
+      { 'METRIK KEUANGAN': 'Nama Toko', NILAI: settings?.name || 'Classic Barber Go' },
+      { 'METRIK KEUANGAN': 'Tipe Laporan', NILAI: reportType },
+      { 'METRIK KEUANGAN': 'Periode Laporan', NILAI: periodStr },
+      { 'METRIK KEUANGAN': 'Total Pemasukan (Omset)', NILAI: reportData.totalRevenue },
+      { 'METRIK KEUANGAN': 'Total Pengeluaran Toko', NILAI: reportData.totalExpenses },
+      { 'METRIK KEUANGAN': 'Laba Bersih', NILAI: reportData.netProfit },
+      { 'METRIK KEUANGAN': 'Total Transaksi Selesai', NILAI: reportData.txCount }
     ];
     const wsSummary = XLSX.utils.json_to_sheet(summaryRows);
     XLSX.utils.book_append_sheet(wb, wsSummary, 'Ringkasan');
 
+    // 2. Detail Pemasukan Sheet
+    const incomeRows = reportData.rangeTxs.map(t => {
+      const bName = barbers?.find(b => b.id === t.barberId)?.name || '-';
+      return {
+        'No TRX': t.id,
+        'Tanggal': t.date,
+        'Jam': t.time,
+        'Nama Pelanggan': t.customerName,
+        'Barber': bName,
+        'Subtotal (Rp)': t.subtotal,
+        'Total Akhir (Rp)': t.total,
+        'Metode Pembayaran': t.paymentMethod,
+        'Catatan': t.notes || ''
+      };
+    });
+    const wsIncome = XLSX.utils.json_to_sheet(incomeRows);
+    XLSX.utils.book_append_sheet(wb, wsIncome, 'Detail Pemasukan');
+
+    // 3. Detail Pengeluaran Sheet
+    const expenseRows = reportData.rangeExpenses.map(e => ({
+      'Tanggal': e.date,
+      'Jam': e.time,
+      'Kategori / Keperluan': e.category,
+      'Nominal (Rp)': e.amount,
+      'Penanggung Jawab': e.handler,
+      'Catatan': e.notes || ''
+    }));
+    const wsExpenses = XLSX.utils.json_to_sheet(expenseRows);
+    XLSX.utils.book_append_sheet(wb, wsExpenses, 'Detail Pengeluaran');
+
+    // 4. Performa Barber Sheet
     const barberRows = reportData.barberBreakdown.map(b => ({
       'Nama Barber': b.name,
       'Jumlah Transaksi': b.count,
-      'Total Revenue': b.revenue,
-      'Share (%)': b.share
+      'Total Omset (Rp)': b.revenue,
+      'Kontribusi Omset (%)': `${b.share}%`
     }));
     const wsBarber = XLSX.utils.json_to_sheet(barberRows);
     XLSX.utils.book_append_sheet(wb, wsBarber, 'Performa Barber');
 
-    XLSX.writeFile(wb, `Laporan_${reportType}_${periodStr.replace(/\s+/g, '_')}.xlsx`);
+    // 5. Layanan & Produk Terlaris Sheet
+    const serviceRows = reportData.serviceBreakdown.map(s => ({
+      'Nama Layanan / Produk': s.name,
+      'Kategori': s.category,
+      'Jumlah Terjual (Qty)': s.count,
+      'Total Omset (Rp)': s.revenue
+    }));
+    const wsServices = XLSX.utils.json_to_sheet(serviceRows);
+    XLSX.utils.book_append_sheet(wb, wsServices, 'Layanan Terlaris');
+
+    XLSX.writeFile(wb, `Laporan_BarberFlow_${reportType}_${periodStr.replace(/\s+/g, '_')}.xlsx`);
   };
 
   return (
