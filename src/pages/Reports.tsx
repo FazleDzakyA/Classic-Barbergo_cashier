@@ -9,6 +9,7 @@ import {
   Equal
 } from 'lucide-react';
 import dayjs from 'dayjs';
+import toast from 'react-hot-toast';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -255,59 +256,146 @@ export const Reports: React.FC = () => {
     window.print();
   };
 
-  // Helper: render an off-screen canvas chart and return base64 png
-  const renderChartToBase64 = (
-    type: 'bar' | 'pie',
+  // Draw bar chart manually to off-screen canvas and return base64
+  const drawBarChartToBase64 = (
     labels: string[],
     data: number[],
     colors: string[],
-    width = 600,
-    height = 320
+    width = 560,
+    height = 280
   ): string => {
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
     const ctx = canvas.getContext('2d')!;
-    // White background
+
+    // Background
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, width, height);
-    const chart = new ChartJS(ctx, {
-      type,
-      data: {
-        labels,
-        datasets: [{
-          data,
-          backgroundColor: colors,
-          borderColor: type === 'bar' ? colors.map(c => c + 'cc') : '#fff',
-          borderWidth: type === 'bar' ? 0 : 2,
-          borderRadius: type === 'bar' ? 6 : 0
-        }]
-      },
-      options: {
-        animation: false as any,
-        responsive: false,
-        plugins: {
-          legend: {
-            display: type === 'pie',
-            position: 'right',
-            labels: { font: { size: 13 }, padding: 12 }
-          },
-          tooltip: { enabled: false }
-        },
-        scales: type === 'bar' ? {
-          x: { grid: { display: false }, ticks: { font: { size: 12 } } },
-          y: { grid: { color: '#eee' }, ticks: { font: { size: 11 } } }
-        } : undefined
-      }
+
+    const padL = 70, padR = 20, padT = 20, padB = 50;
+    const chartW = width - padL - padR;
+    const chartH = height - padT - padB;
+    const maxVal = Math.max(...data, 1);
+    const barCount = data.length;
+    const groupW = chartW / barCount;
+    const barW = Math.min(groupW * 0.55, 80);
+
+    // Grid lines
+    ctx.strokeStyle = '#e5e7eb';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+      const y = padT + (chartH / 4) * i;
+      ctx.beginPath();
+      ctx.moveTo(padL, y);
+      ctx.lineTo(padL + chartW, y);
+      ctx.stroke();
+      // Y-axis labels
+      const val = Math.round((maxVal / 4) * (4 - i));
+      ctx.fillStyle = '#6b7280';
+      ctx.font = '11px Arial';
+      ctx.textAlign = 'right';
+      ctx.fillText(val >= 1000000 ? (val / 1000000).toFixed(1) + 'jt' : val >= 1000 ? (val / 1000).toFixed(0) + 'rb' : String(val), padL - 6, y + 4);
+    }
+
+    // Bars
+    data.forEach((val, i) => {
+      const barH = (val / maxVal) * chartH;
+      const x = padL + i * groupW + (groupW - barW) / 2;
+      const y = padT + chartH - barH;
+
+      // Bar shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.08)';
+      ctx.fillRect(x + 3, y + 3, barW, barH);
+
+      // Bar fill
+      ctx.fillStyle = colors[i] || '#D4AF37';
+      ctx.beginPath();
+      ctx.roundRect(x, y, barW, barH, 6);
+      ctx.fill();
+
+      // Value label on top
+      ctx.fillStyle = '#111827';
+      ctx.font = 'bold 11px Arial';
+      ctx.textAlign = 'center';
+      const displayVal = val >= 1000000 ? (val / 1000000).toFixed(1) + 'jt' : val >= 1000 ? (val / 1000).toFixed(0) + 'rb' : String(val);
+      ctx.fillText(displayVal, x + barW / 2, y - 5);
+
+      // X-axis label
+      ctx.fillStyle = '#374151';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(labels[i] || '', x + barW / 2, padT + chartH + 18);
     });
-    const b64 = canvas.toDataURL('image/png');
-    chart.destroy();
-    return b64;
+
+    // X-axis line
+    ctx.strokeStyle = '#d1d5db';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(padL, padT + chartH);
+    ctx.lineTo(padL + chartW, padT + chartH);
+    ctx.stroke();
+
+    return canvas.toDataURL('image/png');
+  };
+
+  // Draw pie chart manually to off-screen canvas and return base64
+  const drawPieChartToBase64 = (
+    labels: string[],
+    data: number[],
+    colors: string[],
+    width = 500,
+    height = 260
+  ): string => {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d')!;
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, width, height);
+
+    const total = data.reduce((s, v) => s + v, 0);
+    if (total === 0) return canvas.toDataURL('image/png');
+
+    const cx = 130, cy = height / 2, r = 100;
+    let startAngle = -Math.PI / 2;
+
+    data.forEach((val, i) => {
+      const slice = (val / total) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, r, startAngle, startAngle + slice);
+      ctx.closePath();
+      ctx.fillStyle = colors[i] || '#D4AF37';
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      startAngle += slice;
+    });
+
+    // Legend
+    const legendX = cx + r + 20;
+    labels.forEach((label, i) => {
+      const legendY = 30 + i * 30;
+      ctx.fillStyle = colors[i] || '#D4AF37';
+      ctx.beginPath();
+      ctx.roundRect(legendX, legendY - 10, 16, 16, 3);
+      ctx.fill();
+      ctx.fillStyle = '#111827';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'left';
+      ctx.fillText(label, legendX + 22, legendY + 3);
+    });
+
+    return canvas.toDataURL('image/png');
   };
 
   // Executive Luxury PDF Generator
   const handleExportPDF = () => {
     if (!reportData) return;
+    try {
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
@@ -444,7 +532,7 @@ export const Reports: React.FC = () => {
       doc.setTextColor(18, 18, 18);
       doc.text('2. Grafik Performa Omset Barber', 14, currentY);
 
-      const barChartB64 = renderChartToBase64('bar', barLabels, barData, barColors.slice(0, barLabels.length), 580, 300);
+      const barChartB64 = drawBarChartToBase64(barLabels, barData, barColors.slice(0, barLabels.length));
       doc.addImage(barChartB64, 'PNG', 14, currentY + 3, 182, 52);
       currentY += 58;
     }
@@ -462,7 +550,7 @@ export const Reports: React.FC = () => {
       doc.setTextColor(18, 18, 18);
       doc.text('3. Grafik Kontribusi Omset per Barber', 14, currentY);
 
-      const pieChartB64 = renderChartToBase64('pie', pieLabels, pieData, pieColors.slice(0, pieLabels.length), 600, 300);
+      const pieChartB64 = drawPieChartToBase64(pieLabels, pieData, pieColors.slice(0, pieLabels.length));
       doc.addImage(pieChartB64, 'PNG', 30, currentY + 3, 150, 55);
       currentY += 62;
     }
@@ -611,6 +699,10 @@ export const Reports: React.FC = () => {
     }
 
     doc.save(`Laporan_Eksekutif_${reportType}_${periodStr.replace(/\s+/g, '_')}.pdf`);
+    } catch (err) {
+      console.error('PDF generation error:', err);
+      toast.error('Gagal membuat PDF. Silakan coba lagi.');
+    }
   };
 
   // Comprehensive Multi-Sheet Excel Generator
