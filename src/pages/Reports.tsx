@@ -256,449 +256,448 @@ export const Reports: React.FC = () => {
     window.print();
   };
 
-  // Draw bar chart manually to off-screen canvas and return base64
-  const drawBarChartToBase64 = (
-    labels: string[],
-    data: number[],
-    colors: string[],
-    width = 560,
-    height = 280
-  ): string => {
+  // ── HIGH-QUALITY BAR CHART (Canvas 2D) ──────────────────────────────
+  const drawBarChart = (labels: string[], data: number[], colors: string[]): string => {
+    const W = 760, H = 340;
     const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d')!;
+    canvas.width = W; canvas.height = H;
+    const c = canvas.getContext('2d')!;
 
-    // Background
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, width, height);
+    // White bg with subtle border
+    c.fillStyle = '#fafafa';
+    c.fillRect(0, 0, W, H);
+    c.strokeStyle = '#e5e7eb';
+    c.lineWidth = 1;
+    c.strokeRect(0, 0, W, H);
 
-    const padL = 70, padR = 20, padT = 20, padB = 50;
-    const chartW = width - padL - padR;
-    const chartH = height - padT - padB;
+    const pL = 90, pR = 30, pT = 40, pB = 60;
+    const cW = W - pL - pR, cH = H - pT - pB;
     const maxVal = Math.max(...data, 1);
-    const barCount = data.length;
-    const groupW = chartW / barCount;
-    const barW = Math.min(groupW * 0.55, 80);
+    const n = data.length;
+    const grpW = cW / n;
+    const bW = Math.min(grpW * 0.5, 100);
 
-    // Grid lines
-    ctx.strokeStyle = '#e5e7eb';
-    ctx.lineWidth = 1;
-    for (let i = 0; i <= 4; i++) {
-      const y = padT + (chartH / 4) * i;
-      ctx.beginPath();
-      ctx.moveTo(padL, y);
-      ctx.lineTo(padL + chartW, y);
-      ctx.stroke();
-      // Y-axis labels
-      const val = Math.round((maxVal / 4) * (4 - i));
-      ctx.fillStyle = '#6b7280';
-      ctx.font = '11px Arial';
-      ctx.textAlign = 'right';
-      ctx.fillText(val >= 1000000 ? (val / 1000000).toFixed(1) + 'jt' : val >= 1000 ? (val / 1000).toFixed(0) + 'rb' : String(val), padL - 6, y + 4);
+    // Y-axis grid & labels
+    const steps = 5;
+    for (let i = 0; i <= steps; i++) {
+      const y = pT + (cH / steps) * i;
+      const val = Math.round((maxVal / steps) * (steps - i));
+      c.strokeStyle = '#e5e7eb';
+      c.lineWidth = i === steps ? 2 : 1;
+      c.beginPath(); c.moveTo(pL, y); c.lineTo(pL + cW, y); c.stroke();
+      c.fillStyle = '#9ca3af';
+      c.font = '13px Arial';
+      c.textAlign = 'right';
+      const lbl = val >= 1000000 ? (val/1000000).toFixed(1)+'jt' : val >= 1000 ? (val/1000).toFixed(0)+'rb' : String(val);
+      c.fillText(lbl, pL - 10, y + 5);
     }
 
-    // Bars
+    // Bars with gradient
     data.forEach((val, i) => {
-      const barH = (val / maxVal) * chartH;
-      const x = padL + i * groupW + (groupW - barW) / 2;
-      const y = padT + chartH - barH;
+      const bH = (val / maxVal) * cH;
+      const x = pL + i * grpW + (grpW - bW) / 2;
+      const y = pT + cH - bH;
+      const color = colors[i] || '#D4AF37';
 
-      // Bar shadow
-      ctx.fillStyle = 'rgba(0,0,0,0.08)';
-      ctx.fillRect(x + 3, y + 3, barW, barH);
+      // Gradient fill
+      const grad = c.createLinearGradient(x, y, x, y + bH);
+      grad.addColorStop(0, color);
+      grad.addColorStop(1, color + '88');
+      c.fillStyle = grad;
+      c.beginPath();
+      c.roundRect(x, y, bW, bH, [8, 8, 0, 0]);
+      c.fill();
 
-      // Bar fill
-      ctx.fillStyle = colors[i] || '#D4AF37';
-      ctx.beginPath();
-      ctx.roundRect(x, y, barW, barH, 6);
-      ctx.fill();
+      // Value on top
+      c.fillStyle = '#111827';
+      c.font = 'bold 13px Arial';
+      c.textAlign = 'center';
+      const v = val >= 1000000 ? (val/1000000).toFixed(1)+'jt' : val >= 1000 ? (val/1000).toFixed(0)+'rb' : String(val);
+      c.fillText(v, x + bW / 2, y - 8);
 
-      // Value label on top
-      ctx.fillStyle = '#111827';
-      ctx.font = 'bold 11px Arial';
-      ctx.textAlign = 'center';
-      const displayVal = val >= 1000000 ? (val / 1000000).toFixed(1) + 'jt' : val >= 1000 ? (val / 1000).toFixed(0) + 'rb' : String(val);
-      ctx.fillText(displayVal, x + barW / 2, y - 5);
+      // Name label below
+      c.fillStyle = '#374151';
+      c.font = 'bold 14px Arial';
+      c.fillText(labels[i] || '', x + bW / 2, pT + cH + 25);
 
-      // X-axis label
-      ctx.fillStyle = '#374151';
-      ctx.font = '12px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText(labels[i] || '', x + barW / 2, padT + chartH + 18);
+      // Color dot below name
+      c.fillStyle = color;
+      c.beginPath();
+      c.arc(x + bW / 2, pT + cH + 38, 5, 0, Math.PI * 2);
+      c.fill();
     });
-
-    // X-axis line
-    ctx.strokeStyle = '#d1d5db';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(padL, padT + chartH);
-    ctx.lineTo(padL + chartW, padT + chartH);
-    ctx.stroke();
 
     return canvas.toDataURL('image/png');
   };
 
-  // Draw pie chart manually to off-screen canvas and return base64
-  const drawPieChartToBase64 = (
-    labels: string[],
-    data: number[],
-    colors: string[],
-    width = 500,
-    height = 260
-  ): string => {
+  // ── HIGH-QUALITY PIE CHART (Canvas 2D) ─────────────────────────────
+  const drawPieChart = (labels: string[], data: number[], colors: string[]): string => {
+    const W = 640, H = 300;
     const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d')!;
+    canvas.width = W; canvas.height = H;
+    const c = canvas.getContext('2d')!;
 
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, width, height);
+    c.fillStyle = '#fafafa';
+    c.fillRect(0, 0, W, H);
+    c.strokeStyle = '#e5e7eb';
+    c.lineWidth = 1;
+    c.strokeRect(0, 0, W, H);
 
     const total = data.reduce((s, v) => s + v, 0);
     if (total === 0) return canvas.toDataURL('image/png');
 
-    const cx = 130, cy = height / 2, r = 100;
-    let startAngle = -Math.PI / 2;
+    const cx = 155, cy = H / 2, r = 110;
+    let angle = -Math.PI / 2;
 
+    // Draw slices with shadow
     data.forEach((val, i) => {
       const slice = (val / total) * Math.PI * 2;
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.arc(cx, cy, r, startAngle, startAngle + slice);
-      ctx.closePath();
-      ctx.fillStyle = colors[i] || '#D4AF37';
-      ctx.fill();
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      startAngle += slice;
+      c.save();
+      c.shadowColor = 'rgba(0,0,0,0.15)';
+      c.shadowBlur = 8;
+      c.beginPath();
+      c.moveTo(cx, cy);
+      c.arc(cx, cy, r, angle, angle + slice);
+      c.closePath();
+      c.fillStyle = colors[i] || '#D4AF37';
+      c.fill();
+      c.restore();
+      // White separator
+      c.strokeStyle = '#ffffff';
+      c.lineWidth = 3;
+      c.beginPath();
+      c.moveTo(cx, cy);
+      c.arc(cx, cy, r, angle, angle + slice);
+      c.closePath();
+      c.stroke();
+      angle += slice;
     });
 
+    // Center donut hole
+    c.fillStyle = '#fafafa';
+    c.beginPath();
+    c.arc(cx, cy, r * 0.42, 0, Math.PI * 2);
+    c.fill();
+    c.fillStyle = '#374151';
+    c.font = 'bold 13px Arial';
+    c.textAlign = 'center';
+    c.fillText('Kontribusi', cx, cy - 6);
+    c.fillText('Barber', cx, cy + 12);
+
     // Legend
-    const legendX = cx + r + 20;
-    labels.forEach((label, i) => {
-      const legendY = 30 + i * 30;
-      ctx.fillStyle = colors[i] || '#D4AF37';
-      ctx.beginPath();
-      ctx.roundRect(legendX, legendY - 10, 16, 16, 3);
-      ctx.fill();
-      ctx.fillStyle = '#111827';
-      ctx.font = '12px Arial';
-      ctx.textAlign = 'left';
-      ctx.fillText(label, legendX + 22, legendY + 3);
+    const legX = cx + r + 28;
+    labels.forEach((lbl, i) => {
+      const lY = 40 + i * 52;
+      const pct = total > 0 ? ((data[i] / total) * 100).toFixed(1) : '0';
+      // Color box
+      c.fillStyle = colors[i] || '#D4AF37';
+      c.beginPath();
+      c.roundRect(legX, lY, 18, 18, 4);
+      c.fill();
+      // Name
+      c.fillStyle = '#111827';
+      c.font = 'bold 14px Arial';
+      c.textAlign = 'left';
+      c.fillText(lbl.split(' (')[0], legX + 26, lY + 13);
+      // Percentage
+      c.fillStyle = colors[i] || '#D4AF37';
+      c.font = 'bold 13px Arial';
+      c.fillText(`${pct}%`, legX + 26, lY + 30);
     });
 
     return canvas.toDataURL('image/png');
   };
 
-  // Executive Luxury PDF Generator
+  // ── SECTION HEADER HELPER ───────────────────────────────────────────
+  const drawSectionHeader = (doc: jsPDF, num: string, title: string, y: number, accentColor: [number, number, number]) => {
+    // Accent rect
+    doc.setFillColor(...accentColor);
+    doc.rect(14, y - 4, 3, 9, 'F');
+    // Section number badge
+    doc.setFillColor(...accentColor);
+    doc.roundedRect(19, y - 4, 8, 9, 1.5, 1.5, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'bold');
+    doc.text(num, 23, y + 2.5, { align: 'center' });
+    // Title
+    doc.setTextColor(20, 20, 30);
+    doc.setFontSize(10.5);
+    doc.setFont('helvetica', 'bold');
+    doc.text(title, 30, y + 2);
+    // Underline
+    doc.setDrawColor(...accentColor);
+    doc.setLineWidth(0.4);
+    doc.line(14, y + 5.5, 196, y + 5.5);
+  };
+
+  // ── MAIN PDF GENERATOR ──────────────────────────────────────────────
   const handleExportPDF = () => {
     if (!reportData) return;
     try {
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4'
-    });
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const periodStr = getPeriodText();
+      const shopName = (settings?.name || 'CLASSIC BARBER GO').toUpperCase();
+      const address = settings?.address || 'Jl. Mr. Koesbiyono, Semarang';
+      const phone = settings?.phone || '0812-3456-7890';
+      const printTime = dayjs().format('DD MMMM YYYY, HH:mm');
 
-    const periodStr = getPeriodText();
-    const shopName = settings?.name || 'CLASSIC BARBER GO';
-    const address = settings?.address || 'Jl. Mr. Koesbiyono Tjondrowibowo, Semarang';
-    const phone = settings?.phone || '0812-3456-7890';
+      // ── PAGE 1 HEADER ──────────────────────────────────────────────
+      // Full dark banner
+      doc.setFillColor(10, 10, 18);
+      doc.rect(0, 0, 210, 48, 'F');
 
-    // ═══════════════════════════════════════════
-    // 1. HEADER — Dark premium banner with gold accents
-    // ═══════════════════════════════════════════
+      // Gold left stripe
+      doc.setFillColor(212, 175, 55);
+      doc.rect(0, 0, 4, 48, 'F');
 
-    // Background header full-width
-    doc.setFillColor(12, 12, 18);
-    doc.rect(0, 0, 210, 42, 'F');
+      // Gold bottom line
+      doc.setFillColor(212, 175, 55);
+      doc.rect(0, 48, 210, 1.2, 'F');
 
-    // Left gold vertical accent stripe
-    doc.setFillColor(212, 175, 55);
-    doc.rect(0, 0, 5, 42, 'F');
-
-    // Bottom gold separator line
-    doc.setFillColor(212, 175, 55);
-    doc.rect(0, 42, 210, 1.5, 'F');
-
-    // Shop name — large gold bold
-    doc.setTextColor(212, 175, 55);
-    doc.setFontSize(16);
-    doc.setFont('helvetica', 'bold');
-    doc.text(shopName.toUpperCase(), 14, 14);
-
-    // Tagline subtitle
-    doc.setTextColor(180, 175, 165);
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    doc.text('LAPORAN KEUANGAN & OPERASIONAL — BARBERFLOW POS SYSTEM', 14, 21);
-    doc.text(`${address}`, 14, 27);
-    doc.text(`Telp: ${phone}`, 14, 32);
-
-    // Right side — report meta block
-    doc.setFillColor(30, 28, 20);
-    doc.setDrawColor(212, 175, 55);
-    doc.roundedRect(136, 7, 65, 30, 2, 2, 'FD');
-
-    doc.setTextColor(212, 175, 55);
-    doc.setFontSize(7.5);
-    doc.setFont('helvetica', 'bold');
-    doc.text('PERIODE LAPORAN', 139, 13);
-    doc.setFontSize(9);
-    doc.text(periodStr.toUpperCase(), 139, 19);
-    doc.setTextColor(180, 175, 165);
-    doc.setFontSize(7);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Tipe: Laporan ${reportType}`, 139, 25);
-    doc.text(`Cetak: ${dayjs().format('DD/MM/YYYY  HH:mm')}`, 139, 30);
-
-    // ═══════════════════════════════════════════
-    // 2. KPI METRIC CARDS (4 cards in a row)
-    // ═══════════════════════════════════════════
-    const cardY = 50;
-    const cardW = 43;
-    const cardH = 20;
-    const gap = 4;
-
-    const cards = [
-      { label: 'TOTAL OMSET', value: formatMoney(reportData.totalRevenue), border: [212, 175, 55] as [number,number,number], textColor: [15, 15, 15] as [number,number,number] },
-      { label: 'TOTAL PENGELUARAN', value: formatMoney(reportData.totalExpenses), border: [220, 38, 38] as [number,number,number], textColor: [180, 20, 20] as [number,number,number] },
-      { label: 'LABA BERSIH', value: formatMoney(reportData.netProfit), border: [16, 185, 129] as [number,number,number], textColor: [5, 130, 90] as [number,number,number] },
-      { label: 'TOTAL TRANSAKSI', value: `${reportData.txCount} Trx`, border: [99, 102, 241] as [number,number,number], textColor: [60, 50, 200] as [number,number,number] }
-    ];
-
-    cards.forEach((card, i) => {
-      const cx = 14 + i * (cardW + gap);
-      // Card background
-      doc.setFillColor(248, 248, 252);
-      doc.setDrawColor(...card.border);
-      doc.setLineWidth(0.6);
-      doc.roundedRect(cx, cardY, cardW, cardH, 2, 2, 'FD');
-      // Top colored band
-      doc.setFillColor(...card.border);
-      doc.roundedRect(cx, cardY, cardW, 5, 2, 2, 'F');
-      doc.rect(cx, cardY + 3, cardW, 2, 'F'); // square bottom of rounded top
-      // Label
-      doc.setFontSize(6.5);
+      // Scissor + Shop Name
+      doc.setTextColor(212, 175, 55);
+      doc.setFontSize(18);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(255, 255, 255);
-      doc.text(card.label, cx + 3, cardY + 3.8);
-      // Value
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(...card.textColor);
-      doc.text(card.value, cx + 3, cardY + 14, { maxWidth: cardW - 6 });
-    });
+      doc.text(shopName, 12, 17);
 
-    let currentY = 78;
+      // Tag line
+      doc.setTextColor(190, 185, 175);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.text('LAPORAN KEUANGAN & OPERASIONAL — BARBERFLOW POS SYSTEM', 12, 24);
+      doc.text(`${address}   |   Telp: ${phone}`, 12, 30);
 
-    // 3. Section 1: Executive Financial Summary Table
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(18, 18, 18);
-    doc.text('1. Ringkasan Eksekutif Keuangan & Operasional', 14, currentY);
+      // Right meta box
+      doc.setFillColor(28, 26, 16);
+      doc.setDrawColor(212, 175, 55);
+      doc.setLineWidth(0.5);
+      doc.roundedRect(128, 6, 76, 37, 3, 3, 'FD');
 
-    const summaryData = [
-      ['Total Pemasukan (Omset)', formatMoney(reportData.totalRevenue), 'Pendapatan Kotor Seluruh Transaksi'],
-      ['Total Pengeluaran Operasional', formatMoney(reportData.totalExpenses), 'Biaya Operasional, Pomade & Perlengkapan'],
-      ['Laba / (Rugi) Bersih', formatMoney(reportData.netProfit), 'Omset Dikurangi Total Pengeluaran'],
-      ['Volume Transaksi Selesai', `${reportData.txCount} Transaksi`, 'Total Nota Pelanggan Terlayani']
-    ];
-
-    autoTable(doc, {
-      startY: currentY + 3,
-      head: [['Metrik Utama', 'Nominal / Nilai', 'Keterangan Analisis']],
-      body: summaryData,
-      theme: 'grid',
-      headStyles: { fillColor: [15, 15, 15], textColor: [212, 175, 55], fontStyle: 'bold', fontSize: 9 },
-      bodyStyles: { fontSize: 8 },
-      columnStyles: { 0: { fontStyle: 'bold', cellWidth: 60 }, 1: { fontStyle: 'bold', cellWidth: 45 } }
-    });
-
-    currentY = (doc as any).lastAutoTable.finalY + 10;
-
-    // ═══ CHART 1: Omset per Barber (Bar Chart) ═══
-    if (reportData.barberBreakdown.length > 0) {
-      const barLabels = reportData.barberBreakdown.map(b => b.name);
-      const barData   = reportData.barberBreakdown.map(b => b.revenue);
-      const barColors = ['#D4AF37', '#10B981', '#6366F1', '#F59E0B', '#EF4444'];
-
-      if (currentY > 210) { doc.addPage(); currentY = 20; }
-
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(18, 18, 18);
-      doc.text('2. Grafik Performa Omset Barber', 14, currentY);
-
-      const barChartB64 = drawBarChartToBase64(barLabels, barData, barColors.slice(0, barLabels.length));
-      doc.addImage(barChartB64, 'PNG', 14, currentY + 3, 182, 52);
-      currentY += 58;
-    }
-
-    // ═══ CHART 2: Kontribusi Barber (Pie Chart) ═══
-    if (reportData.barberBreakdown.length > 0 && reportData.totalRevenue > 0) {
-      const pieLabels = reportData.barberBreakdown.map(b => `${b.name} (${b.share}%)`);
-      const pieData   = reportData.barberBreakdown.map(b => b.revenue);
-      const pieColors = ['#D4AF37', '#10B981', '#6366F1', '#F59E0B', '#EF4444'];
-
-      if (currentY > 210) { doc.addPage(); currentY = 20; }
-
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(18, 18, 18);
-      doc.text('3. Grafik Kontribusi Omset per Barber', 14, currentY);
-
-      const pieChartB64 = drawPieChartToBase64(pieLabels, pieData, pieColors.slice(0, pieLabels.length));
-      doc.addImage(pieChartB64, 'PNG', 30, currentY + 3, 150, 55);
-      currentY += 62;
-    }
-
-    // 4. Section: Barber Performance Report Table
-    if (currentY > 220) { doc.addPage(); currentY = 20; }
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(18, 18, 18);
-    doc.text('4. Tabel Performa Kinerja Barber', 14, currentY);
-
-    const barberRows = reportData.barberBreakdown.map((b, idx) => [
-      `#${idx + 1}`,
-      b.name,
-      `${b.count} Transaksi`,
-      formatMoney(b.revenue),
-      `${b.share}%`
-    ]);
-
-    autoTable(doc, {
-      startY: currentY + 3,
-      head: [['Peringkat', 'Nama Barber', 'Jumlah Pemotongan', 'Total Omset', 'Kontribusi (%)']],
-      body: barberRows.length > 0 ? barberRows : [['-', 'Belum ada data barber', '-', '-', '-']],
-      theme: 'grid',
-      headStyles: { fillColor: [212, 175, 55], textColor: [0, 0, 0], fontStyle: 'bold', fontSize: 9 },
-      bodyStyles: { fontSize: 8 },
-      columnStyles: { 0: { halign: 'center', fontStyle: 'bold', cellWidth: 20 } }
-    });
-
-    currentY = (doc as any).lastAutoTable.finalY + 9;
-
-    // 5. Section: Popular Services & Pomade Sales
-    if (currentY > 220) { doc.addPage(); currentY = 20; }
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(18, 18, 18);
-    doc.text('5. Tabel Layanan & Produk Pomade Terlaris', 14, currentY);
-
-    const serviceRows = reportData.serviceBreakdown.slice(0, 8).map((s, idx) => [
-      `#${idx + 1}`,
-      s.name,
-      s.category,
-      `${s.count} Qty`,
-      formatMoney(s.revenue)
-    ]);
-
-    autoTable(doc, {
-      startY: currentY + 3,
-      head: [['Rank', 'Nama Layanan / Produk', 'Kategori', 'Qty Terjual', 'Total Revenue']],
-      body: serviceRows.length > 0 ? serviceRows : [['-', 'Belum ada transaksi', '-', '-', '-']],
-      theme: 'grid',
-      headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
-      bodyStyles: { fontSize: 8 },
-      columnStyles: { 0: { halign: 'center', fontStyle: 'bold', cellWidth: 18 } }
-    });
-
-    currentY = (doc as any).lastAutoTable.finalY + 9;
-
-    // 6. Section: Income Transactions List
-    if (currentY > 220) { doc.addPage(); currentY = 20; }
-
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(18, 18, 18);
-    doc.text('6. Rincian Pemasukan Transaksi (Terbaru)', 14, currentY);
-
-    const txRows = reportData.rangeTxs.slice(0, 10).map(t => {
-      const bName = barbers?.find(b => b.id === t.barberId)?.name || '-';
-      return [
-        t.id,
-        `${t.date} ${t.time}`,
-        t.customerName,
-        bName,
-        formatMoney(t.total),
-        t.paymentMethod
-      ];
-    });
-
-    autoTable(doc, {
-      startY: currentY + 3,
-      head: [['No. TRX', 'Waktu', 'Pelanggan', 'Barber', 'Total', 'Metode Bayar']],
-      body: txRows.length > 0 ? txRows : [['-', '-', 'Tidak ada transaksi pada periode ini', '-', '-', '-']],
-      theme: 'striped',
-      headStyles: { fillColor: [16, 185, 129], textColor: [255, 255, 255], fontSize: 8.5 },
-      bodyStyles: { fontSize: 8 }
-    });
-
-    currentY = (doc as any).lastAutoTable.finalY + 9;
-
-    // 7. Section: Store Expenses List
-    if (currentY > 220) { doc.addPage(); currentY = 20; }
-
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(18, 18, 18);
-    doc.text('7. Rincian Pengeluaran Toko', 14, currentY);
-
-    const expenseRows = reportData.rangeExpenses.slice(0, 10).map(e => [
-      `${e.date} ${e.time}`,
-      e.category,
-      formatMoney(e.amount),
-      e.handler,
-      e.notes || '-'
-    ]);
-
-    autoTable(doc, {
-      startY: currentY + 3,
-      head: [['Waktu', 'Kategori / Keperluan', 'Nominal', 'Penanggung Jawab', 'Catatan']],
-      body: expenseRows.length > 0 ? expenseRows : [['-', 'Tidak ada pengeluaran pada periode ini', '-', '-', '-']],
-      theme: 'striped',
-      headStyles: { fillColor: [220, 38, 38], textColor: [255, 255, 255], fontSize: 8.5 },
-      bodyStyles: { fontSize: 8 }
-    });
-
-    currentY = (doc as any).lastAutoTable.finalY + 14;
-    if (currentY > 240) {
-      doc.addPage();
-      currentY = 25;
-    }
-
-    // 8. Bottom Approval Box & Signature Section
-    doc.setDrawColor(212, 175, 55);
-    doc.setLineWidth(0.5);
-    doc.line(14, currentY, 196, currentY);
-
-    currentY += 8;
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100, 100, 100);
-    doc.text(`Laporan dibuat secara otomatis oleh sistem POS BarberFlow pada ${dayjs().format('D MMMM YYYY HH:mm')}`, 14, currentY);
-
-    doc.setTextColor(18, 18, 18);
-    doc.text('Disetujui oleh,', 145, currentY);
-    doc.text('Manajer / Owner Classic Barber Go', 145, currentY + 4);
-    
-    doc.setFont('helvetica', 'bold');
-    doc.text('( _______________________ )', 145, currentY + 22);
-
-    // Page numbering
-    const totalPages = (doc as any).internal.getNumberOfPages();
-    for (let i = 1; i <= totalPages; i++) {
-      doc.setPage(i);
+      doc.setTextColor(140, 135, 120);
       doc.setFontSize(7);
-      doc.setTextColor(150, 150, 150);
-      doc.text(`Classic Barber Go POS — Halaman ${i} dari ${totalPages}`, 105, 290, { align: 'center' });
-    }
+      doc.setFont('helvetica', 'bold');
+      doc.text('PERIODE LAPORAN', 132, 13);
 
-    doc.save(`Laporan_Eksekutif_${reportType}_${periodStr.replace(/\s+/g, '_')}.pdf`);
+      doc.setTextColor(212, 175, 55);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text(periodStr, 132, 20);
+
+      doc.setTextColor(160, 155, 140);
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Tipe  : Laporan ${reportType}`, 132, 27);
+      doc.text(`Cetak : ${printTime}`, 132, 33);
+
+      // ── KPI CARDS ──────────────────────────────────────────────────
+      const cY = 54, cW = 44, cH = 22, cGap = 4;
+      const cardDefs = [
+        { lbl: 'TOTAL OMSET', val: formatMoney(reportData.totalRevenue),   clr: [212, 175, 55] as [number,number,number], txt: [100, 70, 0]   as [number,number,number] },
+        { lbl: 'PENGELUARAN', val: formatMoney(reportData.totalExpenses),  clr: [220, 38, 38]  as [number,number,number], txt: [140, 10, 10]  as [number,number,number] },
+        { lbl: 'LABA BERSIH',  val: formatMoney(reportData.netProfit),     clr: [16, 185, 129] as [number,number,number], txt: [0, 110, 70]   as [number,number,number] },
+        { lbl: 'TRANSAKSI',    val: `${reportData.txCount} Trx`,           clr: [99, 102, 241] as [number,number,number], txt: [40, 30, 180]  as [number,number,number] },
+      ];
+
+      cardDefs.forEach((cd, i) => {
+        const x = 14 + i * (cW + cGap);
+        // Shadow
+        doc.setFillColor(220, 220, 225);
+        doc.roundedRect(x + 1.5, cY + 1.5, cW, cH, 2.5, 2.5, 'F');
+        // Card bg
+        doc.setFillColor(255, 255, 255);
+        doc.setDrawColor(235, 235, 240);
+        doc.setLineWidth(0.3);
+        doc.roundedRect(x, cY, cW, cH, 2.5, 2.5, 'FD');
+        // Top accent band
+        doc.setFillColor(...cd.clr);
+        doc.roundedRect(x, cY, cW, 6, 2.5, 2.5, 'F');
+        doc.rect(x, cY + 3, cW, 3, 'F');
+        // Label
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(6);
+        doc.setFont('helvetica', 'bold');
+        doc.text(cd.lbl, x + cW/2, cY + 4.2, { align: 'center' });
+        // Value
+        doc.setTextColor(...cd.txt);
+        doc.setFontSize(8.5);
+        doc.setFont('helvetica', 'bold');
+        doc.text(cd.val, x + cW/2, cY + 15.5, { align: 'center', maxWidth: cW - 4 });
+      });
+
+      let y = 83;
+
+      // ── SECTION 1: RINGKASAN KEUANGAN ─────────────────────────────
+      drawSectionHeader(doc, '1', 'Ringkasan Eksekutif Keuangan & Operasional', y, [212, 175, 55]);
+      y += 8;
+
+      autoTable(doc, {
+        startY: y,
+        head: [['Indikator Keuangan', 'Nilai / Nominal', 'Analisis & Keterangan']],
+        body: [
+          ['Total Pemasukan (Omset Kotor)', formatMoney(reportData.totalRevenue), 'Pendapatan dari seluruh transaksi layanan & produk'],
+          ['Total Pengeluaran Operasional', formatMoney(reportData.totalExpenses), 'Pembelian pomade, operasional & biaya lainnya'],
+          ['Laba / (Rugi) Bersih',          formatMoney(reportData.netProfit),     `${reportData.netProfit >= 0 ? '✓ Keuntungan' : '✗ Kerugian'} periode ini`],
+          ['Total Transaksi Terlayani',      `${reportData.txCount} Transaksi`,      'Jumlah nota pelanggan yang diselesaikan'],
+        ],
+        theme: 'grid',
+        margin: { left: 14, right: 14 },
+        headStyles: { fillColor: [18, 18, 28], textColor: [212, 175, 55], fontStyle: 'bold', fontSize: 8.5, cellPadding: 3.5 },
+        bodyStyles: { fontSize: 8, cellPadding: 3 },
+        alternateRowStyles: { fillColor: [252, 251, 245] },
+        columnStyles: { 0: { fontStyle: 'bold', cellWidth: 62 }, 1: { fontStyle: 'bold', cellWidth: 44, textColor: [30, 80, 30] } },
+      });
+      y = (doc as any).lastAutoTable.finalY + 10;
+
+      // ── CHART 1: BAR CHART ─────────────────────────────────────────
+      if (reportData.barberBreakdown.length > 0) {
+        if (y > 205) { doc.addPage(); y = 20; }
+        drawSectionHeader(doc, '2', 'Grafik Performa Omset per Barber', y, [99, 102, 241]);
+        y += 9;
+        const barColors = ['#D4AF37', '#10B981', '#6366F1', '#F59E0B', '#EF4444'];
+        const b64 = drawBarChart(
+          reportData.barberBreakdown.map(b => b.name),
+          reportData.barberBreakdown.map(b => b.revenue),
+          barColors.slice(0, reportData.barberBreakdown.length)
+        );
+        doc.addImage(b64, 'PNG', 14, y, 182, 60);
+        y += 65;
+      }
+
+      // ── CHART 2: PIE CHART ─────────────────────────────────────────
+      if (reportData.barberBreakdown.length > 0 && reportData.totalRevenue > 0) {
+        if (y > 205) { doc.addPage(); y = 20; }
+        drawSectionHeader(doc, '3', 'Grafik Kontribusi Omset Barber (%)', y, [16, 185, 129]);
+        y += 9;
+        const pieColors = ['#D4AF37', '#10B981', '#6366F1', '#F59E0B', '#EF4444'];
+        const p64 = drawPieChart(
+          reportData.barberBreakdown.map(b => b.name),
+          reportData.barberBreakdown.map(b => b.revenue),
+          pieColors.slice(0, reportData.barberBreakdown.length)
+        );
+        doc.addImage(p64, 'PNG', 20, y, 170, 58);
+        y += 64;
+      }
+
+      // ── SECTION 4: TABEL PERFORMA BARBER ──────────────────────────
+      if (y > 215) { doc.addPage(); y = 20; }
+      drawSectionHeader(doc, '4', 'Tabel Performa Kinerja Barber', y, [212, 175, 55]);
+      y += 8;
+
+      autoTable(doc, {
+        startY: y,
+        head: [['#', 'Nama Barber', 'Jumlah Pemotongan', 'Total Omset', 'Kontribusi (%)']],
+        body: reportData.barberBreakdown.length > 0
+          ? reportData.barberBreakdown.map((b, i) => [`#${i+1}`, b.name, `${b.count} Sesi`, formatMoney(b.revenue), `${b.share}%`])
+          : [['-', 'Belum ada data barber', '-', '-', '-']],
+        theme: 'grid',
+        margin: { left: 14, right: 14 },
+        headStyles: { fillColor: [212, 175, 55], textColor: [10, 10, 10], fontStyle: 'bold', fontSize: 8.5, cellPadding: 3.5 },
+        bodyStyles: { fontSize: 8, cellPadding: 3 },
+        alternateRowStyles: { fillColor: [254, 252, 240] },
+        columnStyles: { 0: { halign: 'center', fontStyle: 'bold', cellWidth: 14 }, 1: { fontStyle: 'bold' } },
+      });
+      y = (doc as any).lastAutoTable.finalY + 10;
+
+      // ── SECTION 5: LAYANAN TERLARIS ────────────────────────────────
+      if (y > 215) { doc.addPage(); y = 20; }
+      drawSectionHeader(doc, '5', 'Layanan & Produk Pomade Terlaris', y, [30, 41, 59]);
+      y += 8;
+
+      autoTable(doc, {
+        startY: y,
+        head: [['#', 'Nama Layanan / Produk', 'Kategori', 'Qty Terjual', 'Total Revenue']],
+        body: reportData.serviceBreakdown.slice(0, 8).length > 0
+          ? reportData.serviceBreakdown.slice(0, 8).map((s, i) => [`#${i+1}`, s.name, s.category, `${s.count}×`, formatMoney(s.revenue)])
+          : [['-', 'Belum ada data transaksi', '-', '-', '-']],
+        theme: 'grid',
+        margin: { left: 14, right: 14 },
+        headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5, cellPadding: 3.5 },
+        bodyStyles: { fontSize: 8, cellPadding: 3 },
+        alternateRowStyles: { fillColor: [246, 248, 252] },
+        columnStyles: { 0: { halign: 'center', fontStyle: 'bold', cellWidth: 14 } },
+      });
+      y = (doc as any).lastAutoTable.finalY + 10;
+
+      // ── SECTION 6: DETAIL PEMASUKAN ────────────────────────────────
+      if (y > 215) { doc.addPage(); y = 20; }
+      drawSectionHeader(doc, '6', 'Detail Pemasukan Transaksi', y, [16, 185, 129]);
+      y += 8;
+
+      autoTable(doc, {
+        startY: y,
+        head: [['No. TRX', 'Tanggal', 'Pelanggan', 'Barber', 'Total', 'Metode']],
+        body: reportData.rangeTxs.slice(0, 12).length > 0
+          ? reportData.rangeTxs.slice(0, 12).map(t => {
+              const bn = barbers?.find(b => b.id === t.barberId)?.name || '-';
+              return [t.id, `${t.date}\n${t.time}`, t.customerName, bn, formatMoney(t.total), t.paymentMethod];
+            })
+          : [['-', '-', 'Tidak ada transaksi', '-', '-', '-']],
+        theme: 'striped',
+        margin: { left: 14, right: 14 },
+        headStyles: { fillColor: [16, 185, 129], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5, cellPadding: 3.5 },
+        bodyStyles: { fontSize: 7.5, cellPadding: 2.8 },
+        alternateRowStyles: { fillColor: [240, 253, 248] },
+      });
+      y = (doc as any).lastAutoTable.finalY + 10;
+
+      // ── SECTION 7: DETAIL PENGELUARAN ──────────────────────────────
+      if (y > 215) { doc.addPage(); y = 20; }
+      drawSectionHeader(doc, '7', 'Detail Pengeluaran Toko', y, [220, 38, 38]);
+      y += 8;
+
+      autoTable(doc, {
+        startY: y,
+        head: [['Tanggal & Jam', 'Kategori / Keperluan', 'Nominal', 'Penanggung Jawab', 'Catatan']],
+        body: reportData.rangeExpenses.slice(0, 12).length > 0
+          ? reportData.rangeExpenses.slice(0, 12).map(e => [`${e.date}\n${e.time}`, e.category, formatMoney(e.amount), e.handler, e.notes || '-'])
+          : [['-', 'Tidak ada pengeluaran', '-', '-', '-']],
+        theme: 'striped',
+        margin: { left: 14, right: 14 },
+        headStyles: { fillColor: [220, 38, 38], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5, cellPadding: 3.5 },
+        bodyStyles: { fontSize: 7.5, cellPadding: 2.8 },
+        alternateRowStyles: { fillColor: [255, 245, 245] },
+      });
+      y = (doc as any).lastAutoTable.finalY + 14;
+
+      // ── SIGNATURE & FOOTER ─────────────────────────────────────────
+      if (y > 242) { doc.addPage(); y = 25; }
+
+      doc.setDrawColor(212, 175, 55);
+      doc.setLineWidth(0.6);
+      doc.line(14, y, 196, y);
+      y += 7;
+
+      doc.setFontSize(7.5);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(130, 130, 130);
+      doc.text(`Dokumen ini dibuat otomatis oleh sistem POS BarberFlow pada ${printTime}`, 14, y);
+
+      doc.setTextColor(25, 25, 25);
+      doc.setFontSize(8);
+      doc.text('Semarang, ' + dayjs().format('DD MMMM YYYY'), 145, y);
+      doc.text('Manajer / Owner Toko', 145, y + 5);
+      doc.setFont('helvetica', 'bold');
+      doc.text('( ______________________ )', 145, y + 22);
+
+      // ── PAGE NUMBERS ───────────────────────────────────────────────
+      const totalPg = (doc as any).internal.getNumberOfPages();
+      for (let p = 1; p <= totalPg; p++) {
+        doc.setPage(p);
+        // Footer bar
+        doc.setFillColor(10, 10, 18);
+        doc.rect(0, 286, 210, 11, 'F');
+        doc.setFillColor(212, 175, 55);
+        doc.rect(0, 286, 210, 0.8, 'F');
+        doc.setTextColor(180, 175, 165);
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`${shopName} — BarberFlow POS System`, 14, 292.5);
+        doc.text(`Hal. ${p} / ${totalPg}`, 196, 292.5, { align: 'right' });
+      }
+
+      doc.save(`Laporan_${reportType}_${shopName.replace(/\s+/g, '_')}_${dayjs().format('DDMMYYYY')}.pdf`);
+      toast.success('PDF Laporan berhasil dibuat!');
     } catch (err) {
       console.error('PDF generation error:', err);
       toast.error('Gagal membuat PDF. Silakan coba lagi.');
