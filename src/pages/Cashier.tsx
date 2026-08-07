@@ -392,21 +392,42 @@ export const Cashier: React.FC = () => {
           ) : (
             filteredServices.map(s => {
               const isSelected = watchedServiceIds.includes(s.id!);
+              const hasStockLimit = s.stock !== undefined && s.stock !== null;
+              const isOutOfStock = hasStockLimit && (s.stock || 0) <= 0;
+
               return (
                 <motion.div
                   key={s.id}
-                  onClick={() => toggleService(s.id!)}
+                  onClick={() => !isOutOfStock && toggleService(s.id!)}
                   className={`service-select-card glass-panel ${isSelected ? 'selected' : ''}`}
-                  style={{ borderLeftColor: s.labelColor }}
-                  whileHover={{ y: -2 }}
-                  whileTap={{ scale: 0.98 }}
+                  style={{ 
+                    borderLeftColor: s.labelColor,
+                    opacity: isOutOfStock ? 0.45 : 1,
+                    cursor: isOutOfStock ? 'not-allowed' : 'pointer'
+                  }}
+                  whileHover={isOutOfStock ? {} : { y: -2 }}
+                  whileTap={isOutOfStock ? {} : { scale: 0.98 }}
                 >
                   <div className="card-selection-indicator">
                     {isSelected && <Check size={12} className="check-icon" />}
                   </div>
                   <div className="service-card-info">
                     <span className="srv-name">{s.name}</span>
-                    <span className="srv-cat">{s.category}</span>
+                    <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', marginTop: '0.2rem' }}>
+                      <span className="srv-cat">{s.category}</span>
+                      {hasStockLimit && (
+                        <span style={{
+                          fontSize: '0.68rem',
+                          padding: '0.1rem 0.4rem',
+                          borderRadius: '4px',
+                          backgroundColor: isOutOfStock ? 'rgba(239, 68, 68, 0.2)' : 'rgba(234, 179, 8, 0.2)',
+                          color: isOutOfStock ? '#EF4444' : '#EAB308',
+                          fontWeight: 700
+                        }}>
+                          {isOutOfStock ? 'Stok Habis' : `Stok: ${s.stock} Pcs`}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="service-card-footer">
                     <span className="srv-dur">{s.duration} m</span>

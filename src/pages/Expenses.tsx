@@ -47,8 +47,10 @@ const CATEGORY_PRESETS = [
 export const Expenses: React.FC = () => {
   // DB query
   const expenses = useLiveQuery(() => db.expenses.toArray());
+  const barbers = useLiveQuery(() => db.barbers.toArray());
   const settings = useLiveQuery(() => db.settings.where('key').equals('app_settings').first());
 
+  const barbersList = barbers || [];
   const currency = settings?.currency || 'Rp';
 
   // Filters State
@@ -397,16 +399,21 @@ export const Expenses: React.FC = () => {
 
                 <div className="form-row-2">
                   <div className="form-group">
-                    <label className="form-label" htmlFor="expCat">Kategori Pengeluaran</label>
-                    <select
+                    <label className="form-label" htmlFor="expCat">Kategori Pengeluaran (Bebas / Pilih)</label>
+                    <input
                       id="expCat"
-                      className="form-input select-input"
+                      type="text"
+                      list="category-suggestions"
+                      className={`form-input ${errors.category ? 'error-border' : ''}`}
+                      placeholder="Contoh: Pomade / Beli Handuk / Listrik"
                       {...register('category')}
-                    >
+                    />
+                    <datalist id="category-suggestions">
                       {CATEGORY_PRESETS.map(cat => (
-                        <option key={cat} value={cat}>{cat}</option>
+                        <option key={cat} value={cat} />
                       ))}
-                    </select>
+                    </datalist>
+                    {errors.category && <span className="form-error">{errors.category.message}</span>}
                   </div>
 
                   <div className="form-group">
@@ -425,13 +432,20 @@ export const Expenses: React.FC = () => {
 
                 <div className="form-group">
                   <label className="form-label" htmlFor="expHandler">Penanggung Jawab (PJ)</label>
-                  <input
+                  <select
                     id="expHandler"
-                    type="text"
-                    className={`form-input ${errors.handler ? 'error-border' : ''}`}
-                    placeholder="Contoh: Siti Admin"
+                    className={`form-input select-input ${errors.handler ? 'error-border' : ''}`}
                     {...register('handler')}
-                  />
+                  >
+                    <option value="">-- Pilih Penanggung Jawab --</option>
+                    {barbersList.map(b => (
+                      <option key={b.id} value={`${b.name} (${b.shift})`}>
+                        {b.name} — Barber (Shift {b.shift})
+                      </option>
+                    ))}
+                    <option value="Administrator (Admin)">Administrator (Admin)</option>
+                    <option value="Kasir On Duty">Kasir On Duty</option>
+                  </select>
                   {errors.handler && <span className="form-error">{errors.handler.message}</span>}
                 </div>
 

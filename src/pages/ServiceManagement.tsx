@@ -26,7 +26,8 @@ const serviceSchema = zod.object({
   price: zod.number().gt(0, 'Harga harus lebih besar dari nol'),
   duration: zod.number().gt(0, 'Durasi tidak boleh nol'),
   labelColor: zod.string().min(4, 'Warna label tidak valid'),
-  isActive: zod.boolean()
+  isActive: zod.boolean(),
+  stock: zod.number().nullable().optional()
 });
 
 type ServiceFormValues = zod.infer<typeof serviceSchema>;
@@ -65,7 +66,8 @@ export const ServiceManagement: React.FC = () => {
       price: 0,
       duration: 30,
       labelColor: '#D4AF37', // Default Gold
-      isActive: true
+      isActive: true,
+      stock: null
     });
     setIsModalOpen(true);
   };
@@ -79,7 +81,8 @@ export const ServiceManagement: React.FC = () => {
       price: service.price,
       duration: service.duration,
       labelColor: service.labelColor,
-      isActive: service.isActive
+      isActive: service.isActive,
+      stock: service.stock !== undefined ? service.stock : null
     });
     setIsModalOpen(true);
   };
@@ -242,14 +245,19 @@ export const ServiceManagement: React.FC = () => {
                   {service.name}
                 </h3>
 
-                {/* Category & Duration */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
+                {/* Category & Duration & Stock */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
                   <span style={{ fontSize: '0.75rem', color: '#A1A1AA', background: '#18181B', padding: '0.15rem 0.5rem', borderRadius: '4px' }}>
                     {service.category}
                   </span>
                   <span style={{ fontSize: '0.75rem', color: '#71717A' }}>
                     {service.duration} mnt
                   </span>
+                  {service.stock !== undefined && service.stock !== null && (
+                    <span style={{ fontSize: '0.72rem', color: '#EAB308', background: 'rgba(234, 179, 8, 0.15)', padding: '0.15rem 0.5rem', borderRadius: '4px', fontWeight: 700 }}>
+                      Stok: {service.stock} Pcs
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -274,7 +282,7 @@ export const ServiceManagement: React.FC = () => {
               style={{ background: '#121212', border: '1px solid #222222', borderRadius: '16px' }}
             >
               <div className="modal-header">
-                <h3>{editingService ? 'Edit Layanan' : 'Tambah Layanan Baru'}</h3>
+                <h3>{editingService ? 'Edit Layanan / Produk' : 'Tambah Layanan / Produk Baru'}</h3>
                 <button className="modal-close" onClick={() => setIsModalOpen(false)}>
                   <X size={20} />
                 </button>
@@ -282,12 +290,12 @@ export const ServiceManagement: React.FC = () => {
 
               <form onSubmit={handleSubmit(onSubmit)} className="modal-form">
                 <div className="form-group">
-                  <label className="form-label" htmlFor="serviceName">Nama Layanan</label>
+                  <label className="form-label" htmlFor="serviceName">Nama Layanan / Produk</label>
                   <input
                     id="serviceName"
                     type="text"
                     className={`form-input ${errors.name ? 'error-border' : ''}`}
-                    placeholder="Contoh: Potong Rambut"
+                    placeholder="Contoh: Potong Rambut / Pomade"
                     {...register('name')}
                   />
                   {errors.name && <span className="form-error">{errors.name.message}</span>}
@@ -300,7 +308,7 @@ export const ServiceManagement: React.FC = () => {
                       id="serviceCategory"
                       type="text"
                       className={`form-input ${errors.category ? 'error-border' : ''}`}
-                      placeholder="Rambut / Jenggot / Styling"
+                      placeholder="Rambut / Treatment / Product"
                       {...register('category')}
                     />
                     {errors.category && <span className="form-error">{errors.category.message}</span>}
@@ -333,15 +341,28 @@ export const ServiceManagement: React.FC = () => {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label" htmlFor="labelColor">Warna Label</label>
+                    <label className="form-label" htmlFor="serviceStock">Stok Produk (Kosongkan jika Jasa)</label>
                     <input
-                      id="labelColor"
-                      type="color"
-                      className="form-input color-picker-input"
-                      {...register('labelColor')}
-                      style={{ height: '40px', padding: '2px' }}
+                      id="serviceStock"
+                      type="number"
+                      className="form-input"
+                      placeholder="Contoh: 25 (atau kosong)"
+                      {...register('stock', { 
+                        setValueAs: v => (v === '' || v === null || isNaN(v) ? null : Number(v))
+                      })}
                     />
                   </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="labelColor">Warna Label Aksen</label>
+                  <input
+                    id="labelColor"
+                    type="color"
+                    className="form-input color-picker-input"
+                    {...register('labelColor')}
+                    style={{ height: '40px', padding: '2px' }}
+                  />
                 </div>
 
                 <div className="form-group">

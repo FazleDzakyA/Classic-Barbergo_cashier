@@ -202,6 +202,42 @@ body {
   display: block;
 }
 
+/* Premium Select & Dropdown Styling */
+select.form-input,
+.select-input {
+  background-color: #121212 !important;
+  color: #FFFFFF !important;
+  border: 1px solid #27272A !important;
+  border-radius: var(--radius-md) !important;
+  padding-right: 2.2rem !important;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23EAB308' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 0.75rem center !important;
+  background-size: 1.1em !important;
+  font-weight: 500;
+}
+
+select.form-input:hover,
+.select-input:hover {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 8px rgba(234, 179, 8, 0.2) !important;
+}
+
+select.form-input:focus,
+.select-input:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 2px var(--primary-glow) !important;
+}
+
+select.form-input option,
+.select-input option {
+  background-color: #18181B !important;
+  color: #FFFFFF !important;
+  padding: 0.75rem 1rem !important;
+}
+
 /* Dashboard Metrics Grid */
 .metrics-grid {
   display: grid;

@@ -13,13 +13,6 @@ CREATE TABLE IF NOT EXISTS users (
   createdAt VARCHAR(50)
 );
 
--- Seed Users (Default admin and kasir)
-INSERT INTO users (username, passwordHash, role, name, isActive, createdAt)
-VALUES 
-('admin', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', 'admin', 'Admin BB go', TRUE, '2026-07-24T00:00:00.000Z'),
-('kasir', 'f02b7c1e519e4fa436147f7e1399974f9510aa9c8e0cb8be29151eb540f9d214', 'cashier', 'Kasir BB Go', TRUE, '2026-07-24T00:00:00.000Z')
-ON DUPLICATE KEY UPDATE username=username;
-
 -- 2. Table Barbers
 CREATE TABLE IF NOT EXISTS barbers (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -32,14 +25,6 @@ CREATE TABLE IF NOT EXISTS barbers (
   joinedDate VARCHAR(50)
 );
 
--- Seed Barbers (Faiz, Fadli, Rizki in Semarang)
-INSERT INTO barbers (name, phone, address, shift, isActive, photo, joinedDate)
-VALUES 
-('Faiz', '+62 812 1856 7781', 'Jl. Mr. Koesbiyono Tjondrowibowo Jl. Raya Muntal, Patemon, Kec. Gn. Pati, Kota Semarang, Jawa Tengah 50228', 'Pagi', TRUE, NULL, '2026-07-24'),
-('Fadli', '+62 823-2213-9938', 'Jl. Mr. Koesbiyono Tjondrowibowo Jl. Raya Muntal, Patemon, Kec. Gn. Pati, Kota Semarang, Jawa Tengah 50228', 'Siang', TRUE, NULL, '2026-07-24'),
-('Rizki', '+62 882 0038 74460', 'Jl. Mr. Koesbiyono Tjondrowibowo Jl. Raya Muntal, Patemon, Kec. Gn. Pati, Kota Semarang, Jawa Tengah 50228', 'Malam', TRUE, NULL, '2026-07-24')
-ON DUPLICATE KEY UPDATE name=name;
-
 -- 3. Table Services
 CREATE TABLE IF NOT EXISTS services (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -48,24 +33,9 @@ CREATE TABLE IF NOT EXISTS services (
   price INT NOT NULL,
   duration INT,
   labelColor VARCHAR(10),
-  isActive BOOLEAN DEFAULT TRUE
+  isActive BOOLEAN DEFAULT TRUE,
+  stock INT DEFAULT NULL
 );
-
--- Seed Services
-INSERT INTO services (name, category, price, duration, labelColor, isActive)
-VALUES 
-('Potong', 'Haircut', 20000, 30, '#D4AF37', TRUE),
-('Potong Kramas', 'Haircut', 23000, 40, '#4169E1', TRUE),
-('Shaving', 'Treatment', 10000, 15, '#20B2AA', TRUE),
-('Hair Color Mulai', 'Hair Color', 70000, 60, '#FF69B4', TRUE),
-('Highlight Mulai', 'Hair Color', 80000, 60, '#BA55D3', TRUE),
-('Semir Hitam', 'Hair Color', 60000, 45, '#778899', TRUE),
-('Hair Tonic', 'Treatment', 25000, 10, '#3CB371', TRUE),
-('Hair Tonic Besar', 'Treatment', 30000, 15, '#2E8B57', TRUE),
-('Pomade', 'Product', 25000, 5, '#CD853F', TRUE),
-('Creambath', 'Treatment', 50000, 45, '#FF8C00', TRUE),
-('Smoting', 'Treatment', 60000, 90, '#4682B4', TRUE)
-ON DUPLICATE KEY UPDATE name=name;
 
 -- 4. Table Sessions
 CREATE TABLE IF NOT EXISTS sessions (
@@ -125,17 +95,3 @@ CREATE TABLE IF NOT EXISTS settings (
   defaultTax INT DEFAULT 0,
   currency VARCHAR(10)
 );
-
--- Seed Settings
-INSERT INTO settings (key_name, logo, name, address, phone, receiptFooter, defaultTax, currency)
-VALUES (
-  'app_settings',
-  'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5c0-1.1.9-2 2-2h2"/><path d="M17 3h2c1.1 0 2 .9 2 2v2"/><path d="M21 17v2c0 1.1-.9 2-2 2h-2"/><path d="M7 21H5c-1.1 0-2-.9-2-2v-2"/><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 12h6"/></svg>',
-  'BarberFlow Premium',
-  'Jl. Mr. Koesbiyono Tjondrowibowo Jl. Raya Muntal, Patemon, Kec. Gn. Pati, Kota Semarang, Jawa Tengah 50228',
-  '0812-3456-7890',
-  'Terima kasih atas kunjungan Anda!\nBarberFlow - Premium Grooming Experience',
-  0,
-  'Rp'
-)
-ON DUPLICATE KEY UPDATE key_name=key_name;

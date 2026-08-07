@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { db, useLiveQuery } from '../database/db';
 import type { Transaction } from '../types';
-import { Printer, Download, X } from 'lucide-react';
+import { Printer, Download, X, MessageSquare } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import './ReceiptPreview.css';
 
@@ -159,6 +159,35 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ transaction, onC
     doc.save(`receipt-${transaction.id}.pdf`);
   };
 
+  // WhatsApp Share Handler
+  const handleSendWhatsApp = () => {
+    const shopName = settings?.name || 'Classic Barber Go';
+    const serviceNames = selectedServices.map(s => `• ${s?.name} (${formatMoney(s?.price || 0)})`).join('\n');
+    
+    let text = `✂ *${shopName.toUpperCase()}* ✂\n`;
+    text += `*BarberFlow Premium Grooming*\n`;
+    text += `----------------------------------------\n`;
+    text += `*No. TRX*: ${transaction.id}\n`;
+    text += `*Tanggal*: ${transaction.date} ${transaction.time}\n`;
+    text += `*Pelanggan*: ${transaction.customerName}\n`;
+    text += `*Barber*: ${barberName}\n`;
+    text += `----------------------------------------\n`;
+    text += `*Detail Layanan*:\n${serviceNames}\n`;
+    text += `----------------------------------------\n`;
+    text += `*TOTAL AKHIR*: *${formatMoney(transaction.total)}*\n`;
+    text += `*Metode Bayar*: ${transaction.paymentMethod}\n`;
+    if (transaction.paymentMethod === 'Cash' && transaction.cashReceived !== undefined) {
+      text += `*Uang Tunai*: ${formatMoney(transaction.cashReceived)}\n`;
+      text += `*Kembalian*: ${formatMoney(transaction.changeReturned || 0)}\n`;
+    }
+    text += `----------------------------------------\n`;
+    text += `_Terima kasih atas kunjungan Anda!_\n`;
+    text += `_Classic Barber Go — Premium Grooming Experience_`;
+
+    const encodedText = encodeURIComponent(text);
+    window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
+  };
+
   return (
     <div className="receipt-overlay no-print">
       <div className="receipt-modal-box glass-panel">
@@ -274,7 +303,15 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ transaction, onC
           </div>
         </div>
 
-        <div className="receipt-modal-footer">
+        <div className="receipt-modal-footer" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          <button 
+            className="btn" 
+            onClick={handleSendWhatsApp}
+            style={{ backgroundColor: '#25D366', color: '#FFFFFF', fontWeight: 700, borderRadius: '8px', border: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}
+          >
+            <MessageSquare size={16} />
+            <span>Struk WA</span>
+          </button>
           <button className="btn btn-secondary" onClick={handleDownloadPDF}>
             <Download size={16} />
             <span>Unduh PDF</span>

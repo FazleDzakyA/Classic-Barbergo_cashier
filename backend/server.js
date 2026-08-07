@@ -40,12 +40,81 @@ async function initDatabase() {
 
     console.log('Successfully connected to MySQL database pool.');
 
-    // 3. Auto-run schema.sql to build tables and seed default data
+    // 3. Auto-run schema.sql to verify table structure
     const schemaPath = path.join(__dirname, 'schema.sql');
     if (fs.existsSync(schemaPath)) {
       const schemaSql = fs.readFileSync(schemaPath, 'utf8');
-      const [results] = await pool.query(schemaSql);
-      console.log('Database tables verified and seeded successfully.');
+      await pool.query(schemaSql);
+      console.log('Database tables verified successfully.');
+    }
+
+    // 4. Seed Users ONLY if table is empty
+    const [userRows] = await pool.query('SELECT COUNT(*) as cnt FROM users');
+    if (userRows[0].cnt === 0) {
+      await pool.query(`
+        INSERT INTO users (id, username, passwordHash, role, name, isActive, createdAt) VALUES
+        (1, 'admin', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', 'admin', 'Admin BB go', 1, '2026-07-24T00:00:00.000Z'),
+        (2, 'kasir', 'f02b7c1e519e4fa436147f7e1399974f9510aa9c8e0cb8be29151eb540f9d214', 'cashier', 'Kasir BB Go', 1, '2026-07-24T00:00:00.000Z')
+      `);
+      console.log('Default users seeded.');
+    }
+
+    // 5. Seed Barbers ONLY if table is empty
+    const [barberRows] = await pool.query('SELECT COUNT(*) as cnt FROM barbers');
+    if (barberRows[0].cnt === 0) {
+      await pool.query(`
+        INSERT INTO barbers (id, name, phone, address, shift, isActive, joinedDate) VALUES
+        (1, 'Faiz', '+62 812 1856 7781', 'Jl. Mr. Koesbiyono Tjondrowibowo Jl. Raya Muntal, Patemon, Kec. Gn. Pati, Kota Semarang, Jawa Tengah 50228', 'Pagi', 1, '2026-07-24'),
+        (2, 'Fadli', '+62 823-2213-9938', 'Jl. Mr. Koesbiyono Tjondrowibowo Jl. Raya Muntal, Patemon, Kec. Gn. Pati, Kota Semarang, Jawa Tengah 50228', 'Siang', 1, '2026-07-24'),
+        (3, 'Rizki', '+62 882 0038 74460', 'Jl. Mr. Koesbiyono Tjondrowibowo Jl. Raya Muntal, Patemon, Kec. Gn. Pati, Kota Semarang, Jawa Tengah 50228', 'Malam', 1, '2026-07-24')
+      `);
+      console.log('Default barbers seeded.');
+    }
+
+    // 6. Seed Services ONLY if table is empty
+    const [serviceRows] = await pool.query('SELECT COUNT(*) as cnt FROM services');
+    if (serviceRows[0].cnt === 0) {
+      await pool.query(`
+        INSERT INTO services (id, name, category, price, duration, labelColor, isActive, stock) VALUES
+        (1, 'Potong', 'Haircut', 20000, 30, '#D4AF37', 1, NULL),
+        (2, 'Potong Kramas', 'Haircut', 23000, 40, '#4169E1', 1, NULL),
+        (3, 'Shaving', 'Treatment', 10000, 15, '#20B2AA', 1, NULL),
+        (4, 'Hair Color Mulai', 'Hair Color', 70000, 60, '#FF69B4', 1, NULL),
+        (5, 'Highlight Mulai', 'Hair Color', 80000, 60, '#BA55D3', 1, NULL),
+        (6, 'Semir Hitam', 'Hair Color', 60000, 45, '#778899', 1, NULL),
+        (7, 'Hair Tonic', 'Treatment', 25000, 10, '#3CB371', 1, NULL),
+        (8, 'Hair Tonic Besar', 'Treatment', 30000, 15, '#2E8B57', 1, NULL),
+        (9, 'Pomade', 'Product', 25000, 5, '#CD853F', 1, 25),
+        (10, 'Creambath', 'Treatment', 50000, 45, '#FF8C00', 1, NULL),
+        (11, 'Smoting', 'Treatment', 60000, 90, '#4682B4', 1, NULL)
+      `);
+      console.log('Default services seeded.');
+    } else {
+      // Ensure stock column exists
+      try {
+        await pool.query('ALTER TABLE services ADD COLUMN stock INT DEFAULT NULL');
+      } catch (e) { /* column exists */ }
+      // Make sure Pomade has default stock if null
+      await pool.query("UPDATE services SET stock = 25 WHERE name LIKE '%Pomade%' AND stock IS NULL");
+    }
+
+    // 7. Seed Settings ONLY if table is empty
+    const [settingRows] = await pool.query('SELECT COUNT(*) as cnt FROM settings');
+    if (settingRows[0].cnt === 0) {
+      await pool.query(`
+        INSERT INTO settings (key_name, logo, name, address, phone, receiptFooter, defaultTax, currency)
+        VALUES (
+          'app_settings',
+          'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5c0-1.1.9-2 2-2h2"/><path d="M17 3h2c1.1 0 2 .9 2 2v2"/><path d="M21 17v2c0 1.1-.9 2-2 2h-2"/><path d="M7 21H5c-1.1 0-2-.9-2-2v-2"/><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 12h6"/></svg>',
+          'BarberFlow Premium',
+          'Jl. Mr. Koesbiyono Tjondrowibowo Jl. Raya Muntal, Patemon, Kec. Gn. Pati, Kota Semarang, Jawa Tengah 50228',
+          '0812-3456-7890',
+          'Terima kasih atas kunjungan Anda!\\nBarberFlow - Premium Grooming Experience',
+          0,
+          'Rp'
+        )
+      `);
+      console.log('Default settings seeded.');
     }
   } catch (err) {
     console.error('Database connection / init failed. Checking local XAMPP/MySQL status:', err.message);
@@ -160,13 +229,13 @@ app.get('/api/services', async (req, res) => {
 });
 
 app.post('/api/services', async (req, res) => {
-  const { name, category, price, duration, labelColor, isActive } = req.body;
+  const { name, category, price, duration, labelColor, isActive, stock } = req.body;
   try {
     const result = await dbQuery(
-      'INSERT INTO services (name, category, price, duration, labelColor, isActive) VALUES (?, ?, ?, ?, ?, ?)',
-      [name, category, price, duration, labelColor, isActive ? 1 : 0]
+      'INSERT INTO services (name, category, price, duration, labelColor, isActive, stock) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [name, category, price, duration, labelColor, isActive ? 1 : 0, stock !== undefined ? stock : null]
     );
-    res.status(201).json({ id: result.insertId, name, category, price, duration, labelColor, isActive });
+    res.status(201).json({ id: result.insertId, name, category, price, duration, labelColor, isActive, stock });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -174,13 +243,13 @@ app.post('/api/services', async (req, res) => {
 
 app.put('/api/services/:id', async (req, res) => {
   const { id } = req.params;
-  const { name, category, price, duration, labelColor, isActive } = req.body;
+  const { name, category, price, duration, labelColor, isActive, stock } = req.body;
   try {
     await dbQuery(
-      'UPDATE services SET name = ?, category = ?, price = ?, duration = ?, labelColor = ?, isActive = ? WHERE id = ?',
-      [name, category, price, duration, labelColor, isActive ? 1 : 0, id]
+      'UPDATE services SET name = ?, category = ?, price = ?, duration = ?, labelColor = ?, isActive = ?, stock = ? WHERE id = ?',
+      [name, category, price, duration, labelColor, isActive ? 1 : 0, stock !== undefined ? stock : null, id]
     );
-    res.json({ id: parseInt(id), name, category, price, duration, labelColor, isActive });
+    res.json({ id: parseInt(id), name, category, price, duration, labelColor, isActive, stock });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -285,6 +354,13 @@ app.post('/api/transactions', async (req, res) => {
     // If payment method is Cash, increment expectedCash in active session
     if (t.paymentMethod === 'Cash' && t.sessionId) {
       await dbQuery('UPDATE sessions SET expectedCash = expectedCash + ? WHERE id = ?', [t.total, t.sessionId]);
+    }
+
+    // Decrease stock for items with stock
+    if (t.serviceIds && t.serviceIds.length > 0) {
+      for (const sId of t.serviceIds) {
+        await dbQuery('UPDATE services SET stock = GREATEST(0, stock - 1) WHERE id = ? AND stock IS NOT NULL', [sId]);
+      }
     }
 
     res.status(201).json(t);

@@ -27,6 +27,7 @@ export interface Service {
   duration: number; // in minutes
   labelColor: string; // hex code
   isActive: boolean;
+  stock?: number | null;
 }
 
 export interface Transaction {
