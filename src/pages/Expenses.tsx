@@ -34,14 +34,8 @@ const expenseSchema = zod.object({
 type ExpenseFormValues = zod.infer<typeof expenseSchema>;
 
 const CATEGORY_PRESETS = [
-  'Listrik',
-  'Air',
-  'Pomade',
-  'Handuk',
-  'Peralatan',
-  'Snack',
-  'Gaji',
-  'Internet'
+  'Pengeluaran Bebas',
+  'Restock Pomade'
 ];
 
 export const Expenses: React.FC = () => {
@@ -105,7 +99,7 @@ export const Expenses: React.FC = () => {
     reset({
       date: new Date().toISOString().split('T')[0],
       time: new Date().toTimeString().split(' ')[0].substring(0, 5),
-      category: 'Perlengkapan',
+      category: 'Pengeluaran Bebas',
       amount: 0,
       handler: barbersList[0]?.name || 'Faiz',
       notes: ''
@@ -221,7 +215,13 @@ export const Expenses: React.FC = () => {
 
     // Filter by Category
     if (categoryFilter !== 'Semua') {
-      result = result.filter(e => e.category === categoryFilter);
+      if (categoryFilter === 'Restock Pomade') {
+        result = result.filter(e => e.category.toLowerCase().includes('pomade') || e.category.toLowerCase().includes('pembelian') || e.category.toLowerCase().includes('restock'));
+      } else if (categoryFilter === 'Pengeluaran Bebas') {
+        result = result.filter(e => !e.category.toLowerCase().includes('pomade') && !e.category.toLowerCase().includes('pembelian') && !e.category.toLowerCase().includes('restock'));
+      } else {
+        result = result.filter(e => e.category === categoryFilter);
+      }
     }
 
     // Filter by Date
@@ -433,7 +433,7 @@ export const Expenses: React.FC = () => {
                     style={{ flex: 1, fontSize: '0.82rem', padding: '0.5rem' }}
                     onClick={() => {
                       setModalTab('general');
-                      setValue('category', 'Perlengkapan');
+                      setValue('category', 'Pengeluaran Bebas');
                     }}
                   >
                     Pengeluaran Bebas
