@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { CashierSession } from '../types';
-import { db } from '../database/db';
+import { notifyChange } from '../database/db';
 import { useAuth } from './AuthContext';
 import toast from 'react-hot-toast';
 
@@ -18,7 +18,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [currentSession, setCurrentSession] = useState<CashierSession | null>(null);
   const [isLoadingSession, setIsLoadingSession] = useState(true);
 
-  // Check for open session in database
+  // Check for active open session in database
   useEffect(() => {
     const fetchActiveSession = async () => {
       if (!user) {
@@ -27,13 +27,11 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
         return;
       }
       try {
-        const active = await db.sessions
-          .where('status')
-          .equals('open')
-          .first();
-        
-        if (active) {
-          setCurrentSession(active);
+        const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+        const res = await fetch(`${API_URL}/api/sessions/active`);
+        if (res.ok) {
+          const active = await res.json();
+          setCurrentSession(active && active.status === 'open' ? active : null);
         } else {
           setCurrentSession(null);
         }
@@ -62,6 +60,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
       const session = await res.json();
       setCurrentSession(session);
+      notifyChange();
       toast.success('Shift kasir berhasil dibuka!');
       return true;
     } catch (err) {
@@ -86,6 +85,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
         return false;
       }
       setCurrentSession(null);
+      notifyChange();
       toast.success('Shift kasir berhasil ditutup!');
       return true;
     } catch (err) {
