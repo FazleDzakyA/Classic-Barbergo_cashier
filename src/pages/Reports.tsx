@@ -256,153 +256,228 @@ export const Reports: React.FC = () => {
     window.print();
   };
 
-  // ── HIGH-QUALITY BAR CHART (Canvas 2D) ──────────────────────────────
+  // ── HIGH-QUALITY BAR CHART (Canvas 2D - HD Executive Style) ──────────────────────────────
   const drawBarChart = (labels: string[], data: number[], colors: string[]): string => {
-    const W = 760, H = 340;
+    const W = 800, H = 360;
     const canvas = document.createElement('canvas');
     canvas.width = W; canvas.height = H;
     const c = canvas.getContext('2d')!;
 
-    // White bg with subtle border
-    c.fillStyle = '#fafafa';
-    c.fillRect(0, 0, W, H);
-    c.strokeStyle = '#e5e7eb';
-    c.lineWidth = 1;
-    c.strokeRect(0, 0, W, H);
+    // Dark Luxury Card Container Background
+    const bgGrad = c.createLinearGradient(0, 0, W, H);
+    bgGrad.addColorStop(0, '#121216');
+    bgGrad.addColorStop(1, '#181820');
+    c.fillStyle = bgGrad;
+    c.beginPath();
+    c.roundRect(0, 0, W, H, 16);
+    c.fill();
 
-    const pL = 90, pR = 30, pT = 40, pB = 60;
+    // Gold Border Outline
+    c.strokeStyle = '#D4AF37';
+    c.lineWidth = 1.5;
+    c.stroke();
+
+    const pL = 100, pR = 40, pT = 50, pB = 70;
     const cW = W - pL - pR, cH = H - pT - pB;
     const maxVal = Math.max(...data, 1);
     const n = data.length;
     const grpW = cW / n;
-    const bW = Math.min(grpW * 0.5, 100);
+    const bW = Math.min(grpW * 0.48, 110);
 
-    // Y-axis grid & labels
+    // Grid lines & Y-axis labels
     const steps = 5;
     for (let i = 0; i <= steps; i++) {
       const y = pT + (cH / steps) * i;
       const val = Math.round((maxVal / steps) * (steps - i));
-      c.strokeStyle = '#e5e7eb';
-      c.lineWidth = i === steps ? 2 : 1;
-      c.beginPath(); c.moveTo(pL, y); c.lineTo(pL + cW, y); c.stroke();
-      c.fillStyle = '#9ca3af';
-      c.font = '13px Arial';
+      
+      c.strokeStyle = i === steps ? '#333344' : 'rgba(255, 255, 255, 0.07)';
+      c.setLineDash(i === steps ? [] : [4, 4]);
+      c.lineWidth = 1;
+      c.beginPath(); 
+      c.moveTo(pL, y); 
+      c.lineTo(pL + cW, y); 
+      c.stroke();
+      c.setLineDash([]);
+
+      c.fillStyle = '#A1A1AA';
+      c.font = '500 13px "Plus Jakarta Sans", sans-serif';
       c.textAlign = 'right';
-      const lbl = val >= 1000000 ? (val/1000000).toFixed(1)+'jt' : val >= 1000 ? (val/1000).toFixed(0)+'rb' : String(val);
-      c.fillText(lbl, pL - 10, y + 5);
+      const lbl = val >= 1000000 ? (val/1000000).toFixed(1)+' Jt' : val >= 1000 ? (val/1000).toFixed(0)+' Rb' : String(val);
+      c.fillText(lbl, pL - 12, y + 5);
     }
 
-    // Bars with gradient
+    // Render Bars with Gradient & Drop Shadows
     data.forEach((val, i) => {
       const bH = (val / maxVal) * cH;
       const x = pL + i * grpW + (grpW - bW) / 2;
       const y = pT + cH - bH;
       const color = colors[i] || '#D4AF37';
 
-      // Gradient fill
+      // Bar linear gradient
       const grad = c.createLinearGradient(x, y, x, y + bH);
       grad.addColorStop(0, color);
-      grad.addColorStop(1, color + '88');
+      grad.addColorStop(1, color + '33');
+
+      c.save();
+      c.shadowColor = color + '66';
+      c.shadowBlur = 12;
       c.fillStyle = grad;
       c.beginPath();
-      c.roundRect(x, y, bW, bH, [8, 8, 0, 0]);
+      c.roundRect(x, y, bW, bH, [10, 10, 0, 0]);
       c.fill();
+      c.restore();
 
-      // Value on top
-      c.fillStyle = '#111827';
-      c.font = 'bold 13px Arial';
+      // Top value pill badge
+      const vText = val >= 1000000 ? `Rp ${(val/1000000).toFixed(1)}Jt` : val >= 1000 ? `Rp ${(val/1000).toFixed(0)}Rb` : `Rp ${val}`;
+      c.fillStyle = 'rgba(212, 175, 55, 0.15)';
+      c.strokeStyle = '#D4AF37';
+      c.lineWidth = 1;
+      const pillW = 90, pillH = 24, pillX = x + bW / 2 - pillW / 2, pillY = y - 32;
+      c.beginPath();
+      c.roundRect(pillX, pillY, pillW, pillH, 12);
+      c.fill();
+      c.stroke();
+
+      c.fillStyle = '#FFFFFF';
+      c.font = 'bold 12px "Plus Jakarta Sans", sans-serif';
       c.textAlign = 'center';
-      const v = val >= 1000000 ? (val/1000000).toFixed(1)+'jt' : val >= 1000 ? (val/1000).toFixed(0)+'rb' : String(val);
-      c.fillText(v, x + bW / 2, y - 8);
+      c.fillText(vText, x + bW / 2, pillY + 16);
 
-      // Name label below
-      c.fillStyle = '#374151';
-      c.font = 'bold 14px Arial';
-      c.fillText(labels[i] || '', x + bW / 2, pT + cH + 25);
+      // Name Label below X-axis
+      c.fillStyle = '#F4F4F5';
+      c.font = 'bold 14px "Plus Jakarta Sans", sans-serif';
+      c.fillText(labels[i] || '', x + bW / 2, pT + cH + 30);
 
-      // Color dot below name
+      // Color Dot
       c.fillStyle = color;
       c.beginPath();
-      c.arc(x + bW / 2, pT + cH + 38, 5, 0, Math.PI * 2);
+      c.arc(x + bW / 2, pT + cH + 45, 6, 0, Math.PI * 2);
       c.fill();
     });
 
     return canvas.toDataURL('image/png');
   };
 
-  // ── HIGH-QUALITY PIE CHART (Canvas 2D) ─────────────────────────────
+  // ── HIGH-QUALITY DONUT PIE CHART (Canvas 2D - HD Executive Style) ─────────────────────────────
   const drawPieChart = (labels: string[], data: number[], colors: string[]): string => {
-    const W = 640, H = 300;
+    const W = 700, H = 340;
     const canvas = document.createElement('canvas');
     canvas.width = W; canvas.height = H;
     const c = canvas.getContext('2d')!;
 
-    c.fillStyle = '#fafafa';
-    c.fillRect(0, 0, W, H);
-    c.strokeStyle = '#e5e7eb';
-    c.lineWidth = 1;
-    c.strokeRect(0, 0, W, H);
+    // Dark Card Background
+    const bgGrad = c.createLinearGradient(0, 0, W, H);
+    bgGrad.addColorStop(0, '#121216');
+    bgGrad.addColorStop(1, '#181820');
+    c.fillStyle = bgGrad;
+    c.beginPath();
+    c.roundRect(0, 0, W, H, 16);
+    c.fill();
+
+    c.strokeStyle = '#D4AF37';
+    c.lineWidth = 1.5;
+    c.stroke();
 
     const total = data.reduce((s, v) => s + v, 0);
     if (total === 0) return canvas.toDataURL('image/png');
 
-    const cx = 155, cy = H / 2, r = 110;
+    const cx = 175, cy = H / 2, r = 115;
     let angle = -Math.PI / 2;
 
-    // Draw slices with shadow
+    // Render Slices
     data.forEach((val, i) => {
       const slice = (val / total) * Math.PI * 2;
+      const color = colors[i] || '#D4AF37';
+
       c.save();
-      c.shadowColor = 'rgba(0,0,0,0.15)';
-      c.shadowBlur = 8;
+      c.shadowColor = 'rgba(0, 0, 0, 0.4)';
+      c.shadowBlur = 10;
       c.beginPath();
       c.moveTo(cx, cy);
       c.arc(cx, cy, r, angle, angle + slice);
       c.closePath();
-      c.fillStyle = colors[i] || '#D4AF37';
+      c.fillStyle = color;
       c.fill();
       c.restore();
-      // White separator
-      c.strokeStyle = '#ffffff';
-      c.lineWidth = 3;
+
+      // Border divider
+      c.strokeStyle = '#121216';
+      c.lineWidth = 4;
       c.beginPath();
       c.moveTo(cx, cy);
       c.arc(cx, cy, r, angle, angle + slice);
       c.closePath();
       c.stroke();
+
       angle += slice;
     });
 
-    // Center donut hole
-    c.fillStyle = '#fafafa';
+    // Donut Inner Hole
+    c.fillStyle = '#121216';
     c.beginPath();
-    c.arc(cx, cy, r * 0.42, 0, Math.PI * 2);
+    c.arc(cx, cy, r * 0.48, 0, Math.PI * 2);
     c.fill();
-    c.fillStyle = '#374151';
-    c.font = 'bold 13px Arial';
+
+    c.strokeStyle = '#D4AF37';
+    c.lineWidth = 1;
+    c.stroke();
+
+    c.fillStyle = '#D4AF37';
+    c.font = 'bold 13px "Plus Jakarta Sans", sans-serif';
     c.textAlign = 'center';
-    c.fillText('Kontribusi', cx, cy - 6);
+    c.fillText('Kontribusi', cx, cy - 8);
+    c.fillStyle = '#FFFFFF';
+    c.font = 'bold 14px "Plus Jakarta Sans", sans-serif';
     c.fillText('Barber', cx, cy + 12);
 
-    // Legend
-    const legX = cx + r + 28;
+    // Legend List (Right side)
+    const legX = cx + r + 35;
     labels.forEach((lbl, i) => {
-      const lY = 40 + i * 52;
-      const pct = total > 0 ? ((data[i] / total) * 100).toFixed(1) : '0';
-      // Color box
-      c.fillStyle = colors[i] || '#D4AF37';
+      const lY = 45 + i * 55;
+      const val = data[i] || 0;
+      const pct = total > 0 ? ((val / total) * 100).toFixed(1) : '0';
+      const color = colors[i] || '#D4AF37';
+
+      // Legend Color Card
+      c.fillStyle = 'rgba(255, 255, 255, 0.04)';
+      c.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      c.lineWidth = 1;
       c.beginPath();
-      c.roundRect(legX, lY, 18, 18, 4);
+      c.roundRect(legX, lY, 310, 44, 8);
       c.fill();
-      // Name
-      c.fillStyle = '#111827';
-      c.font = 'bold 14px Arial';
+      c.stroke();
+
+      // Color Badge Square
+      c.fillStyle = color;
+      c.beginPath();
+      c.roundRect(legX + 12, lY + 12, 20, 20, 4);
+      c.fill();
+
+      // Barber Name
+      c.fillStyle = '#FFFFFF';
+      c.font = 'bold 14px "Plus Jakarta Sans", sans-serif';
       c.textAlign = 'left';
-      c.fillText(lbl.split(' (')[0], legX + 26, lY + 13);
-      // Percentage
-      c.fillStyle = colors[i] || '#D4AF37';
-      c.font = 'bold 13px Arial';
-      c.fillText(`${pct}%`, legX + 26, lY + 30);
+      c.fillText(lbl.split(' (')[0], legX + 42, lY + 20);
+
+      // Revenue Subtitle
+      const revText = val >= 1000000 ? `Rp ${(val/1000000).toFixed(2)} Jt` : `Rp ${val.toLocaleString('id-ID')}`;
+      c.fillStyle = '#A1A1AA';
+      c.font = '500 12px "Plus Jakarta Sans", sans-serif';
+      c.fillText(revText, legX + 42, lY + 35);
+
+      // Percentage Pill (Right aligned)
+      c.fillStyle = color + '22';
+      c.strokeStyle = color;
+      c.lineWidth = 1;
+      c.beginPath();
+      c.roundRect(legX + 235, lY + 10, 60, 24, 12);
+      c.fill();
+      c.stroke();
+
+      c.fillStyle = '#FFFFFF';
+      c.font = 'bold 12px "Plus Jakarta Sans", sans-serif';
+      c.textAlign = 'center';
+      c.fillText(`${pct}%`, legX + 265, lY + 26);
     });
 
     return canvas.toDataURL('image/png');
@@ -410,25 +485,28 @@ export const Reports: React.FC = () => {
 
   // ── SECTION HEADER HELPER ───────────────────────────────────────────
   const drawSectionHeader = (doc: jsPDF, num: string, title: string, y: number, accentColor: [number, number, number]) => {
-    // Accent rect
+    // Left Accent vertical bar
     doc.setFillColor(...accentColor);
-    doc.rect(14, y - 4, 3, 9, 'F');
+    doc.roundedRect(14, y - 4, 3.5, 10, 1, 1, 'F');
+
     // Section number badge
     doc.setFillColor(...accentColor);
-    doc.roundedRect(19, y - 4, 8, 9, 1.5, 1.5, 'F');
+    doc.roundedRect(20, y - 4, 9, 10, 2, 2, 'F');
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(7);
+    doc.setFontSize(8);
     doc.setFont('helvetica', 'bold');
-    doc.text(num, 23, y + 2.5, { align: 'center' });
-    // Title
-    doc.setTextColor(20, 20, 30);
-    doc.setFontSize(10.5);
+    doc.text(num, 24.5, y + 3, { align: 'center' });
+
+    // Section Title
+    doc.setTextColor(15, 15, 20);
+    doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.text(title, 30, y + 2);
-    // Underline
+    doc.text(title, 32, y + 3);
+
+    // Gradient-like double underline bar
     doc.setDrawColor(...accentColor);
-    doc.setLineWidth(0.4);
-    doc.line(14, y + 5.5, 196, y + 5.5);
+    doc.setLineWidth(0.6);
+    doc.line(14, y + 7.5, 196, y + 7.5);
   };
 
   // ── MAIN PDF GENERATOR ──────────────────────────────────────────────
@@ -490,39 +568,36 @@ export const Reports: React.FC = () => {
       doc.text(`Tipe  : Laporan ${reportType}`, 132, 27);
       doc.text(`Cetak : ${printTime}`, 132, 33);
 
-      // ── KPI CARDS ──────────────────────────────────────────────────
-      const cY = 54, cW = 44, cH = 22, cGap = 4;
+      // ── KPI CARDS (Dark Luxury Style) ─────────────────────────────
+      const cY = 53, cW = 44, cH = 26, cGap = 4;
       const cardDefs = [
-        { lbl: 'TOTAL OMSET', val: formatMoney(reportData.totalRevenue),   clr: [212, 175, 55] as [number,number,number], txt: [100, 70, 0]   as [number,number,number] },
-        { lbl: 'PENGELUARAN', val: formatMoney(reportData.totalExpenses),  clr: [220, 38, 38]  as [number,number,number], txt: [140, 10, 10]  as [number,number,number] },
-        { lbl: 'LABA BERSIH',  val: formatMoney(reportData.netProfit),     clr: [16, 185, 129] as [number,number,number], txt: [0, 110, 70]   as [number,number,number] },
-        { lbl: 'TRANSAKSI',    val: `${reportData.txCount} Trx`,           clr: [99, 102, 241] as [number,number,number], txt: [40, 30, 180]  as [number,number,number] },
+        { lbl: 'TOTAL OMSET', val: formatMoney(reportData.totalRevenue),   clr: [212, 175, 55]  as [number,number,number] },
+        { lbl: 'PENGELUARAN', val: formatMoney(reportData.totalExpenses),  clr: [220, 60, 60]   as [number,number,number] },
+        { lbl: 'LABA BERSIH', val: formatMoney(reportData.netProfit),      clr: [16, 185, 129]  as [number,number,number] },
+        { lbl: 'TRANSAKSI',   val: `${reportData.txCount} Trx`,            clr: [99, 102, 241]  as [number,number,number] },
       ];
 
       cardDefs.forEach((cd, i) => {
         const x = 14 + i * (cW + cGap);
-        // Shadow
-        doc.setFillColor(220, 220, 225);
-        doc.roundedRect(x + 1.5, cY + 1.5, cW, cH, 2.5, 2.5, 'F');
-        // Card bg
-        doc.setFillColor(255, 255, 255);
-        doc.setDrawColor(235, 235, 240);
-        doc.setLineWidth(0.3);
-        doc.roundedRect(x, cY, cW, cH, 2.5, 2.5, 'FD');
-        // Top accent band
+        // Dark Card Background
+        doc.setFillColor(14, 14, 22);
+        doc.setDrawColor(...cd.clr);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(x, cY, cW, cH, 3, 3, 'FD');
+        // Colored top accent stripe
         doc.setFillColor(...cd.clr);
-        doc.roundedRect(x, cY, cW, 6, 2.5, 2.5, 'F');
-        doc.rect(x, cY + 3, cW, 3, 'F');
-        // Label
+        doc.roundedRect(x, cY, cW, 7, 3, 3, 'F');
+        doc.rect(x, cY + 4, cW, 3, 'F');
+        // Label (white on accent stripe)
         doc.setTextColor(255, 255, 255);
-        doc.setFontSize(6);
+        doc.setFontSize(5.8);
         doc.setFont('helvetica', 'bold');
-        doc.text(cd.lbl, x + cW/2, cY + 4.2, { align: 'center' });
-        // Value
-        doc.setTextColor(...cd.txt);
-        doc.setFontSize(8.5);
+        doc.text(cd.lbl, x + cW/2, cY + 5.2, { align: 'center' });
+        // Value (light on dark)
+        doc.setTextColor(245, 240, 220);
+        doc.setFontSize(8);
         doc.setFont('helvetica', 'bold');
-        doc.text(cd.val, x + cW/2, cY + 15.5, { align: 'center', maxWidth: cW - 4 });
+        doc.text(cd.val, x + cW/2, cY + 18.5, { align: 'center', maxWidth: cW - 4 });
       });
 
       let y = 83;
@@ -551,8 +626,8 @@ export const Reports: React.FC = () => {
 
       // ── CHART 1: BAR CHART ─────────────────────────────────────────
       if (reportData.barberBreakdown.length > 0) {
-        if (y > 205) { doc.addPage(); y = 20; }
-        drawSectionHeader(doc, '2', 'Grafik Performa Omset per Barber', y, [99, 102, 241]);
+        if (y > 185) { doc.addPage(); y = 20; }
+        drawSectionHeader(doc, '2', 'Grafik Performa Omset per Barber', y, [212, 175, 55]);
         y += 9;
         const barColors = ['#D4AF37', '#10B981', '#6366F1', '#F59E0B', '#EF4444'];
         const b64 = drawBarChart(
@@ -560,13 +635,13 @@ export const Reports: React.FC = () => {
           reportData.barberBreakdown.map(b => b.revenue),
           barColors.slice(0, reportData.barberBreakdown.length)
         );
-        doc.addImage(b64, 'PNG', 14, y, 182, 60);
-        y += 65;
+        doc.addImage(b64, 'PNG', 14, y, 182, 82);
+        y += 88;
       }
 
       // ── CHART 2: PIE CHART ─────────────────────────────────────────
       if (reportData.barberBreakdown.length > 0 && reportData.totalRevenue > 0) {
-        if (y > 205) { doc.addPage(); y = 20; }
+        if (y > 180) { doc.addPage(); y = 20; }
         drawSectionHeader(doc, '3', 'Grafik Kontribusi Omset Barber (%)', y, [16, 185, 129]);
         y += 9;
         const pieColors = ['#D4AF37', '#10B981', '#6366F1', '#F59E0B', '#EF4444'];
@@ -575,8 +650,8 @@ export const Reports: React.FC = () => {
           reportData.barberBreakdown.map(b => b.revenue),
           pieColors.slice(0, reportData.barberBreakdown.length)
         );
-        doc.addImage(p64, 'PNG', 20, y, 170, 58);
-        y += 64;
+        doc.addImage(p64, 'PNG', 14, y, 182, 88);
+        y += 94;
       }
 
       // ── SECTION 4: TABEL PERFORMA BARBER ──────────────────────────
@@ -601,7 +676,7 @@ export const Reports: React.FC = () => {
 
       // ── SECTION 5: LAYANAN TERLARIS ────────────────────────────────
       if (y > 215) { doc.addPage(); y = 20; }
-      drawSectionHeader(doc, '5', 'Layanan & Produk Pomade Terlaris', y, [30, 41, 59]);
+      drawSectionHeader(doc, '5', 'Layanan & Produk Pomade Terlaris', y, [99, 102, 241]);
       y += 8;
 
       autoTable(doc, {
@@ -612,9 +687,9 @@ export const Reports: React.FC = () => {
           : [['-', 'Belum ada data transaksi', '-', '-', '-']],
         theme: 'grid',
         margin: { left: 14, right: 14 },
-        headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5, cellPadding: 3.5 },
-        bodyStyles: { fontSize: 8, cellPadding: 3 },
-        alternateRowStyles: { fillColor: [246, 248, 252] },
+        headStyles: { fillColor: [18, 18, 28], textColor: [200, 200, 255], fontStyle: 'bold', fontSize: 8.5, cellPadding: 3.5 },
+        bodyStyles: { fontSize: 8, cellPadding: 3, textColor: [30, 30, 50] },
+        alternateRowStyles: { fillColor: [246, 246, 255] },
         columnStyles: { 0: { halign: 'center', fontStyle: 'bold', cellWidth: 14 } },
       });
       y = (doc as any).lastAutoTable.finalY + 10;
@@ -635,15 +710,15 @@ export const Reports: React.FC = () => {
           : [['-', '-', 'Tidak ada transaksi', '-', '-', '-']],
         theme: 'striped',
         margin: { left: 14, right: 14 },
-        headStyles: { fillColor: [16, 185, 129], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5, cellPadding: 3.5 },
-        bodyStyles: { fontSize: 7.5, cellPadding: 2.8 },
-        alternateRowStyles: { fillColor: [240, 253, 248] },
+        headStyles: { fillColor: [10, 60, 40], textColor: [100, 255, 180], fontStyle: 'bold', fontSize: 8.5, cellPadding: 3.5 },
+        bodyStyles: { fontSize: 7.5, cellPadding: 2.8, textColor: [20, 50, 35] },
+        alternateRowStyles: { fillColor: [240, 255, 248] },
       });
       y = (doc as any).lastAutoTable.finalY + 10;
 
       // ── SECTION 7: DETAIL PENGELUARAN ──────────────────────────────
       if (y > 215) { doc.addPage(); y = 20; }
-      drawSectionHeader(doc, '7', 'Detail Pengeluaran Toko', y, [220, 38, 38]);
+      drawSectionHeader(doc, '7', 'Detail Pengeluaran Toko', y, [220, 60, 60]);
       y += 8;
 
       autoTable(doc, {
@@ -654,46 +729,68 @@ export const Reports: React.FC = () => {
           : [['-', 'Tidak ada pengeluaran', '-', '-', '-']],
         theme: 'striped',
         margin: { left: 14, right: 14 },
-        headStyles: { fillColor: [220, 38, 38], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5, cellPadding: 3.5 },
-        bodyStyles: { fontSize: 7.5, cellPadding: 2.8 },
-        alternateRowStyles: { fillColor: [255, 245, 245] },
+        headStyles: { fillColor: [60, 10, 10], textColor: [255, 160, 160], fontStyle: 'bold', fontSize: 8.5, cellPadding: 3.5 },
+        bodyStyles: { fontSize: 7.5, cellPadding: 2.8, textColor: [60, 20, 20] },
+        alternateRowStyles: { fillColor: [255, 247, 247] },
       });
       y = (doc as any).lastAutoTable.finalY + 14;
 
       // ── SIGNATURE & FOOTER ─────────────────────────────────────────
-      if (y > 242) { doc.addPage(); y = 25; }
+      if (y > 240) { doc.addPage(); y = 25; }
 
+      // Double divider line (gold + thin)
       doc.setDrawColor(212, 175, 55);
-      doc.setLineWidth(0.6);
+      doc.setLineWidth(0.8);
       doc.line(14, y, 196, y);
-      y += 7;
+      doc.setLineWidth(0.2);
+      doc.line(14, y + 1.5, 196, y + 1.5);
+      y += 9;
 
-      doc.setFontSize(7.5);
+      // Left: system generated note
+      doc.setFontSize(7);
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(130, 130, 130);
-      doc.text(`Dokumen ini dibuat otomatis oleh sistem POS BarberFlow pada ${printTime}`, 14, y);
+      doc.setTextColor(140, 135, 120);
+      doc.text('Dokumen ini dibuat otomatis oleh sistem POS BarberFlow.', 14, y);
+      doc.text(`Dicetak pada: ${printTime}`, 14, y + 5);
 
-      doc.setTextColor(25, 25, 25);
+      // Right: signature block
+      doc.setTextColor(20, 20, 25);
       doc.setFontSize(8);
-      doc.text('Semarang, ' + dayjs().format('DD MMMM YYYY'), 145, y);
-      doc.text('Manajer / Owner Toko', 145, y + 5);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Semarang, ' + dayjs().format('DD MMMM YYYY'), 148, y);
+      doc.text('Manajer / Owner Toko', 148, y + 5);
+
+      // Signature box
+      doc.setDrawColor(180, 170, 140);
+      doc.setLineWidth(0.3);
+      doc.roundedRect(148, y + 8, 46, 18, 1.5, 1.5, 'S');
+
       doc.setFont('helvetica', 'bold');
-      doc.text('( ______________________ )', 145, y + 22);
+      doc.setTextColor(20, 20, 25);
+      doc.text('( ______________________ )', 148, y + 25);
 
       // ── PAGE NUMBERS ───────────────────────────────────────────────
       const totalPg = (doc as any).internal.getNumberOfPages();
       for (let p = 1; p <= totalPg; p++) {
         doc.setPage(p);
-        // Footer bar
-        doc.setFillColor(10, 10, 18);
-        doc.rect(0, 286, 210, 11, 'F');
+        // Dark footer bar
+        doc.setFillColor(8, 8, 16);
+        doc.rect(0, 285, 210, 12, 'F');
+        // Gold top accent line on footer
         doc.setFillColor(212, 175, 55);
-        doc.rect(0, 286, 210, 0.8, 'F');
-        doc.setTextColor(180, 175, 165);
+        doc.rect(0, 285, 210, 1, 'F');
+        // Dimmer accent
+        doc.setFillColor(100, 85, 30);
+        doc.rect(0, 286.2, 210, 0.4, 'F');
+        // Footer texts
+        doc.setTextColor(170, 165, 145);
         doc.setFontSize(7);
         doc.setFont('helvetica', 'normal');
-        doc.text(`${shopName} — BarberFlow POS System`, 14, 292.5);
-        doc.text(`Hal. ${p} / ${totalPg}`, 196, 292.5, { align: 'right' });
+        doc.text(`${shopName}  ·  BarberFlow POS System  ·  ${address}`, 14, 292);
+        // Page number (gold)
+        doc.setTextColor(212, 175, 55);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${p} / ${totalPg}`, 196, 292, { align: 'right' });
       }
 
       doc.save(`Laporan_${reportType}_${shopName.replace(/\s+/g, '_')}_${dayjs().format('DDMMYYYY')}.pdf`);
