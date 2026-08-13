@@ -107,18 +107,39 @@ class FluentQuery<T> {
   }
 }
 
-// Dexie mock table implementation forwarding to Express backend API
+// Dexie mock table implementation forwarding to Express/Laravel backend API
 class MockTable<T, PK extends string | number> {
   private apiPath: string;
+  private cache: T[] | null = null;
+  private fetchPromise: Promise<T[]> | null = null;
 
   constructor(apiPath: string) {
     this.apiPath = apiPath;
+    subscribe(() => {
+      this.cache = null;
+    });
   }
 
   async toArray(): Promise<T[]> {
-    const res = await fetch(`${API_URL}${this.apiPath}`);
-    if (!res.ok) throw new Error(`Failed to fetch ${this.apiPath}`);
-    return res.json();
+    if (this.cache) return this.cache;
+    if (this.fetchPromise) return this.fetchPromise;
+
+    this.fetchPromise = fetch(`${API_URL}${this.apiPath}`)
+      .then(res => {
+        if (!res.ok) throw new Error(`Failed to fetch ${this.apiPath}`);
+        return res.json();
+      })
+      .then(data => {
+        this.cache = data;
+        this.fetchPromise = null;
+        return data;
+      })
+      .catch(err => {
+        this.fetchPromise = null;
+        throw err;
+      });
+
+    return this.fetchPromise;
   }
 
   where(field: string) {
