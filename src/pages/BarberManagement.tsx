@@ -159,11 +159,15 @@ export const BarberManagement: React.FC = () => {
 
     let result = [...barbers];
 
-    // Search
+    // Comprehensive Search across name, phone, address, shift, joined date
     if (searchTerm.trim() !== '') {
       const term = searchTerm.toLowerCase();
       result = result.filter(
-        b => b.name.toLowerCase().includes(term) || b.phone.includes(term) || b.address.toLowerCase().includes(term)
+        b => (b.name && b.name.toLowerCase().includes(term)) || 
+             (b.phone && b.phone.includes(term)) || 
+             (b.address && b.address.toLowerCase().includes(term)) ||
+             (b.shift && b.shift.toLowerCase().includes(term)) ||
+             (b.joinedDate && b.joinedDate.includes(term))
       );
     }
 

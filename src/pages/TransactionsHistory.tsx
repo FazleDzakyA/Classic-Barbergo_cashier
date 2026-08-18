@@ -88,12 +88,28 @@ export const TransactionsHistory: React.FC = () => {
 
     let result = [...transactions];
 
-    // Search
+    // Comprehensive Search across ID, customer, phone, barber, service names, payment, and amount
     if (searchTerm.trim() !== '') {
       const term = searchTerm.toLowerCase();
-      result = result.filter(
-        t => t.id.toLowerCase().includes(term) || t.customerName.toLowerCase().includes(term)
-      );
+      result = result.filter(t => {
+        const barberName = barbers?.find(b => b.id === t.barberId)?.name?.toLowerCase() || '';
+        const serviceNames = services
+          ?.filter(s => s.id && t.serviceIds.includes(s.id))
+          .map(s => s.name.toLowerCase())
+          .join(' ') || '';
+        
+        return (
+          t.id.toLowerCase().includes(term) ||
+          t.customerName.toLowerCase().includes(term) ||
+          (t.customerPhone && t.customerPhone.toLowerCase().includes(term)) ||
+          barberName.includes(term) ||
+          serviceNames.includes(term) ||
+          t.paymentMethod.toLowerCase().includes(term) ||
+          String(t.total).includes(term) ||
+          t.date.includes(term) ||
+          t.time.includes(term)
+        );
+      });
     }
 
     // Filter by Date

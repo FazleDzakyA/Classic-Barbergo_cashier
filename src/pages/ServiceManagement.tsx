@@ -122,10 +122,15 @@ export const ServiceManagement: React.FC = () => {
     if (!services) return [];
     let result = [...services];
 
+    // Comprehensive Search across name, category, price, duration, and stock
     if (searchTerm.trim() !== '') {
       const term = searchTerm.toLowerCase();
       result = result.filter(
-        s => s.name.toLowerCase().includes(term) || s.category.toLowerCase().includes(term)
+        s => (s.name && s.name.toLowerCase().includes(term)) ||
+             (s.category && s.category.toLowerCase().includes(term)) ||
+             String(s.price).includes(term) ||
+             (s.duration !== undefined && s.duration !== null && String(s.duration).includes(term)) ||
+             (s.stock !== undefined && s.stock !== null && String(s.stock).includes(term))
       );
     }
 

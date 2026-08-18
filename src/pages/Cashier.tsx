@@ -18,11 +18,13 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
-import dayjs from 'dayjs';
+import { sound } from '../utils/audio';
+import { CardSkeleton } from '../components/SkeletonLoader';
 import { ReceiptPreview } from '../components/ReceiptPreview';
 import { EmptyState } from '../components/EmptyState';
 import { useSession } from '../store/SessionContext';
 import './Cashier.css';
+import dayjs from 'dayjs';
 
 // Schema validation using Zod (No discounts)
 const cashierSchema = zod.object({
@@ -139,12 +141,16 @@ export const Cashier: React.FC = () => {
     return ['Semua', ...Array.from(new Set(services.map(s => s.category)))];
   }, [services]);
 
-  // Filter services
+  // Filter services with comprehensive multi-attribute search
   const filteredServices = useMemo(() => {
     if (!services) return [];
+    const term = searchService.trim().toLowerCase();
     return services.filter(s => {
-      const matchSearch = s.name.toLowerCase().includes(searchService.toLowerCase()) || 
-                          s.category.toLowerCase().includes(searchService.toLowerCase());
+      const matchSearch = term === '' || 
+                          s.name.toLowerCase().includes(term) || 
+                          s.category.toLowerCase().includes(term) ||
+                          String(s.price).includes(term) ||
+                          (s.stock !== null && s.stock !== undefined && String(s.stock).includes(term));
       const matchCategory = selectedCategory === 'Semua' || s.category === selectedCategory;
       return matchSearch && matchCategory;
     });
@@ -168,9 +174,11 @@ export const Cashier: React.FC = () => {
   // Handle open shift
   const handleOpenShift = async () => {
     if (startingCashInput < 0) {
+      sound.playError();
       toast.error('Modal awal tidak boleh minus');
       return;
     }
+    sound.playSuccess();
     await openSession(startingCashInput);
   };
 
@@ -202,8 +210,10 @@ export const Cashier: React.FC = () => {
       });
       setActualCashInput(expectedCash); // default to expected
       setIsClosingModalOpen(true);
+      sound.playBeep(600);
     } catch (err) {
       console.error(err);
+      sound.playError();
       toast.error('Gagal memuat ringkasan shift');
     }
   };
@@ -211,11 +221,13 @@ export const Cashier: React.FC = () => {
   // Close shift submission
   const handleConfirmCloseShift = async () => {
     if (actualCashInput < 0) {
+      sound.playError();
       toast.error('Uang laci aktual tidak boleh minus');
       return;
     }
     const success = await closeSession(actualCashInput, closingNotes);
     if (success) {
+      sound.playSuccess();
       setIsClosingModalOpen(false);
       setClosingNotes('');
     }
@@ -223,6 +235,7 @@ export const Cashier: React.FC = () => {
 
   // Toggle service in cart
   const toggleService = (id: number) => {
+    sound.playBeep(880);
     const current = [...watchedServiceIds];
     const idx = current.indexOf(id);
     if (idx > -1) {
@@ -236,14 +249,17 @@ export const Cashier: React.FC = () => {
   // Checkout submission
   const onSubmit = async (data: CashierFormValues) => {
     if (!currentSession || !currentSession.id) {
+      sound.playError();
       toast.error('Shift belum dibuka');
       return;
     }
     if (pricing.total <= 0) {
+      sound.playError();
       toast.error('Total transaksi tidak boleh nol');
       return;
     }
     if (data.paymentMethod === 'Cash' && cashReceived < pricing.total) {
+      sound.playError();
       toast.error('Uang pembayaran kurang');
       return;
     }
@@ -272,6 +288,9 @@ export const Cashier: React.FC = () => {
       };
 
       await db.transactions.add(transactionObj);
+
+      // Play joyful cash register sound!
+      sound.playKaching();
 
       toast.success('Transaksi berhasil disimpan!');
       
@@ -306,6 +325,7 @@ export const Cashier: React.FC = () => {
       fetchNextTrxId();
     } catch (err) {
       console.error(err);
+      sound.playError();
       toast.error('Gagal memproses transaksi');
     }
   };

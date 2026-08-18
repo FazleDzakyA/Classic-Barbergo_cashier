@@ -205,11 +205,16 @@ export const Expenses: React.FC = () => {
 
     let result = [...expenses];
 
-    // Search
+    // Comprehensive Search across category, handler, notes, nominal, date, time
     if (searchTerm.trim() !== '') {
       const term = searchTerm.toLowerCase();
       result = result.filter(
-        e => e.handler.toLowerCase().includes(term) || e.notes.toLowerCase().includes(term)
+        e => (e.category && e.category.toLowerCase().includes(term)) ||
+             (e.handler && e.handler.toLowerCase().includes(term)) ||
+             (e.notes && e.notes.toLowerCase().includes(term)) ||
+             String(e.amount).includes(term) ||
+             (e.date && e.date.includes(term)) ||
+             (e.time && e.time.includes(term))
       );
     }
 
