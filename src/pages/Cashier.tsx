@@ -218,13 +218,8 @@ export const Cashier: React.FC = () => {
     }
   };
 
-  // Close shift submission
+  // Close shift submission (allows closing with negative balance/deficit if expenses exceed cash)
   const handleConfirmCloseShift = async () => {
-    if (actualCashInput < 0) {
-      sound.playError();
-      toast.error('Uang laci aktual tidak boleh minus');
-      return;
-    }
     const success = await closeSession(actualCashInput, closingNotes);
     if (success) {
       sound.playSuccess();
@@ -331,6 +326,9 @@ export const Cashier: React.FC = () => {
   };
 
   const formatMoney = (val: number) => {
+    if (val < 0) {
+      return `-${currency} ${Math.abs(val).toLocaleString('id-ID')}`;
+    }
     return `${currency} ${val.toLocaleString('id-ID')}`;
   };
 
@@ -754,10 +752,9 @@ export const Cashier: React.FC = () => {
                   <label className="form-label">Uang Aktual di Laci ({currency})</label>
                   <input
                     type="number"
-                    min={0}
                     className="form-input"
-                    value={actualCashInput || ''}
-                    onChange={(e) => setActualCashInput(Math.max(0, Number(e.target.value)))}
+                    value={actualCashInput === 0 ? '0' : (actualCashInput || '')}
+                    onChange={(e) => setActualCashInput(Number(e.target.value))}
                   />
                   {actualCashInput !== summaryData.expectedCash && (
                     <div className="cash-difference-info">
