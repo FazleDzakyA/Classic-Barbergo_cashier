@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { sound } from '../utils/audio';
 import { TableSkeleton } from '../components/SkeletonLoader';
 import { EmptyState } from '../components/EmptyState';
 import './Expenses.css';
@@ -26,7 +27,7 @@ const expenseSchema = zod.object({
   date: zod.string().min(1, 'Tanggal harus diisi'),
   time: zod.string().min(1, 'Jam harus diisi'),
   category: zod.string().min(1, 'Kategori harus diisi'),
-  amount: zod.number().gt(0, 'Nominal harus lebih besar dari nol'),
+  amount: zod.number({ message: 'Nominal harus berupa angka' }).gt(0, 'Nominal harus lebih besar dari nol'),
   handler: zod.string().min(1, 'Penanggung jawab harus diisi'),
   notes: zod.string()
 });
@@ -42,7 +43,7 @@ export const Expenses: React.FC = () => {
   // DB query
   const expenses = useLiveQuery(() => db.expenses.toArray());
   const barbers = useLiveQuery(() => db.barbers.toArray());
-  const settings = useLiveQuery(() => db.settings.where('key').equals('app_settings').first());
+  const settings = useLiveQuery(() => db.settings.get());
 
   const barbersList = barbers || [];
   const currency = settings?.currency || 'Rp';
@@ -89,6 +90,7 @@ export const Expenses: React.FC = () => {
 
   // Open Modal Add
   const handleOpenAdd = () => {
+    sound.playBeep(900);
     setEditingExpense(null);
     setModalTab('general');
     setRestockPcs(10);
@@ -109,6 +111,7 @@ export const Expenses: React.FC = () => {
 
   // Open Modal Edit
   const handleOpenEdit = (expense: Expense) => {
+    sound.playBeep(850);
     setEditingExpense(expense);
     setModalTab('general');
     reset({
@@ -134,6 +137,7 @@ export const Expenses: React.FC = () => {
 
       if (editingExpense) {
         await db.expenses.update(editingExpense.id!, payload);
+        sound.playSuccess();
         toast.success('Pengeluaran berhasil diubah');
       } else {
         if (modalTab === 'restock') {
@@ -158,21 +162,25 @@ export const Expenses: React.FC = () => {
               category: `Pembelian ${targetProd.name} (${addPcs} Pcs)`
             };
             await db.expenses.add(expenseData);
+            sound.playSuccess();
             toast.success(`Stok ${targetProd.name} bertambah +${addPcs} Pcs! Total: ${newStk} Pcs`);
           } else {
             await db.expenses.add(payload);
+            sound.playSuccess();
             toast.success('Pengeluaran berhasil disimpan');
           }
         } else {
           await db.expenses.add(payload);
+          sound.playSuccess();
           toast.success('Pengeluaran berhasil disimpan');
         }
       }
       setIsModalOpen(false);
       reset();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error('Gagal menyimpan pengeluaran');
+      sound.playError();
+      toast.error(err?.message || 'Gagal menyimpan pengeluaran');
     }
   };
 
@@ -180,10 +188,12 @@ export const Expenses: React.FC = () => {
   const handleDelete = async (id: number) => {
     try {
       await db.expenses.delete(id);
+      sound.playDelete();
       toast.success('Pengeluaran berhasil dihapus');
       setDeleteConfirmId(null);
     } catch (err) {
       console.error(err);
+      sound.playError();
       toast.error('Gagal menghapus pengeluaran');
     }
   };

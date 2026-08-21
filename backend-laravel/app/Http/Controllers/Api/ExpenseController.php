@@ -40,6 +40,37 @@ class ExpenseController extends Controller
         return response()->json($expense, 201);
     }
 
+    public function update(Request $request, $id)
+    {
+        $data = $request->validate([
+            'date' => 'required|string',
+            'time' => 'required|string',
+            'category' => 'required|string',
+            'amount' => 'required|integer',
+            'handler' => 'required|string',
+            'notes' => 'nullable|string',
+            'sessionId' => 'nullable|integer',
+        ]);
+
+        $expense = Expense::find($id);
+        if (!$expense) {
+            $expense = Expense::create(array_merge(['id' => (int) $id], $data));
+        } else {
+            $oldAmount = $expense->amount;
+            $expense->update($data);
+
+            if (!empty($expense->sessionId)) {
+                $session = Session::find($expense->sessionId);
+                if ($session) {
+                    $diff = $data['amount'] - $oldAmount;
+                    $session->decrement('expectedCash', $diff);
+                }
+            }
+        }
+
+        return response()->json($expense);
+    }
+
     public function destroy($id)
     {
         $expense = Expense::find($id);

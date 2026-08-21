@@ -44,7 +44,7 @@ export const Dashboard: React.FC = () => {
   const barbers = useLiveQuery(() => db.barbers.toArray());
   const services = useLiveQuery(() => db.services.toArray());
   const sessions = useLiveQuery(() => db.sessions.toArray());
-  const settings = useLiveQuery(() => db.settings.where('key').equals('app_settings').first());
+  const settings = useLiveQuery(() => db.settings.get());
 
   const currency = settings?.currency || 'Rp';
 

@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { sound } from '../utils/audio';
 import dayjs from 'dayjs';
 import './Backup.css';
 
@@ -47,10 +48,12 @@ export const Backup: React.FC = () => {
       URL.revokeObjectURL(url);
       
       toast.dismiss(loadingToast);
+      sound.playSuccess();
       toast.success('Database berhasil diekspor!');
     } catch (err) {
       console.error(err);
       toast.dismiss(loadingToast);
+      sound.playError();
       toast.error('Gagal mengekspor database');
     }
   };
@@ -59,6 +62,7 @@ export const Backup: React.FC = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      sound.playBeep(900);
       setImportFile(file);
       setIsImportConfirmOpen(true);
     }
@@ -81,6 +85,7 @@ export const Backup: React.FC = () => {
         
         if (!hasAllKeys) {
           toast.dismiss(loadingToast);
+          sound.playError();
           toast.error('Format backup JSON tidak valid');
           setIsImportConfirmOpen(false);
           return;
@@ -90,6 +95,7 @@ export const Backup: React.FC = () => {
         await (db as any).importBackup(backupData);
 
         toast.dismiss(loadingToast);
+        sound.playSuccess();
         toast.success('Database berhasil dipulihkan!');
         
         // Force refresh session and state
@@ -100,6 +106,7 @@ export const Backup: React.FC = () => {
       } catch (err) {
         console.error(err);
         toast.dismiss(loadingToast);
+        sound.playError();
         toast.error('Gagal membaca file backup');
       } finally {
         setIsImportConfirmOpen(false);
@@ -128,6 +135,7 @@ export const Backup: React.FC = () => {
       await seedDatabase();
 
       toast.dismiss(loadingToast);
+      sound.playDelete();
       toast.success('Database berhasil direset ke setelan awal!');
       
       // Force refresh
@@ -138,6 +146,7 @@ export const Backup: React.FC = () => {
     } catch (err) {
       console.error(err);
       toast.dismiss(loadingToast);
+      sound.playError();
       toast.error('Gagal mereset database');
     } finally {
       setIsResetConfirmOpen(false);

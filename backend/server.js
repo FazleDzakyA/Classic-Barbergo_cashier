@@ -168,6 +168,28 @@ app.get('/api/users', async (req, res) => {
   }
 });
 
+app.put('/api/users/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name, passwordHash, isActive, role } = req.body;
+  try {
+    const fields = [];
+    const values = [];
+    if (name !== undefined) { fields.push('name = ?'); values.push(name); }
+    if (passwordHash !== undefined) { fields.push('passwordHash = ?'); values.push(passwordHash); }
+    if (isActive !== undefined) { fields.push('isActive = ?'); values.push(isActive ? 1 : 0); }
+    if (role !== undefined) { fields.push('role = ?'); values.push(role); }
+    values.push(id);
+
+    if (fields.length > 1) {
+      await dbQuery(`UPDATE users SET ${fields.join(', ')} WHERE id = ?`, values);
+    }
+    const updated = await dbQuery('SELECT * FROM users WHERE id = ?', [id]);
+    res.json(updated[0] || { id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // 2. BARBER API
 app.get('/api/barbers', async (req, res) => {
   try {
@@ -373,12 +395,20 @@ app.post('/api/transactions', async (req, res) => {
 app.delete('/api/transactions/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    // Get transaction details for cash adjustment
-    const txs = await dbQuery('SELECT total, paymentMethod, sessionId FROM transactions WHERE id = ?', [id]);
+    // Get transaction details for cash adjustment and stock restoration
+    const txs = await dbQuery('SELECT total, paymentMethod, sessionId, serviceIds FROM transactions WHERE id = ?', [id]);
     if (txs.length > 0) {
       const tx = txs[0];
       if (tx.paymentMethod === 'Cash' && tx.sessionId) {
         await dbQuery('UPDATE sessions SET expectedCash = expectedCash - ? WHERE id = ?', [tx.total, tx.sessionId]);
+      }
+
+      // Restore stock for canceled transaction items (e.g. Pomade)
+      if (tx.serviceIds) {
+        const sIds = tx.serviceIds.split(',').map(Number);
+        for (const sId of sIds) {
+          await dbQuery('UPDATE services SET stock = stock + 1 WHERE id = ? AND stock IS NOT NULL', [sId]);
+        }
       }
     }
 
@@ -454,6 +484,61 @@ app.get('/api/settings', async (req, res) => {
       defaultTax: settings.defaultTax,
       currency: settings.currency
     });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 8. REVIEWS API
+app.get('/api/reviews', async (req, res) => {
+  try {
+    const reviews = await dbQuery(`
+      SELECT r.*, b.name as barberName, b.photo as barberPhoto 
+      FROM reviews r 
+      LEFT JOIN barbers b ON r.barberId = b.id 
+      ORDER BY r.createdAt DESC
+    `);
+    const mapped = reviews.map(r => ({
+      ...r,
+      barber: r.barberName ? { id: r.barberId, name: r.barberName, photo: r.barberPhoto } : null
+    }));
+    res.json(mapped);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/reviews', async (req, res) => {
+  const { customerName, barberId, rating, comment, tags, createdAt } = req.body;
+  const timeMs = createdAt || Date.now();
+  try {
+    const result = await dbQuery(
+      'INSERT INTO reviews (customerName, barberId, rating, comment, tags, createdAt) VALUES (?, ?, ?, ?, ?, ?)',
+      [customerName, barberId, rating, comment || null, tags || null, timeMs]
+    );
+    const barbers = await dbQuery('SELECT name, photo FROM barbers WHERE id = ?', [barberId]);
+    const barberInfo = barbers.length > 0 ? { id: barberId, name: barbers[0].name, photo: barbers[0].photo } : null;
+
+    res.status(201).json({
+      id: result.insertId,
+      customerName,
+      barberId,
+      rating,
+      comment,
+      tags,
+      createdAt: timeMs,
+      barber: barberInfo
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/reviews/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await dbQuery('DELETE FROM reviews WHERE id = ?', [id]);
+    res.json({ success: true, id: parseInt(id) });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as zod from 'zod';
 import { useAuth } from '../store/AuthContext';
+import { sound } from '../utils/audio';
 import { Scissors, Lock, User as UserIcon, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 import './Login.css';
@@ -95,7 +96,10 @@ export const Login: React.FC = () => {
                 <button
                   type="button"
                   className="password-toggle"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => {
+                    sound.playBeep(700);
+                    setShowPassword(!showPassword);
+                  }}
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -105,7 +109,7 @@ export const Login: React.FC = () => {
             </div>
 
             <div className="login-options">
-              <label className="checkbox-container">
+              <label className="checkbox-container" onClick={() => sound.playBeep(880)}>
                 <input type="checkbox" {...register('remember')} />
                 <span className="checkmark" />
                 <span className="checkbox-label">Ingat Saya</span>
@@ -124,14 +128,6 @@ export const Login: React.FC = () => {
               )}
             </button>
           </form>
-
-          <div className="login-card-divider" />
-
-          <div className="login-credentials-box">
-            <p className="credentials-info font-mono">
-              Default: admin/admin123 | kasir/kasir123
-            </p>
-          </div>
         </motion.div>
 
         <p className="login-outer-footer">

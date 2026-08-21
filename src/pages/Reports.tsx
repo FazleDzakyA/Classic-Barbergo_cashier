@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import dayjs from 'dayjs';
 import toast from 'react-hot-toast';
+import { sound } from '../utils/audio';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -52,7 +53,7 @@ export const Reports: React.FC = () => {
   const expenses = useLiveQuery(() => db.expenses.toArray());
   const barbers = useLiveQuery(() => db.barbers.toArray());
   const services = useLiveQuery(() => db.services.toArray());
-  const settings = useLiveQuery(() => db.settings.where('key').equals('app_settings').first());
+  const settings = useLiveQuery(() => db.settings.get());
 
   const currency = settings?.currency || 'Rp';
 
@@ -253,6 +254,7 @@ export const Reports: React.FC = () => {
   };
 
   const handlePrintReport = () => {
+    sound.playPrint();
     window.print();
   };
 
@@ -761,12 +763,6 @@ export const Reports: React.FC = () => {
       doc.text('Manajer / Owner Toko', 148, y + 5);
 
       // Signature box
-      doc.setDrawColor(180, 170, 140);
-      doc.setLineWidth(0.3);
-      doc.roundedRect(148, y + 8, 46, 18, 1.5, 1.5, 'S');
-
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(20, 20, 25);
       doc.text('( ______________________ )', 148, y + 25);
 
       // ── PAGE NUMBERS ───────────────────────────────────────────────
@@ -871,6 +867,8 @@ export const Reports: React.FC = () => {
     XLSX.utils.book_append_sheet(wb, wsServices, 'Layanan Terlaris');
 
     XLSX.writeFile(wb, `Laporan_BarberFlow_${reportType}_${periodStr.replace(/\s+/g, '_')}.xlsx`);
+    sound.playSuccess();
+    toast.success('Excel Laporan berhasil diunduh!');
   };
 
   return (
@@ -887,7 +885,10 @@ export const Reports: React.FC = () => {
           <div className="select-wrapper" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <select
               value={reportType}
-              onChange={(e) => setReportType(e.target.value as ReportType)}
+              onChange={(e) => {
+                sound.playNav();
+                setReportType(e.target.value as ReportType);
+              }}
               className="form-input select-input"
               style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}
             >

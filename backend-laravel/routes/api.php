@@ -9,10 +9,12 @@ use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\ExpenseController;
 use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\DatabaseController;
+use App\Http\Controllers\Api\ReviewController;
 
 // 1. Auth API
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::get('/users', [AuthController::class, 'index']);
+Route::put('/users/{id}', [AuthController::class, 'update']);
 
 // 2. Barber API
 Route::apiResource('/barbers', BarberController::class);
@@ -41,3 +43,6 @@ Route::put('/settings', [SettingController::class, 'update']);
 // 8. Database API
 Route::post('/database/reset', [DatabaseController::class, 'reset']);
 Route::post('/database/import', [DatabaseController::class, 'import']);
+
+// 9. Review API
+Route::apiResource('/reviews', ReviewController::class);

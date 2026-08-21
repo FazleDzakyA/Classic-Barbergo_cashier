@@ -5,6 +5,7 @@ import html2canvas from 'html2canvas';
 import { Printer, Download, X, MessageSquare } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import toast from 'react-hot-toast';
+import { sound } from '../utils/audio';
 import './ReceiptPreview.css';
 
 interface ReceiptPreviewProps {
@@ -13,7 +14,7 @@ interface ReceiptPreviewProps {
 }
 
 export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ transaction, onClose }) => {
-  const settings = useLiveQuery(() => db.settings.where('key').equals('app_settings').first());
+  const settings = useLiveQuery(() => db.settings.get());
   const barbers = useLiveQuery(() => db.barbers.toArray());
   const services = useLiveQuery(() => db.services.toArray());
 
@@ -43,6 +44,7 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ transaction, onC
 
   // Browser Print handler (uses print CSS media queries)
   const handlePrint = () => {
+    sound.playPrint();
     window.print();
   };
 
@@ -79,6 +81,7 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ transaction, onC
   // PDF Generator using html2canvas -> jsPDF for 100% 1:1 perfect receipt matching
   const handleDownloadPDF = async () => {
     try {
+      sound.playBeep(900);
       const canvas = await captureFullReceiptCanvas();
       if (!canvas) return;
 
@@ -94,9 +97,11 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ transaction, onC
 
       doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       doc.save(`struk-${transaction.id}.pdf`);
+      sound.playSuccess();
       toast.success('Struk PDF (Utuh 100%) berhasil diunduh!');
     } catch (e) {
       console.error(e);
+      sound.playError();
       toast.error('Gagal mengunduh PDF struk');
     }
   };
@@ -104,6 +109,7 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ transaction, onC
   // Download High-Res PNG Image of Receipt
   const handleDownloadImagePNG = async () => {
     try {
+      sound.playBeep(900);
       const canvas = await captureFullReceiptCanvas();
       if (!canvas) return;
 
@@ -112,9 +118,11 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ transaction, onC
       link.href = imgData;
       link.download = `struk-${transaction.id}.png`;
       link.click();
+      sound.playSuccess();
       toast.success('Gambar Struk PNG (Utuh 100%) berhasil diunduh!');
     } catch (e) {
       console.error(e);
+      sound.playError();
       toast.error('Gagal mengunduh gambar struk');
     }
   };
@@ -122,12 +130,14 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ transaction, onC
   // WhatsApp Share Handler with Direct Customer Number Targeting & Image Share
   const handleSendWhatsApp = async () => {
     try {
+      sound.playBeep(900);
       let rawPhone = transaction.customerPhone;
       if (!rawPhone || rawPhone.trim().length < 4) {
         rawPhone = window.prompt('Masukkan nomor WhatsApp pelanggan (contoh: 081234567890):', '') || '';
       }
 
       if (!rawPhone || rawPhone.trim().length < 4) {
+        sound.playError();
         toast.error('Nomor WhatsApp pelanggan tidak diisi');
         return;
       }

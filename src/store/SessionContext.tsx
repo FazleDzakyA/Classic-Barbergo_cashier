@@ -13,12 +13,14 @@ interface SessionContextType {
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
 
+const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '').replace(/\/$/, '');
+
 export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const [currentSession, setCurrentSession] = useState<CashierSession | null>(null);
   const [isLoadingSession, setIsLoadingSession] = useState(true);
 
-  // Check for active open session in database
+  // Check for active open session in database or localStorage
   useEffect(() => {
     const fetchActiveSession = async () => {
       if (!user) {
@@ -27,16 +29,35 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
         return;
       }
       try {
-        const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/$/, '');
-        const res = await fetch(`${API_URL}/api/sessions/active`);
+        const res = await fetch(`${API_URL}/sessions/active`);
         if (res.ok) {
           const active = await res.json();
-          setCurrentSession(active && active.status === 'open' ? active : null);
+          if (active && active.status === 'open') {
+            setCurrentSession(active);
+            localStorage.setItem('barberflow_active_session', JSON.stringify(active));
+            setIsLoadingSession(false);
+            return;
+          }
+        }
+      } catch (_err) {
+        console.warn('Backend session fetch failed, checking local storage...');
+      }
+
+      // Local fallback
+      try {
+        const localRaw = localStorage.getItem('barberflow_active_session');
+        if (localRaw) {
+          const localSess = JSON.parse(localRaw);
+          if (localSess && localSess.status === 'open') {
+            setCurrentSession(localSess);
+          } else {
+            setCurrentSession(null);
+          }
         } else {
           setCurrentSession(null);
         }
-      } catch (err) {
-        console.error('Error fetching active session:', err);
+      } catch (_e) {
+        setCurrentSession(null);
       } finally {
         setIsLoadingSession(false);
       }
@@ -46,53 +67,67 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const openSession = async (startingCash: number): Promise<boolean> => {
     if (!user) return false;
+    const newSession: CashierSession = {
+      id: Date.now(),
+      openedBy: user.name,
+      openTime: Date.now(),
+      startingCash,
+      expectedCash: startingCash,
+      status: 'open',
+      notes: ''
+    };
+
     try {
-      const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/$/, '');
-      const res = await fetch(`${API_URL}/api/sessions/open`, {
+      const res = await fetch(`${API_URL}/sessions/open`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ openedBy: user.name, startingCash })
       });
-      if (!res.ok) {
-        const err = await res.json();
-        toast.error(err.error || 'Gagal membuka shift kasir');
-        return false;
+      if (res.ok) {
+        const session = await res.json();
+        setCurrentSession(session);
+        localStorage.setItem('barberflow_active_session', JSON.stringify(session));
+        notifyChange();
+        toast.success('Shift kasir berhasil dibuka!');
+        return true;
       }
-      const session = await res.json();
-      setCurrentSession(session);
-      notifyChange();
-      toast.success('Shift kasir berhasil dibuka!');
-      return true;
-    } catch (err) {
-      console.error(err);
-      toast.error('Gagal membuka shift kasir');
-      return false;
+    } catch (_err) {
+      console.warn('Backend open session offline, saving locally...');
     }
+
+    // Local fallback
+    setCurrentSession(newSession);
+    localStorage.setItem('barberflow_active_session', JSON.stringify(newSession));
+    notifyChange();
+    toast.success('Shift kasir berhasil dibuka!');
+    return true;
   };
 
   const closeSession = async (actualCash: number, notes: string): Promise<boolean> => {
     if (!currentSession || !currentSession.id) return false;
     try {
-      const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/$/, '');
-      const res = await fetch(`${API_URL}/api/sessions/close`, {
+      const res = await fetch(`${API_URL}/sessions/close`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId: currentSession.id, actualCash, notes })
       });
-      if (!res.ok) {
-        const err = await res.json();
-        toast.error(err.error || 'Gagal menutup shift kasir');
-        return false;
+      if (res.ok) {
+        setCurrentSession(null);
+        localStorage.removeItem('barberflow_active_session');
+        notifyChange();
+        toast.success('Shift kasir berhasil ditutup!');
+        return true;
       }
-      setCurrentSession(null);
-      notifyChange();
-      toast.success('Shift kasir berhasil ditutup!');
-      return true;
-    } catch (err) {
-      console.error(err);
-      toast.error('Gagal menutup shift kasir');
-      return false;
+    } catch (_err) {
+      console.warn('Backend close session offline, closing locally...');
     }
+
+    // Local fallback
+    setCurrentSession(null);
+    localStorage.removeItem('barberflow_active_session');
+    notifyChange();
+    toast.success('Shift kasir berhasil ditutup!');
+    return true;
   };
 
   return (

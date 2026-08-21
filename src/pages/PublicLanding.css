@@ -1,0 +1,867 @@
+/* Ultra-Luxury Public Landing Page & Review Portal - World-Class Barbershop Theme */
+
+.public-landing-container {
+  min-height: 100vh;
+  background-color: #09090b; /* Deep Obsidian Black */
+  color: #f4f4f5;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+  background-image: 
+    radial-gradient(circle at 15% 20%, rgba(212, 175, 55, 0.07) 0%, transparent 40%),
+    radial-gradient(circle at 85% 70%, rgba(212, 175, 55, 0.05) 0%, transparent 40%);
+}
+
+/* Glass Panel Utility */
+.glass-panel-luxury {
+  background: rgba(24, 24, 27, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  box-shadow: 0 10px 40px 0 rgba(0, 0, 0, 0.6);
+}
+
+.gold-gradient-text {
+  background: linear-gradient(135deg, #FFFFFF 0%, #FACC15 50%, #D4AF37 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-text {
+  color: #FACC15;
+}
+
+/* Navbar */
+.public-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: rgba(9, 9, 11, 0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+  padding: 1rem 2.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.public-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  text-decoration: none;
+  color: #ffffff;
+}
+
+.brand-logo-fallback {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #FACC15, #D4AF37, #8B6508);
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 1.25rem;
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+}
+
+.brand-title {
+  font-size: 1.3rem;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+}
+
+.public-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1.85rem;
+}
+
+.public-nav-link {
+  color: #a1a1aa;
+  text-decoration: none;
+  font-size: 0.92rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.public-nav-link:hover {
+  color: #FACC15;
+  text-shadow: 0 0 10px rgba(250, 204, 21, 0.4);
+}
+
+/* Hidden Staff Login Button (Discreet) */
+.discreet-staff-btn {
+  color: #52525b;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.45rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.2s;
+  opacity: 0.6;
+}
+
+.discreet-staff-btn:hover {
+  opacity: 1;
+  color: #D4AF37;
+  border-color: rgba(212, 175, 55, 0.3);
+  background: rgba(212, 175, 55, 0.1);
+}
+
+/* Hero Section with Master Barber Background Image */
+.public-hero-cinematic {
+  position: relative;
+  min-height: 85vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 5rem 1.5rem;
+  background-image: linear-gradient(180deg, rgba(9, 9, 11, 0.65) 0%, rgba(9, 9, 11, 0.95) 100%), url('/images/barber_hero_bg.jpg');
+  background-size: cover;
+  background-position: center;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  border-radius: 9999px;
+  background: rgba(212, 175, 55, 0.15);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  color: #FACC15;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 1.75rem;
+  box-shadow: 0 0 25px rgba(212, 175, 55, 0.2);
+}
+
+.hero-vintage-title {
+  font-size: 4.25rem;
+  font-weight: 900;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #ffffff;
+  margin-bottom: 1.25rem;
+  text-shadow: 0 4px 25px rgba(0, 0, 0, 0.9);
+  font-family: 'Georgia', serif, system-ui;
+}
+
+.hero-vintage-title span {
+  color: #D4AF37;
+}
+
+.hero-vintage-subtitle {
+  font-size: 1.15rem;
+  color: #d4d4d8;
+  max-width: 780px;
+  margin: 0 auto 2.5rem;
+  line-height: 1.65;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.9);
+}
+
+.hero-cta-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.hero-order-btn {
+  padding: 1.1rem 2.75rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #DC2626, #B91C1C);
+  color: #ffffff;
+  font-weight: 900;
+  font-size: 1.05rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  border: 1px solid #EF4444;
+  cursor: pointer;
+  box-shadow: 0 8px 30px rgba(220, 38, 38, 0.45);
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+}
+
+.hero-order-btn:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 12px 35px rgba(220, 38, 38, 0.6);
+  background: linear-gradient(135deg, #EF4444, #DC2626);
+}
+
+.hero-gold-btn {
+  padding: 1.1rem 2.5rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #FACC15, #D4AF37);
+  color: #09090b;
+  font-weight: 900;
+  font-size: 1.05rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 8px 30px rgba(212, 175, 55, 0.35);
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+}
+
+.hero-gold-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(212, 175, 55, 0.5);
+}
+
+/* Sections Common */
+.public-section {
+  padding: 5.5rem 1.5rem;
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+.section-header-center {
+  text-align: center;
+  margin-bottom: 3.75rem;
+}
+
+.section-tag {
+  color: #D4AF37;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.section-title {
+  font-size: 2.65rem;
+  font-weight: 900;
+  margin-bottom: 0.75rem;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+  font-family: 'Georgia', serif;
+}
+
+.section-desc {
+  color: #a1a1aa;
+  font-size: 1.05rem;
+  max-width: 650px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* WHAT WE DO SECTION (Accordion + Interior Photo) */
+.what-we-do-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3.5rem;
+  align-items: center;
+}
+
+.service-accordion-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.accordion-item {
+  background: rgba(24, 24, 27, 0.75);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 1.35rem 1.6rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.accordion-item.active {
+  border-color: #D4AF37;
+  background: rgba(212, 175, 55, 0.1);
+  box-shadow: 0 4px 20px rgba(212, 175, 55, 0.15);
+}
+
+.accordion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.accordion-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.accordion-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.accordion-price-tag {
+  background: linear-gradient(135deg, #DC2626, #991B1B);
+  color: #ffffff;
+  font-weight: 900;
+  padding: 0.4rem 0.95rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 10px rgba(220, 38, 38, 0.3);
+}
+
+.accordion-content {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed rgba(255, 255, 255, 0.12);
+  color: #a1a1aa;
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.interior-photo-frame {
+  position: relative;
+  border-radius: 24px;
+  overflow: hidden;
+  border: 2px solid rgba(212, 175, 55, 0.35);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+}
+
+.interior-photo-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ULTRA RICH ABOUT SECTION */
+.about-luxury-wrapper {
+  background: rgba(24, 24, 27, 0.65);
+  backdrop-filter: blur(20px);
+  border: 1.5px solid rgba(212, 175, 55, 0.25);
+  border-radius: 28px;
+  padding: 3.5rem 3rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.about-columns-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 3.5rem;
+  align-items: start;
+}
+
+.about-story-box {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.about-lead-text {
+  font-size: 1.15rem;
+  color: #e4e4e7;
+  line-height: 1.7;
+  font-weight: 500;
+}
+
+.about-body-text {
+  font-size: 0.98rem;
+  color: #a1a1aa;
+  line-height: 1.75;
+}
+
+/* 4 Core Pillars Grid */
+.pillars-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+.pillar-card {
+  background: rgba(39, 39, 42, 0.5);
+  border: 1px solid rgba(212, 175, 55, 0.18);
+  border-radius: 16px;
+  padding: 1.35rem;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.pillar-card:hover {
+  transform: translateY(-4px);
+  border-color: #D4AF37;
+  background: rgba(212, 175, 55, 0.08);
+}
+
+.pillar-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: rgba(212, 175, 55, 0.15);
+  color: #FACC15;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.85rem;
+}
+
+.pillar-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 0.35rem;
+}
+
+.pillar-desc {
+  font-size: 0.85rem;
+  color: #a1a1aa;
+  line-height: 1.5;
+}
+
+/* Stats Counter Row */
+.about-stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  margin-top: 3rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: center;
+}
+
+.stat-number {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #FACC15;
+  font-family: 'Georgia', serif;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: #a1a1aa;
+  margin-top: 0.4rem;
+  font-weight: 600;
+}
+
+/* Location & Contact Box */
+.location-card {
+  background: rgba(39, 39, 42, 0.6);
+  border: 1.5px solid rgba(212, 175, 55, 0.25);
+  border-radius: 20px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* STAF BARBER SELECTION CARDS WITH REAL PORTRAITS */
+.barber-staff-selection-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2.25rem;
+}
+
+.barber-staff-card {
+  background: rgba(24, 24, 27, 0.8);
+  backdrop-filter: blur(14px);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 1.6rem 1.25rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+}
+
+.barber-staff-card:hover {
+  border-color: #D4AF37;
+  transform: translateY(-6px);
+  box-shadow: 0 12px 35px rgba(212, 175, 55, 0.2);
+}
+
+.barber-staff-card.selected {
+  border-color: #FACC15;
+  background: rgba(212, 175, 55, 0.2);
+  box-shadow: 0 0 30px rgba(250, 204, 21, 0.35);
+}
+
+.barber-selected-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: #FACC15;
+  color: #09090b;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 0.85rem;
+  box-shadow: 0 0 10px rgba(250, 204, 21, 0.6);
+}
+
+.barber-portrait-wrap {
+  width: 105px;
+  height: 105px;
+  border-radius: 50%;
+  margin: 0 auto 1rem;
+  overflow: hidden;
+  border: 2.5px solid #D4AF37;
+  background: #18181b;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+  position: relative;
+}
+
+.barber-portrait-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.barber-portrait-placeholder {
+  font-size: 2.5rem;
+  color: #D4AF37;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.barber-staff-name {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #ffffff;
+  margin-bottom: 0.25rem;
+}
+
+.barber-staff-specialty {
+  font-size: 0.82rem;
+  color: #D4AF37;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.barber-staff-rating-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  background: rgba(212, 175, 55, 0.15);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  color: #FACC15;
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+
+/* Reviews Summary & Feed */
+.reviews-summary-card {
+  background: rgba(24, 24, 27, 0.75);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 20px;
+  padding: 2.5rem;
+  margin-bottom: 3.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 2rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+.summary-score-box {
+  text-align: center;
+}
+
+.score-number {
+  font-size: 3.75rem;
+  font-weight: 900;
+  color: #FACC15;
+  line-height: 1;
+}
+
+.score-stars {
+  display: flex;
+  justify-content: center;
+  gap: 0.3rem;
+  color: #FACC15;
+  margin: 0.5rem 0;
+}
+
+.score-count {
+  font-size: 0.88rem;
+  color: #a1a1aa;
+}
+
+.reviews-feed-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 1.5rem;
+}
+
+.review-feed-card {
+  background: rgba(24, 24, 27, 0.65);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.review-feed-card:hover {
+  border-color: rgba(212, 175, 55, 0.3);
+  transform: translateY(-3px);
+}
+
+.review-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.85rem;
+}
+
+.reviewer-name {
+  font-weight: 800;
+  color: #ffffff;
+  font-size: 1.05rem;
+}
+
+.reviewer-barber {
+  font-size: 0.8rem;
+  color: #D4AF37;
+  margin-top: 0.2rem;
+}
+
+.review-stars {
+  display: flex;
+  gap: 0.15rem;
+  color: #FACC15;
+}
+
+.review-comment {
+  font-size: 0.92rem;
+  color: #e4e4e7;
+  line-height: 1.55;
+  margin-bottom: 1.15rem;
+  font-style: italic;
+}
+
+.review-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.85rem;
+}
+
+.review-tag-pill {
+  font-size: 0.74rem;
+  background: rgba(212, 175, 55, 0.08);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+  color: #FACC15;
+  font-weight: 500;
+}
+
+.review-date {
+  font-size: 0.78rem;
+  color: #71717a;
+}
+
+/* Detailed Review Form Card (Glassmorphism Dark Grey + Gold + Black) */
+.review-form-card {
+  background: rgba(24, 24, 27, 0.85);
+  backdrop-filter: blur(20px);
+  border: 1.5px solid rgba(212, 175, 55, 0.3);
+  border-radius: 24px;
+  padding: 2.75rem;
+  max-width: 760px;
+  margin: 0 auto;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6);
+}
+
+.star-rating-selector {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin: 1.25rem 0 1.75rem;
+}
+
+.star-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #3f3f46;
+  transition: transform 0.2s, color 0.2s;
+  padding: 0.3rem;
+}
+
+.star-btn.active, .star-btn:hover {
+  color: #FACC15;
+  transform: scale(1.25);
+  filter: drop-shadow(0 0 10px rgba(250, 204, 21, 0.7));
+}
+
+.tag-options-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 1.75rem;
+}
+
+.tag-select-btn {
+  padding: 0.5rem 1.05rem;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  background: rgba(39, 39, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #a1a1aa;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tag-select-btn.selected {
+  background: rgba(212, 175, 55, 0.22);
+  border-color: #FACC15;
+  color: #FACC15;
+  font-weight: 700;
+}
+
+/* Reward Popup Overlay */
+.reward-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.reward-modal-card {
+  background: #18181b;
+  border: 1.5px solid #D4AF37;
+  border-radius: 24px;
+  padding: 2.75rem 2.25rem;
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 0 60px rgba(212, 175, 55, 0.3);
+  animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.reward-icon-ring {
+  width: 75px;
+  height: 75px;
+  border-radius: 50%;
+  background: rgba(212, 175, 55, 0.18);
+  color: #FACC15;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  box-shadow: 0 0 25px rgba(212, 175, 55, 0.3);
+}
+
+.voucher-box {
+  background: rgba(212, 175, 55, 0.1);
+  border: 1.5px dashed #D4AF37;
+  border-radius: 14px;
+  padding: 1.15rem;
+  margin: 1.5rem 0 1.75rem;
+}
+
+.voucher-code {
+  font-family: monospace;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #FACC15;
+  letter-spacing: 3px;
+}
+
+/* Footer */
+.public-footer {
+  background: #050507;
+  border-top: 1px solid rgba(212, 175, 55, 0.15);
+  padding: 3.5rem 1.5rem 2.5rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #71717a;
+}
+
+.footer-brand {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #ffffff;
+  margin-bottom: 0.6rem;
+}
+
+.footer-info {
+  max-width: 520px;
+  margin: 0 auto 1.75rem;
+  line-height: 1.6;
+}
+
+.footer-bottom-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 2rem auto 0;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+@media (max-width: 900px) {
+  .what-we-do-container, .about-columns-grid {
+    grid-template-columns: 1fr;
+  }
+  .barber-staff-selection-grid, .pillars-grid, .about-stats-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .hero-vintage-title {
+    font-size: 2.75rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .barber-staff-selection-grid, .pillars-grid, .about-stats-row {
+    grid-template-columns: 1fr;
+  }
+  .public-navbar {
+    padding: 0.85rem 1.25rem;
+  }
+  .public-nav-links {
+    display: none;
+  }
+}

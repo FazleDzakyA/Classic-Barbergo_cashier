@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { sound } from '../utils/audio';
 import { CardSkeleton } from '../components/SkeletonLoader';
 import { EmptyState } from '../components/EmptyState';
 import './ServiceManagement.css';
@@ -23,8 +24,8 @@ import './ServiceManagement.css';
 const serviceSchema = zod.object({
   name: zod.string().min(1, 'Nama layanan tidak boleh kosong'),
   category: zod.string().min(1, 'Kategori tidak boleh kosong'),
-  price: zod.number().gt(0, 'Harga harus lebih besar dari nol'),
-  duration: zod.number().gt(0, 'Durasi tidak boleh nol'),
+  price: zod.number({ message: 'Harga harus berupa angka' }).gt(0, 'Harga harus lebih besar dari nol'),
+  duration: zod.number({ message: 'Durasi harus tidak boleh nol' }).gt(0, 'Durasi tidak boleh nol'),
   labelColor: zod.string().min(4, 'Warna label tidak valid'),
   isActive: zod.boolean(),
   stock: zod.number().nullable().optional()
@@ -35,7 +36,7 @@ type ServiceFormValues = zod.infer<typeof serviceSchema>;
 export const ServiceManagement: React.FC = () => {
   // Database Query
   const services = useLiveQuery(() => db.services.toArray());
-  const settings = useLiveQuery(() => db.settings.where('key').equals('app_settings').first());
+  const settings = useLiveQuery(() => db.settings.get());
   
   const currency = settings?.currency || 'Rp';
 
@@ -59,6 +60,7 @@ export const ServiceManagement: React.FC = () => {
 
   // Open modal for add
   const handleOpenAdd = () => {
+    sound.playBeep(900);
     setEditingService(null);
     reset({
       name: '',
@@ -74,6 +76,7 @@ export const ServiceManagement: React.FC = () => {
 
   // Open modal for edit
   const handleOpenEdit = (service: Service) => {
+    sound.playBeep(850);
     setEditingService(service);
     reset({
       name: service.name,
@@ -92,15 +95,18 @@ export const ServiceManagement: React.FC = () => {
     try {
       if (editingService) {
         await db.services.update(editingService.id!, data);
+        sound.playSuccess();
         toast.success('Layanan berhasil diubah');
       } else {
         await db.services.add(data);
+        sound.playSuccess();
         toast.success('Layanan berhasil disimpan');
       }
       setIsModalOpen(false);
       reset();
     } catch (err) {
       console.error(err);
+      sound.playError();
       toast.error('Gagal menyimpan layanan');
     }
   };
@@ -109,10 +115,12 @@ export const ServiceManagement: React.FC = () => {
   const handleDelete = async (id: number) => {
     try {
       await db.services.delete(id);
+      sound.playDelete();
       toast.success('Layanan berhasil dihapus');
       setDeleteConfirmId(null);
     } catch (err) {
       console.error(err);
+      sound.playError();
       toast.error('Gagal menghapus layanan');
     }
   };

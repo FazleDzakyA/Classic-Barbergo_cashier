@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db, useLiveQuery } from '../database/db';
-import type { Settings as AppSettings } from '../types';
+import type { Settings as AppSettings, User } from '../types';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as zod from 'zod';
@@ -11,10 +11,19 @@ import {
   Phone,
   FileText,
   Percent,
-  Coins
+  Coins,
+  ShieldCheck,
+  KeyRound,
+  Lock,
+  Eye,
+  EyeOff,
+  UserCheck
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { sound } from '../utils/audio';
+import { hashPassword } from '../utils/crypto';
+import { useAuth } from '../store/AuthContext';
 import './Settings.css';
 
 // Schema Validation with Zod
@@ -30,11 +39,24 @@ const settingsSchema = zod.object({
 type SettingsFormValues = zod.infer<typeof settingsSchema>;
 
 export const Settings: React.FC = () => {
-  // DB Query
-  const dbSettings = useLiveQuery(() => db.settings.where('key').equals('app_settings').first());
+  const { user: currentUser } = useAuth();
+
+  // DB Queries
+  const dbSettings = useLiveQuery(() => db.settings.get());
+  const users = useLiveQuery(() => db.users.toArray());
 
   // Logo state
   const [logoBase64, setLogoBase64] = useState<string>('');
+
+  // Password Management States
+  const [selectedUsername, setSelectedUsername] = useState<string>('admin');
+  const [oldPassword, setOldPassword] = useState<string>('');
+  const [newPassword, setNewPassword] = useState<string>('');
+  const [confirmPassword, setConfirmPassword] = useState<string>('');
+  const [showOldPass, setShowOldPass] = useState<boolean>(false);
+  const [showNewPass, setShowNewPass] = useState<boolean>(false);
+  const [showConfirmPass, setShowConfirmPass] = useState<boolean>(false);
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState<boolean>(false);
 
   // Form Hook
   const {
@@ -61,17 +83,26 @@ export const Settings: React.FC = () => {
     }
   }, [dbSettings, reset]);
 
+  // Set default selected user
+  useEffect(() => {
+    if (currentUser?.username) {
+      setSelectedUsername(currentUser.username);
+    }
+  }, [currentUser]);
+
   // Handle Logo Upload to Base64
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 150000) { // Limit to 150KB for setting storage
+        sound.playError();
         toast.error('Ukuran logo terlalu besar. Maksimal 150KB.');
         return;
       }
       const reader = new FileReader();
       reader.onloadend = () => {
         setLogoBase64(reader.result as string);
+        sound.playBeep(900);
       };
       reader.readAsDataURL(file);
     }
@@ -87,10 +118,81 @@ export const Settings: React.FC = () => {
       };
 
       await db.settings.put(updatedSettings);
-      toast.success('Pengaturan berhasil diperbarui!');
+      sound.playSuccess();
+      toast.success('Pengaturan toko & struk berhasil diperbarui!');
     } catch (err) {
       console.error(err);
+      sound.playError();
       toast.error('Gagal menyimpan pengaturan');
+    }
+  };
+
+  // Handle Change Password
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!oldPassword) {
+      sound.playError();
+      toast.error('Password lama harus diisi');
+      return;
+    }
+    if (!newPassword || newPassword.length < 4) {
+      sound.playError();
+      toast.error('Password baru minimal 4 karakter');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      sound.playError();
+      toast.error('Konfirmasi password baru tidak cocok');
+      return;
+    }
+
+    try {
+      setIsUpdatingPassword(true);
+      const targetUser = users?.find(u => u.username === selectedUsername);
+      if (!targetUser || !targetUser.id) {
+        sound.playError();
+        toast.error('Akun pengguna tidak ditemukan');
+        setIsUpdatingPassword(false);
+        return;
+      }
+
+      // Verify current logged-in user's password
+      const oldHash = await hashPassword(oldPassword);
+      if (currentUser?.passwordHash !== oldHash) {
+        sound.playError();
+        toast.error('Password Anda saat ini salah');
+        setIsUpdatingPassword(false);
+        return;
+      }
+
+      // Hash new password and save to target account
+      const newHash = await hashPassword(newPassword);
+      await db.users.update(targetUser.id, { passwordHash: newHash });
+
+      // If logged in user updated their own password, sync active session
+      if (currentUser?.id === targetUser.id) {
+        const updatedSelf: User = { ...targetUser, passwordHash: newHash };
+        if (localStorage.getItem('barberflow_user')) {
+          localStorage.setItem('barberflow_user', JSON.stringify(updatedSelf));
+        }
+        if (sessionStorage.getItem('barberflow_user')) {
+          sessionStorage.setItem('barberflow_user', JSON.stringify(updatedSelf));
+        }
+      }
+
+      sound.playSuccess();
+      toast.success(`Password akun ${targetUser.name} (${targetUser.username}) berhasil diubah!`);
+      
+      // Reset inputs
+      setOldPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err) {
+      console.error(err);
+      sound.playError();
+      toast.error('Gagal mengubah password');
+    } finally {
+      setIsUpdatingPassword(false);
     }
   };
 
@@ -103,7 +205,8 @@ export const Settings: React.FC = () => {
   }
 
   return (
-    <div className="settings-page-container">
+    <div className="settings-page-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', alignItems: 'center' }}>
+      {/* CARD 1: Store & Receipt Settings */}
       <motion.div 
         className="glass-panel settings-card"
         initial={{ opacity: 0, y: 15 }}
@@ -246,6 +349,145 @@ export const Settings: React.FC = () => {
             <button type="submit" className="btn btn-primary settings-save-btn">
               <Save size={16} />
               <span>Simpan Pengaturan</span>
+            </button>
+          </div>
+        </form>
+      </motion.div>
+
+      {/* CARD 2: Security & Password Management */}
+      <motion.div 
+        className="glass-panel settings-card"
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
+        <div className="settings-card-header">
+          <ShieldCheck size={22} className="gold-text" />
+          <div>
+            <h3 style={{ margin: 0 }}>Keamanan & Ubah Password Akun</h3>
+            <p style={{ fontSize: '0.78rem', color: '#71717A', margin: '2px 0 0 0' }}>
+              Kelola dan perbarui kata sandi akun Admin & Kasir secara mandiri.
+            </p>
+          </div>
+        </div>
+
+        <form onSubmit={handleChangePassword} className="settings-form">
+          {/* Select Target User */}
+          <div className="form-group">
+            <label className="form-label" htmlFor="targetUserSelect">Pilih Akun yang Akan Diubah</label>
+            <div className="input-with-icon">
+              <UserCheck size={16} className="input-icon" />
+              <select
+                id="targetUserSelect"
+                className="form-input icon-padding select-input"
+                value={selectedUsername}
+                onChange={(e) => {
+                  sound.playNav();
+                  setSelectedUsername(e.target.value);
+                }}
+              >
+                {users?.map(u => (
+                  <option key={u.id} value={u.username}>
+                    {u.name} (@{u.username}) — Role: {u.role === 'admin' ? 'Administrator' : 'Kasir'}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Old Password */}
+          <div className="form-group">
+            <label className="form-label" htmlFor="oldPasswordInput">Password Lama</label>
+            <div className="input-with-icon">
+              <Lock size={16} className="input-icon" />
+              <input
+                id="oldPasswordInput"
+                type={showOldPass ? 'text' : 'password'}
+                className="form-input icon-padding"
+                placeholder="Masukkan password saat ini..."
+                value={oldPassword}
+                onChange={(e) => setOldPassword(e.target.value)}
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => {
+                  sound.playBeep(700);
+                  setShowOldPass(!showOldPass);
+                }}
+                tabIndex={-1}
+              >
+                {showOldPass ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+          </div>
+
+          <div className="form-grid-2">
+            {/* New Password */}
+            <div className="form-group">
+              <label className="form-label" htmlFor="newPasswordInput">Password Baru</label>
+              <div className="input-with-icon">
+                <KeyRound size={16} className="input-icon" />
+                <input
+                  id="newPasswordInput"
+                  type={showNewPass ? 'text' : 'password'}
+                  className="form-input icon-padding"
+                  placeholder="Min. 4 karakter..."
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => {
+                    sound.playBeep(700);
+                    setShowNewPass(!showNewPass);
+                  }}
+                  tabIndex={-1}
+                >
+                  {showNewPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+
+            {/* Confirm New Password */}
+            <div className="form-group">
+              <label className="form-label" htmlFor="confirmPasswordInput">Konfirmasi Password Baru</label>
+              <div className="input-with-icon">
+                <KeyRound size={16} className="input-icon" />
+                <input
+                  id="confirmPasswordInput"
+                  type={showConfirmPass ? 'text' : 'password'}
+                  className="form-input icon-padding"
+                  placeholder="Ulangi password baru..."
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => {
+                    sound.playBeep(700);
+                    setShowConfirmPass(!showConfirmPass);
+                  }}
+                  tabIndex={-1}
+                >
+                  {showConfirmPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <div className="settings-footer">
+            <button 
+              type="submit" 
+              className="btn btn-primary settings-save-btn"
+              disabled={isUpdatingPassword}
+              style={{ backgroundColor: '#10B981', borderColor: '#10B981', color: '#FFFFFF' }}
+            >
+              <KeyRound size={16} />
+              <span>{isUpdatingPassword ? 'Menyimpan...' : 'Perbarui Password Akun'}</span>
             </button>
           </div>
         </form>

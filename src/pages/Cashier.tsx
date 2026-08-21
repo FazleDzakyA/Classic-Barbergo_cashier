@@ -44,7 +44,7 @@ export const Cashier: React.FC = () => {
   // DB queries
   const services = useLiveQuery(() => db.services.toArray().then(arr => arr.filter(s => s.isActive)));
   const barbers = useLiveQuery(() => db.barbers.toArray().then(arr => arr.filter(b => b.isActive)));
-  const settings = useLiveQuery(() => db.settings.where('key').equals('app_settings').first());
+  const settings = useLiveQuery(() => db.settings.get());
 
   const currency = settings?.currency || 'Rp';
 
@@ -410,7 +410,10 @@ export const Cashier: React.FC = () => {
               <button
                 key={cat}
                 type="button"
-                onClick={() => setSelectedCategory(cat)}
+                onClick={() => {
+                  sound.playNav();
+                  setSelectedCategory(cat);
+                }}
                 className={`category-pill ${selectedCategory === cat ? 'active' : ''}`}
               >
                 {cat}
@@ -423,7 +426,7 @@ export const Cashier: React.FC = () => {
         <div className="services-selection-grid">
           {!services ? (
             Array.from({ length: 6 }).map((_, idx) => (
-              <div key={idx} className="glass-card" style={{ height: '110px' }} />
+              <CardSkeleton key={idx} />
             ))
           ) : filteredServices.length === 0 ? (
             <div style={{ gridColumn: 'span 3' }}>
@@ -588,7 +591,10 @@ export const Cashier: React.FC = () => {
                         <button
                           type="button"
                           className="cart-item-remove"
-                          onClick={() => toggleService(s.id!)}
+                          onClick={() => {
+                            sound.playDelete();
+                            toggleService(s.id!);
+                          }}
                         >
                           <Trash2 size={14} />
                         </button>
@@ -625,7 +631,10 @@ export const Cashier: React.FC = () => {
                 <div className="payment-grid">
                   <button
                     type="button"
-                    onClick={() => field.onChange('Cash')}
+                    onClick={() => {
+                      sound.playBeep(750);
+                      field.onChange('Cash');
+                    }}
                     className={`payment-method-card ${field.value === 'Cash' ? 'selected' : ''}`}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -640,7 +649,10 @@ export const Cashier: React.FC = () => {
                   </button>
                   <button
                     type="button"
-                    onClick={() => field.onChange('QRIS')}
+                    onClick={() => {
+                      sound.playBeep(750);
+                      field.onChange('QRIS');
+                    }}
                     className={`payment-method-card ${field.value === 'QRIS' ? 'selected' : ''}`}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

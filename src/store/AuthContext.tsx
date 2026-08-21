@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { User } from '../types';
 import { db } from '../database/db';
 import { hashPassword } from '../utils/crypto';
+import { sound } from '../utils/audio';
 import toast from 'react-hot-toast';
 
 interface AuthContextType {
@@ -47,16 +48,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const dbUser = await db.users.where('username').equalsIgnoreCase(username).first();
       
       if (!dbUser) {
+        sound.playError();
         toast.error('Username tidak ditemukan');
         return false;
       }
       
       if (!dbUser.isActive) {
+        sound.playError();
         toast.error('Akun Anda dinonaktifkan. Silakan hubungi Owner.');
         return false;
       }
       
       if (dbUser.passwordHash !== hashedPassword) {
+        sound.playError();
         toast.error('Password salah');
         return false;
       }
@@ -69,16 +73,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         sessionStorage.setItem('barberflow_user', userStr);
       }
+      sound.playLogin();
       toast.success(`Selamat datang kembali, ${dbUser.name}!`);
       return true;
     } catch (err) {
       console.error(err);
+      sound.playError();
       toast.error('Terjadi kesalahan saat login');
       return false;
     }
   };
 
   const logout = () => {
+    sound.playLogout();
     setUser(null);
     localStorage.removeItem('barberflow_user');
     sessionStorage.removeItem('barberflow_user');

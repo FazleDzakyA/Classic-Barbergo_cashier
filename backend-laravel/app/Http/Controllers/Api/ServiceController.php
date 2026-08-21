@@ -16,6 +16,10 @@ class ServiceController extends Controller
 
     public function store(Request $request)
     {
+        if ($request->has('stock') && ($request->stock === '' || $request->stock === 'null')) {
+            $request->merge(['stock' => null]);
+        }
+
         $data = $request->validate([
             'name' => 'required|string',
             'category' => 'nullable|string',
@@ -32,7 +36,9 @@ class ServiceController extends Controller
 
     public function update(Request $request, $id)
     {
-        $service = Service::findOrFail($id);
+        if ($request->has('stock') && ($request->stock === '' || $request->stock === 'null')) {
+            $request->merge(['stock' => null]);
+        }
 
         $data = $request->validate([
             'name' => 'required|string',
@@ -44,14 +50,22 @@ class ServiceController extends Controller
             'stock' => 'nullable|integer',
         ]);
 
-        $service->update($data);
+        $service = Service::find($id);
+        if (!$service) {
+            $service = Service::create(array_merge(['id' => (int) $id], $data));
+        } else {
+            $service->update($data);
+        }
+
         return response()->json($service);
     }
 
     public function destroy($id)
     {
-        $service = Service::findOrFail($id);
-        $service->delete();
+        $service = Service::find($id);
+        if ($service) {
+            $service->delete();
+        }
 
         return response()->json([
             'success' => true,

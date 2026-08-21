@@ -48,4 +48,23 @@ class AuthController extends Controller
         $users = User::all();
         return response()->json($users);
     }
+
+    public function update(Request $request, $id)
+    {
+        $user = User::find($id);
+        if (!$user) {
+            return response()->json(['message' => 'User tidak ditemukan'], 404);
+        }
+
+        $data = $request->validate([
+            'name' => 'nullable|string',
+            'passwordHash' => 'nullable|string',
+            'isActive' => 'nullable|boolean',
+            'role' => 'nullable|string',
+        ]);
+
+        $user->update(array_filter($data, fn($v) => !is_null($v)));
+
+        return response()->json($user);
+    }
 }

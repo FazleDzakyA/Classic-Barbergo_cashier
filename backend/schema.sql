@@ -95,3 +95,14 @@ CREATE TABLE IF NOT EXISTS settings (
   defaultTax INT DEFAULT 0,
   currency VARCHAR(10)
 );
+
+-- 8. Table Reviews
+CREATE TABLE IF NOT EXISTS reviews (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  customerName VARCHAR(100) NOT NULL,
+  barberId INT NOT NULL,
+  rating INT NOT NULL,
+  comment TEXT,
+  tags VARCHAR(255),
+  createdAt BIGINT NOT NULL
+);

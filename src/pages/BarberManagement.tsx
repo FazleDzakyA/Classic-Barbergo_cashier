@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { sound } from '../utils/audio';
 import { TableSkeleton } from '../components/SkeletonLoader';
 import { EmptyState } from '../components/EmptyState';
 import './BarberManagement.css';
@@ -79,6 +80,7 @@ export const BarberManagement: React.FC = () => {
 
   // Open modal for add
   const handleOpenAdd = () => {
+    sound.playBeep(900);
     setEditingBarber(null);
     setPhotoBase64('');
     reset({
@@ -94,6 +96,7 @@ export const BarberManagement: React.FC = () => {
 
   // Open modal for edit
   const handleOpenEdit = (barber: Barber) => {
+    sound.playBeep(850);
     setEditingBarber(barber);
     setPhotoBase64(barber.photo || '');
     reset({
@@ -118,17 +121,20 @@ export const BarberManagement: React.FC = () => {
       if (editingBarber) {
         // Update
         await db.barbers.update(editingBarber.id!, barberData);
+        sound.playSuccess();
         toast.success('Data Barber berhasil diubah');
       } else {
         // Add
         await db.barbers.add(barberData);
+        sound.playSuccess();
         toast.success('Data Barber berhasil disimpan');
       }
       setIsModalOpen(false);
       reset();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error('Gagal menyimpan data');
+      sound.playError();
+      toast.error(err?.message || 'Gagal menyimpan data');
     }
   };
 
@@ -138,15 +144,18 @@ export const BarberManagement: React.FC = () => {
       // Check if barber is assigned to any transactions
       const txCount = await db.transactions.where('barberId').equals(id).count();
       if (txCount > 0) {
+        sound.playError();
         toast.error('Tidak bisa menghapus barber yang memiliki riwayat transaksi');
         setDeleteConfirmId(null);
         return;
       }
       await db.barbers.delete(id);
+      sound.playDelete();
       toast.success('Data Barber berhasil dihapus');
       setDeleteConfirmId(null);
     } catch (err) {
       console.error(err);
+      sound.playError();
       toast.error('Gagal menghapus data');
     }
   };

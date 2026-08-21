@@ -12,6 +12,7 @@ import {
   Settings, 
   LogOut 
 } from 'lucide-react';
+import { sound } from '../utils/audio';
 import './Sidebar.css';
 
 interface SidebarProps {
@@ -80,6 +81,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const filteredMenuItems = menuItems.filter(item => item.roles.includes(role));
 
   const handleLinkClick = () => {
+    sound.playNav();
     if (window.innerWidth <= 992) {
       setIsOpen(false);
     }

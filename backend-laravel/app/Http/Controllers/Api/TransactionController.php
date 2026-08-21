@@ -107,6 +107,21 @@ class TransactionController extends Controller
                     $session->decrement('expectedCash', $tx->total);
                 }
             }
+
+            // Restore product stock (e.g. Pomade) if transaction is canceled/deleted
+            if (!empty($tx->serviceIds)) {
+                $serviceIdsArr = is_array($tx->serviceIds)
+                    ? $tx->serviceIds
+                    : array_map('intval', explode(',', $tx->serviceIds));
+
+                foreach ($serviceIdsArr as $sId) {
+                    $srv = Service::find($sId);
+                    if ($srv && $srv->stock !== null) {
+                        $srv->increment('stock', 1);
+                    }
+                }
+            }
+
             $tx->delete();
         }
 

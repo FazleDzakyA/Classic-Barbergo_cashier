@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import type { User, Barber, Service, Transaction, Expense, Settings, CashierSession } from '../types';
+import type { User, Barber, Service, Transaction, Expense, Settings, CashierSession, Review } from '../types';
 
-const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '').replace(/\/$/, '');
 
 // Global Event Emitter for reactive updates (custom pub/sub)
 type Listener = () => void;
@@ -120,6 +120,62 @@ class MockTable<T, PK extends string | number> {
     });
   }
 
+  private getFallbackData(path: string) {
+    if (path.includes('users')) {
+      return [
+        { id: 1, username: 'admin', passwordHash: '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', role: 'admin', name: 'Admin BB Go', isActive: true, createdAt: '2026-07-24T00:00:00.000Z' },
+        { id: 2, username: 'kasir', passwordHash: 'f02b7c1e519e4fa436147f7e1399974f9510aa9c8e0cb8be29151eb540f9d214', role: 'cashier', name: 'Kasir BB Go', isActive: true, createdAt: '2026-07-24T00:00:00.000Z' }
+      ];
+    }
+    if (path.includes('barbers')) {
+      return [
+        { id: 1, name: 'Faiz', phone: '+62 812 1856 7781', address: 'Semarang', shift: 'Pagi', isActive: true, photo: '/images/barber_faiz.jpg', joinedDate: '2026-07-24' },
+        { id: 2, name: 'Fadli', phone: '+62 823-2213-9938', address: 'Semarang', shift: 'Siang', isActive: true, photo: '/images/barber_fadli.jpg', joinedDate: '2026-07-24' },
+        { id: 3, name: 'Rizki', phone: '+62 882 0038 74460', address: 'Semarang', shift: 'Malam', isActive: true, photo: '/images/barber_rizki.jpg', joinedDate: '2026-07-24' }
+      ];
+    }
+    if (path.includes('services')) {
+      return [
+        { id: 1, name: 'Potong', category: 'Haircut', price: 20000, duration: 30, labelColor: '#D4AF37', isActive: true, stock: null },
+        { id: 2, name: 'Potong Kramas', category: 'Haircut', price: 23000, duration: 40, labelColor: '#4169E1', isActive: true, stock: null },
+        { id: 3, name: 'Shaving', category: 'Treatment', price: 10000, duration: 15, labelColor: '#20B2AA', isActive: true, stock: null },
+        { id: 4, name: 'Hair Color Mulai', category: 'Hair Color', price: 70000, duration: 60, labelColor: '#FF69B4', isActive: true, stock: null },
+        { id: 5, name: 'Highlight Mulai', category: 'Hair Color', price: 80000, duration: 60, labelColor: '#BA55D3', isActive: true, stock: null },
+        { id: 6, name: 'Semir Hitam', category: 'Hair Color', price: 60000, duration: 45, labelColor: '#778899', isActive: true, stock: null },
+        { id: 7, name: 'Hair Tonic', category: 'Treatment', price: 25000, duration: 10, labelColor: '#3CB371', isActive: true, stock: null },
+        { id: 8, name: 'Hair Tonic Besar', category: 'Treatment', price: 30000, duration: 15, labelColor: '#2E8B57', isActive: true, stock: null },
+        { id: 9, name: 'Pomade', category: 'Product', price: 25000, duration: 5, labelColor: '#CD853F', isActive: true, stock: 25 },
+        { id: 10, name: 'Creambath', category: 'Treatment', price: 50000, duration: 45, labelColor: '#FF8C00', isActive: true, stock: null },
+        { id: 11, name: 'Smoting', category: 'Treatment', price: 60000, duration: 90, labelColor: '#4682B4', isActive: true, stock: null }
+      ];
+    }
+    if (path.includes('settings')) {
+      return [{
+        key_name: 'app_settings',
+        name: 'Classic BarberGo',
+        address: 'Jl. Mr. Koesbiyono Tjondrowibowo, Semarang',
+        phone: '0812-3456-7890',
+        currency: 'Rp',
+        receiptFooter: 'Terima kasih atas kunjungan Anda!'
+      }];
+    }
+    return [];
+  }
+
+  private getLocalStore(): T[] {
+    try {
+      const raw = localStorage.getItem(`barberflow_${this.apiPath}`);
+      if (raw) return JSON.parse(raw);
+    } catch (_e) {}
+    return this.getFallbackData(this.apiPath) as T[];
+  }
+
+  private setLocalStore(data: T[]) {
+    try {
+      localStorage.setItem(`barberflow_${this.apiPath}`, JSON.stringify(data));
+    } catch (_e) {}
+  }
+
   async toArray(): Promise<T[]> {
     if (this.cache) return this.cache;
     if (this.fetchPromise) return this.fetchPromise;
@@ -131,12 +187,15 @@ class MockTable<T, PK extends string | number> {
       })
       .then(data => {
         this.cache = data;
+        this.setLocalStore(data);
         this.fetchPromise = null;
         return data;
       })
-      .catch(err => {
+      .catch(_err => {
         this.fetchPromise = null;
-        throw err;
+        const fallback = this.getLocalStore();
+        this.cache = fallback as any;
+        return fallback as any;
       });
 
     return this.fetchPromise;
@@ -152,15 +211,34 @@ class MockTable<T, PK extends string | number> {
   }
 
   async add(item: any): Promise<PK> {
-    const res = await fetch(`${API_URL}${this.apiPath}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(item)
-    });
-    if (!res.ok) throw new Error(`Failed to add item to ${this.apiPath}`);
-    const data = await res.json();
-    notifyChange();
-    return (data.id || data.key || data.sessionId) as PK;
+    try {
+      const res = await fetch(`${API_URL}${this.apiPath}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(item)
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        const msg = errJson.message || (errJson.errors ? Object.values(errJson.errors).flat().join(', ') : null);
+        throw new Error(msg || `Gagal menambah data (${res.status})`);
+      }
+      const data = await res.json();
+      this.cache = null;
+      this.fetchPromise = null;
+      notifyChange();
+      return (data.id || data.key || data.sessionId) as PK;
+    } catch (err: any) {
+      if (err.message && !err.message.includes('fetch')) throw err;
+      // Offline fallback
+      const items = await this.toArray();
+      const newId = item.id || Date.now();
+      const newItem = { ...item, id: newId };
+      const updated = [...items, newItem];
+      this.setLocalStore(updated as T[]);
+      this.cache = updated as T[];
+      notifyChange();
+      return newId as PK;
+    }
   }
 
   async put(item: any): Promise<PK> {
@@ -168,52 +246,127 @@ class MockTable<T, PK extends string | number> {
     const method = id && id !== 'app_settings' ? 'PUT' : 'POST';
     const url = id && id !== 'app_settings' ? `${API_URL}${this.apiPath}/${id}` : `${API_URL}${this.apiPath}`;
     
-    const res = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(item)
-    });
-    if (!res.ok) throw new Error(`Failed to put item to ${this.apiPath}`);
-    const data = await res.json();
-    notifyChange();
-    return (data.id || data.key || data.key_name || id) as PK;
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(item)
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        const msg = errJson.message || (errJson.errors ? Object.values(errJson.errors).flat().join(', ') : null);
+        throw new Error(msg || `Gagal menyimpan data (${res.status})`);
+      }
+      const data = await res.json();
+      this.cache = null;
+      this.fetchPromise = null;
+      notifyChange();
+      return (data.id || data.key || data.key_name || id) as PK;
+    } catch (err: any) {
+      if (err.message && !err.message.includes('fetch')) throw err;
+      // Offline fallback
+      const items = await this.toArray();
+      const idx = items.findIndex((i: any) => String(i.id || i.key) === String(id));
+      let updated = [...items];
+      if (idx >= 0) {
+        updated[idx] = { ...items[idx], ...item };
+      } else {
+        updated.push(item);
+      }
+      this.setLocalStore(updated as T[]);
+      this.cache = updated as T[];
+      notifyChange();
+      return (id || Date.now()) as PK;
+    }
   }
 
   async update(id: PK, changes: any): Promise<PK> {
     // If it's session close
     if (this.apiPath === '/api/sessions') {
-      const res = await fetch(`${API_URL}/api/sessions/close`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId: id, actualCash: changes.actualCash, notes: changes.notes })
-      });
-      if (!res.ok) throw new Error(`Failed to close session`);
-      const data = await res.json();
-      notifyChange();
-      return data.sessionId as PK;
+      try {
+        const res = await fetch(`${API_URL}/api/sessions/close`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId: id, actualCash: changes.actualCash, notes: changes.notes })
+        });
+        if (!res.ok) {
+          const errJson = await res.json().catch(() => ({}));
+          throw new Error(errJson.error || errJson.message || `Gagal menutup shift (${res.status})`);
+        }
+        const data = await res.json();
+        this.cache = null;
+        this.fetchPromise = null;
+        notifyChange();
+        return data.sessionId as PK;
+      } catch (err: any) {
+        if (err.message && !err.message.includes('fetch')) throw err;
+        const items = await this.toArray();
+        const idx = items.findIndex((i: any) => String(i.id) === String(id));
+        if (idx >= 0) {
+          (items[idx] as any).status = 'closed';
+          (items[idx] as any).actualCash = changes.actualCash;
+          this.setLocalStore(items);
+          this.cache = items;
+        }
+        notifyChange();
+        return id;
+      }
     }
 
-    // Default update: fetch current, merge changes, send PUT
-    const items = await this.toArray();
-    const existing = items.find((item: any) => String(item.id || item.key || item.key_name) === String(id));
-    const merged = existing ? { ...existing, ...changes } : { id, ...changes };
-    
-    const res = await fetch(`${API_URL}${this.apiPath}/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(merged)
-    });
-    if (!res.ok) throw new Error(`Failed to update item in ${this.apiPath}`);
-    notifyChange();
-    return id;
+    // Default update
+    try {
+      const items = await this.toArray();
+      const existing = items.find((item: any) => String(item.id || item.key || item.key_name) === String(id));
+      const merged = existing ? { ...existing, ...changes } : { id, ...changes };
+      
+      const res = await fetch(`${API_URL}${this.apiPath}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(merged)
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        const msg = errJson.message || (errJson.errors ? Object.values(errJson.errors).flat().join(', ') : null);
+        throw new Error(msg || `Gagal mengupdate data (${res.status})`);
+      }
+      this.cache = null;
+      this.fetchPromise = null;
+      notifyChange();
+      return id;
+    } catch (err: any) {
+      if (err.message && !err.message.includes('fetch')) throw err;
+      const items = await this.toArray();
+      const idx = items.findIndex((i: any) => String(i.id || i.key) === String(id));
+      if (idx >= 0) {
+        items[idx] = { ...items[idx], ...changes };
+        this.setLocalStore(items);
+        this.cache = items;
+      }
+      notifyChange();
+      return id;
+    }
   }
 
   async delete(id: PK): Promise<void> {
-    const res = await fetch(`${API_URL}${this.apiPath}/${id}`, {
-      method: 'DELETE'
-    });
-    if (!res.ok) throw new Error(`Failed to delete item from ${this.apiPath}`);
-    notifyChange();
+    try {
+      const res = await fetch(`${API_URL}${this.apiPath}/${id}`, {
+        method: 'DELETE'
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.message || `Gagal menghapus data (${res.status})`);
+      }
+      this.cache = null;
+      this.fetchPromise = null;
+      notifyChange();
+    } catch (err: any) {
+      if (err.message && !err.message.includes('fetch')) throw err;
+      const items = await this.toArray();
+      const updated = items.filter((i: any) => String(i.id || i.key) !== String(id));
+      this.setLocalStore(updated as T[]);
+      this.cache = updated as T[];
+      notifyChange();
+    }
   }
 
   async clear(): Promise<void> {
@@ -228,15 +381,28 @@ class MockTable<T, PK extends string | number> {
 // Special Table for Settings to handle key differences
 class SettingsTable {
   async get(): Promise<Settings | null> {
-    const res = await fetch(`${API_URL}/api/settings`);
-    if (!res.ok) return null;
-    const data = await res.json();
-    if (!data) return null;
-    return {
-      ...data,
-      key: 'app_settings',
-      key_name: 'app_settings'
-    };
+    try {
+      const res = await fetch(`${API_URL}/api/settings`);
+      if (!res.ok) throw new Error('Settings fetch failed');
+      const data = await res.json();
+      if (!data) throw new Error('No data');
+      return {
+        ...data,
+        key: 'app_settings'
+      };
+    } catch (_err) {
+      console.warn('Backend settings fetch failed, using default settings fallback.');
+      return {
+        key: 'app_settings',
+        name: 'Classic Barber Go',
+        address: 'Jl. Mr. Koesbiyono Tjondrowibowo, Semarang',
+        phone: '0812-3456-7890',
+        receiptFooter: "Terima kasih atas kunjungan Anda!\nClassic Barber Go — Premium Grooming",
+        defaultTax: 0,
+        currency: 'Rp',
+        logo: ''
+      };
+    }
   }
 
   async toArray(): Promise<Settings[]> {
@@ -280,6 +446,7 @@ export const db = {
   expenses: new MockTable<Expense, number>('/api/expenses'),
   sessions: new MockTable<CashierSession, number>('/api/sessions'),
   settings: new SettingsTable(),
+  reviews: new MockTable<Review, number>('/api/reviews'),
 
   // Transaction method shim
   async transaction(_mode: string, _tables: any[], callback: () => Promise<void>) {
@@ -307,6 +474,7 @@ export class BarberFlowDatabase {
   expenses = db.expenses;
   sessions = db.sessions;
   settings = db.settings;
+  reviews = db.reviews;
 }
 
 // Dummy seedDatabase check (handled by backend on startup)

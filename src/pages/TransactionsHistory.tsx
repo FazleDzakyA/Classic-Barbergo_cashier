@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { sound } from '../utils/audio';
 import { TableSkeleton } from '../components/SkeletonLoader';
 import { EmptyState } from '../components/EmptyState';
 import { ReceiptPreview } from '../components/ReceiptPreview';
@@ -22,7 +23,7 @@ export const TransactionsHistory: React.FC = () => {
   const transactions = useLiveQuery(() => db.transactions.toArray());
   const barbers = useLiveQuery(() => db.barbers.toArray());
   const services = useLiveQuery(() => db.services.toArray());
-  const settings = useLiveQuery(() => db.settings.where('key').equals('app_settings').first());
+  const settings = useLiveQuery(() => db.settings.get());
 
   const currency = settings?.currency || 'Rp';
 
@@ -52,16 +53,19 @@ export const TransactionsHistory: React.FC = () => {
   const handleDelete = async (id: string) => {
     try {
       await db.transactions.delete(id);
+      sound.playDelete();
       toast.success('Transaksi berhasil dihapus');
       setDeleteConfirmId(null);
     } catch (err) {
       console.error(err);
+      sound.playError();
       toast.error('Gagal menghapus transaksi');
     }
   };
 
   // Reset Filters
   const handleResetFilters = () => {
+    sound.playNav();
     setSearchTerm('');
     setFilterDate('');
     setFilterMonth('');
@@ -73,6 +77,7 @@ export const TransactionsHistory: React.FC = () => {
 
   // Sorting helper
   const toggleSort = (field: 'date' | 'total') => {
+    sound.playBeep(750);
     if (sortBy === field) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
@@ -367,7 +372,10 @@ export const TransactionsHistory: React.FC = () => {
                         <div className="actions-cell-wrapper" style={{ display: 'flex', gap: '0.35rem', justifyContent: 'flex-end' }}>
                           <button 
                             className="btn btn-secondary btn-icon"
-                            onClick={() => setViewingReceipt(trx)}
+                            onClick={() => {
+                              sound.playBeep(900);
+                              setViewingReceipt(trx);
+                            }}
                             title="Lihat Struk"
                             style={{ color: '#D4AF37', background: 'rgba(212, 175, 55, 0.1)', borderColor: 'rgba(212, 175, 55, 0.2)' }}
                           >
@@ -375,7 +383,10 @@ export const TransactionsHistory: React.FC = () => {
                           </button>
                           <button 
                             className="btn btn-danger btn-icon"
-                            onClick={() => setDeleteConfirmId(trx.id)}
+                            onClick={() => {
+                              sound.playBeep(700);
+                              setDeleteConfirmId(trx.id);
+                            }}
                             title="Hapus Transaksi"
                           >
                             <Trash2 size={15} />
@@ -398,7 +409,10 @@ export const TransactionsHistory: React.FC = () => {
               <div className="pagination-buttons">
                 <button
                   className="btn btn-secondary btn-icon"
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  onClick={() => {
+                    sound.playNav();
+                    setCurrentPage(prev => Math.max(prev - 1, 1));
+                  }}
                   disabled={currentPage === 1}
                 >
                   <ChevronLeft size={16} />
@@ -406,7 +420,10 @@ export const TransactionsHistory: React.FC = () => {
                 <span className="page-indicator">Halaman {currentPage} dari {totalPages}</span>
                 <button
                   className="btn btn-secondary btn-icon"
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  onClick={() => {
+                    sound.playNav();
+                    setCurrentPage(prev => Math.min(prev + 1, totalPages));
+                  }}
                   disabled={currentPage === totalPages}
                 >
                   <ChevronRight size={16} />

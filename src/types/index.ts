@@ -86,3 +86,18 @@ export interface CashierSession {
   notes?: string;
 }
 
+export interface Review {
+  id?: number;
+  customerName: string;
+  barberId: number;
+  rating: number; // 1 to 5
+  comment?: string;
+  tags?: string;
+  createdAt: number;
+  barber?: {
+    id: number;
+    name: string;
+    photo?: string;
+  };
+}
+
