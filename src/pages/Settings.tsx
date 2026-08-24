@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { db, useLiveQuery } from '../database/db';
+import { db, useLiveQuery, resetTransactionData, resetAllLocalData } from '../database/db';
 import type { Settings as AppSettings, User } from '../types';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -17,7 +17,9 @@ import {
   Lock,
   Eye,
   EyeOff,
-  UserCheck
+  UserCheck,
+  Trash2,
+  AlertTriangle
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -491,6 +493,84 @@ export const Settings: React.FC = () => {
             </button>
           </div>
         </form>
+      </motion.div>
+
+      {/* CARD 3: Reset & Simulasi Data */}
+      <motion.div 
+        className="glass-panel settings-card"
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        style={{ border: '1px solid rgba(239, 68, 68, 0.4)' }}
+      >
+        <div className="settings-card-header">
+          <AlertTriangle size={22} style={{ color: '#EF4444' }} />
+          <div>
+            <h3 style={{ margin: 0 }}>Reset & Simulasi Data</h3>
+            <p style={{ fontSize: '0.78rem', color: '#71717A', margin: '2px 0 0 0' }}>
+              Hapus data transaksi untuk keperluan simulasi atau memulai dari awal.
+            </p>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '0.5rem 0' }}>
+          {/* Reset Transaksi */}
+          <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '12px', padding: '1.25rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
+              <div>
+                <p style={{ margin: 0, fontWeight: 700, color: '#FFF', fontSize: '0.95rem' }}>🗑️ Reset Data Transaksi</p>
+                <p style={{ margin: '0.3rem 0 0', fontSize: '0.82rem', color: '#A1A1AA' }}>
+                  Hapus semua transaksi, pengeluaran, laporan shift, dan sesi kasir.<br/>
+                  <strong style={{ color: '#EAB308' }}>Data barber, layanan, pengaturan & akun tetap aman.</strong>
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn"
+                style={{ background: 'rgba(239,68,68,0.2)', color: '#EF4444', border: '1px solid #EF4444', fontWeight: 800, padding: '0.55rem 1.2rem', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '0.4rem', whiteSpace: 'nowrap' }}
+                onClick={() => {
+                  if (!window.confirm('⚠️ Yakin ingin menghapus SEMUA data transaksi, pengeluaran, laporan shift & sesi kasir?\n\nData barber, layanan & pengaturan tetap aman.\n\nAksi ini TIDAK BISA dibatalkan!')) return;
+                  resetTransactionData();
+                  sound.playSuccess();
+                  toast.success('✅ Semua data transaksi berhasil dihapus! Siap untuk simulasi baru.', { duration: 4000 });
+                  // Force reload for clean state
+                  setTimeout(() => window.location.reload(), 1200);
+                }}
+              >
+                <Trash2 size={16} />
+                <span>Reset Transaksi</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Factory Reset */}
+          <div style={{ background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: '12px', padding: '1.25rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
+              <div>
+                <p style={{ margin: 0, fontWeight: 700, color: '#EF4444', fontSize: '0.95rem' }}>⚠️ Factory Reset (Hapus Semua Data)</p>
+                <p style={{ margin: '0.3rem 0 0', fontSize: '0.82rem', color: '#A1A1AA' }}>
+                  Hapus SEMUA data lokal termasuk cache. Gunakan hanya jika perlu reset total.<br/>
+                  <strong style={{ color: '#EF4444' }}>Data dari backend/server akan tetap ada saat online kembali.</strong>
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn"
+                style={{ background: 'transparent', color: '#EF4444', border: '1px solid rgba(239,68,68,0.4)', fontWeight: 700, padding: '0.55rem 1.2rem', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '0.4rem', whiteSpace: 'nowrap' }}
+                onClick={() => {
+                  if (!window.confirm('🚨 PERINGATAN!\n\nIni akan menghapus SEMUA cache data lokal (termasuk akun & pengaturan lokal).\n\nHanya lakukan jika kamu benar-benar ingin factory reset.\n\nLanjutkan?')) return;
+                  resetAllLocalData();
+                  sound.playSuccess();
+                  toast.success('Factory reset selesai. Harap login kembali.', { duration: 3000 });
+                  setTimeout(() => window.location.reload(), 1500);
+                }}
+              >
+                <AlertTriangle size={16} />
+                <span>Factory Reset</span>
+              </button>
+            </div>
+          </div>
+        </div>
       </motion.div>
     </div>
   );

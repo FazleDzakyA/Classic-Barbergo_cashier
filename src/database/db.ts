@@ -313,36 +313,40 @@ class MockTable<T, PK extends string | number> {
       }
     }
 
-    // Default update
+    // Default update: optimistic local-first, then sync to backend
     try {
+      // Always update local store immediately (optimistic)
       const items = await this.toArray();
-      const existing = items.find((item: any) => String(item.id || item.key || item.key_name) === String(id));
+      const idx = items.findIndex((i: any) => String(i.id || i.key) === String(id));
+      const existing = idx >= 0 ? items[idx] : null;
       const merged = existing ? { ...existing, ...changes } : { id, ...changes };
-      
-      const res = await fetch(`${API_URL}${this.apiPath}/${id}`, {
+
+      if (idx >= 0) {
+        items[idx] = merged;
+      } else {
+        (items as any[]).push(merged);
+      }
+      this.setLocalStore(items as T[]);
+      this.cache = items as T[];
+      notifyChange();
+
+      // Then try to sync to backend in background
+      fetch(`${API_URL}${this.apiPath}/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(merged)
+      }).then(res => {
+        if (res.ok) {
+          this.cache = null;
+          this.fetchPromise = null;
+        }
+      }).catch(() => {
+        // Backend sync failed silently - local already saved
       });
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        const msg = errJson.message || (errJson.errors ? Object.values(errJson.errors).flat().join(', ') : null);
-        throw new Error(msg || `Gagal mengupdate data (${res.status})`);
-      }
-      this.cache = null;
-      this.fetchPromise = null;
-      notifyChange();
+
       return id;
     } catch (err: any) {
-      if (err.message && !err.message.includes('fetch')) throw err;
-      const items = await this.toArray();
-      const idx = items.findIndex((i: any) => String(i.id || i.key) === String(id));
-      if (idx >= 0) {
-        items[idx] = { ...items[idx], ...changes };
-        this.setLocalStore(items);
-        this.cache = items;
-      }
-      notifyChange();
+      console.error('Update error:', err);
       return id;
     }
   }
@@ -370,10 +374,24 @@ class MockTable<T, PK extends string | number> {
   }
 
   async clear(): Promise<void> {
-    const res = await fetch(`${API_URL}/api/database/reset`, {
-      method: 'POST'
-    });
-    if (!res.ok) throw new Error(`Failed to clear database`);
+    // Clear local cache immediately
+    this.cache = [];
+    this.fetchPromise = null;
+    this.setLocalStore([]);
+    notifyChange();
+    // Also try backend reset
+    try {
+      await fetch(`${API_URL}/api/database/reset`, { method: 'POST' });
+    } catch (_e) {
+      // Backend not available - local already cleared
+    }
+  }
+
+  // Clear only THIS table's local data (for targeted reset)
+  clearLocal(): void {
+    this.cache = [];
+    this.fetchPromise = null;
+    this.setLocalStore([]);
     notifyChange();
   }
 }
@@ -491,3 +509,49 @@ export async function seedDatabase() {
     console.warn('Backend API not reachable at ' + API_URL + '. Run MySQL and backend server.');
   }
 }
+
+// Reset all transactional data (transactions, expenses, shift reports, sessions)
+// Keeps: users, barbers, services, settings
+export function resetTransactionData(): void {
+  const keys = [
+    'barberflow_/api/transactions',
+    'barberflow_/api/expenses',
+    'barberflow_/api/shift-reports',
+    'barberflow_/api/sessions',
+  ];
+  keys.forEach(k => {
+    try { localStorage.removeItem(k); } catch (_e) {}
+  });
+  // Also clear the active session
+  try { localStorage.removeItem('barberflow_active_session'); } catch (_e) {}
+  // Clear verified notif
+  try { localStorage.removeItem('barberflow_shift_verified_notif'); } catch (_e) {}
+  // Clear caches
+  (db.transactions as any).cache = null;
+  (db.expenses as any).cache = null;
+  (db.shiftReports as any).cache = null;
+  (db.sessions as any).cache = null;
+  notifyChange();
+}
+
+// Reset EVERYTHING including users (factory reset)
+export function resetAllLocalData(): void {
+  const toRemove: string[] = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith('barberflow_')) {
+      toRemove.push(key);
+    }
+  }
+  toRemove.forEach(k => {
+    try { localStorage.removeItem(k); } catch (_e) {}
+  });
+  // Reset all table caches
+  (db.transactions as any).cache = null;
+  (db.expenses as any).cache = null;
+  (db.shiftReports as any).cache = null;
+  (db.sessions as any).cache = null;
+  (db.users as any).cache = null;
+  notifyChange();
+}
+
