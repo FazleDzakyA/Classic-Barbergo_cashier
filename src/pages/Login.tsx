@@ -108,7 +108,9 @@ export const Login: React.FC = () => {
 
       // Generate username from email
       const username = data.email.split('@')[0] + Math.floor(100 + Math.random() * 900);
+      const newId = Date.now();
       const newUserObj = {
+        id: newId,
         username,
         email: data.email,
         name: data.name,
@@ -118,31 +120,25 @@ export const Login: React.FC = () => {
         createdAt: new Date().toISOString()
       };
 
-      // Save locally (and try backend in background)
+      // Save locally (and try backend in background via optimistic add)
       await db.users.add(newUserObj);
 
+      // Directly create session — bypass login() to avoid toArray() race condition
+      const sessionData = JSON.stringify(newUserObj);
+      localStorage.setItem('barberflow_user', sessionData);
+
       sound.playSuccess();
-      toast.success(`Akun berhasil dibuat! Selamat datang, ${data.name}!`);
-      
-      // Auto Login & Redirect to Booking Portal
-      const loggedIn = await login(data.email, data.password, true);
-      if (loggedIn) {
-        navigate('/booking');
-      } else {
-        // Try login with username as fallback
-        const loggedIn2 = await login(username, data.password, true);
-        if (loggedIn2) {
-          navigate('/booking');
-        } else {
-          setMode('login');
-          toast('Silakan login dengan email yang baru didaftarkan.', { icon: '👋' });
-        }
-      }
+      toast.success(`Akun berhasil dibuat! Selamat datang, ${data.name}! 🎉`);
+
+      // Use window.location for reliable full-page redirect so AuthContext re-reads session
+      setTimeout(() => {
+        window.location.href = '/booking';
+      }, 800);
+
     } catch (err: any) {
       console.error(err);
       sound.playError();
       toast.error(err.message || 'Gagal mendaftar akun. Coba lagi.');
-    } finally {
       setIsSubmitting(false);
     }
   };

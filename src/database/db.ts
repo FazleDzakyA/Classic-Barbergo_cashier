@@ -186,10 +186,18 @@ class MockTable<T, PK extends string | number> {
         return res.json();
       })
       .then(data => {
-        this.cache = data;
-        this.setLocalStore(data);
+        // Merge API data with local-only items (preserve offline-added items)
+        const localData = this.getLocalStore();
+        const apiIds = new Set((data as any[]).map((item: any) => String(item.id ?? item.key ?? item.key_name)));
+        const onlyLocal = localData.filter((item: any) => {
+          const itemId = String(item.id ?? item.key ?? item.key_name);
+          return !apiIds.has(itemId);
+        });
+        const merged = onlyLocal.length > 0 ? [...data, ...onlyLocal] : data;
+        this.cache = merged;
+        this.setLocalStore(merged);
         this.fetchPromise = null;
-        return data;
+        return merged;
       })
       .catch(_err => {
         this.fetchPromise = null;

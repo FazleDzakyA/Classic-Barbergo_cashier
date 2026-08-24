@@ -24,10 +24,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const savedUser = localStorage.getItem('barberflow_user') || sessionStorage.getItem('barberflow_user');
         if (savedUser) {
           const parsed = JSON.parse(savedUser) as User;
-          // Verify user still exists and is active in DB
-          const dbUser = await db.users.where('username').equalsIgnoreCase(parsed.username).first();
+          // Verify user still exists and is active in DB (by username OR email)
+          const allUsers = await db.users.toArray();
+          const dbUser = allUsers.find(u =>
+            u.username?.toLowerCase() === parsed.username?.toLowerCase() ||
+            (u.email && parsed.email && u.email.toLowerCase() === parsed.email.toLowerCase())
+          );
           if (dbUser && dbUser.isActive) {
             setUser(dbUser);
+          } else if (parsed.isActive !== false) {
+            // User not in DB yet (e.g. just registered offline) — trust the session
+            setUser(parsed);
           } else {
             localStorage.removeItem('barberflow_user');
             sessionStorage.removeItem('barberflow_user');
