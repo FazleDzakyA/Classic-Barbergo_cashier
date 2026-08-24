@@ -30,10 +30,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
 
   const menuItems = [
     {
-      path: role === 'cashier' ? '/cashier?tab=booking' : '/booking',
-      name: role === 'cashier' ? 'Daftar Booking' : 'Portal Booking',
+      path: '/booking',
+      name: 'Portal Booking',
       icon: <Calendar size={18} />,
-      roles: ['admin', 'cashier']
+      roles: ['admin']
     },
     {
       path: '/dashboard',

@@ -94,9 +94,66 @@ export const Cashier: React.FC = () => {
   // Shift summary states for close session
   const [summaryData, setSummaryData] = useState({
     cashRevenue: 0,
+    nonCashRevenue: 0,
     totalExpenses: 0,
     expectedCash: 0
   });
+
+  // Helper to check if transaction belongs to current shift session or date
+  const isShiftTx = (t: Transaction) => {
+    if (t.status === 'batal') return false;
+    if (t.sessionId !== undefined && t.sessionId !== null && currentSession?.id !== undefined && String(t.sessionId) === String(currentSession.id)) {
+      return true;
+    }
+    const today = currentDate || dayjs().format('YYYY-MM-DD');
+    return t.date === today || dayjs(t.date).format('YYYY-MM-DD') === today;
+  };
+
+  const isCashPayment = (pm?: string) => {
+    if (!pm) return true;
+    const lower = pm.toLowerCase();
+    return lower.includes('cash') || lower.includes('tunai');
+  };
+
+  // Prepare closing shift details
+  const handlePrepareCloseShift = async () => {
+    if (!currentSession || !currentSession.id) return;
+    try {
+      const allTxs = await db.transactions.toArray();
+      const sessionTxs = allTxs.filter(isShiftTx);
+      
+      const cashRev = sessionTxs
+        .filter(t => isCashPayment(t.paymentMethod))
+        .reduce((sum, t) => sum + t.total, 0);
+
+      const nonCashRev = sessionTxs
+        .filter(t => !isCashPayment(t.paymentMethod))
+        .reduce((sum, t) => sum + t.total, 0);
+
+      const allExps = await db.expenses.toArray();
+      const sessionExpenses = allExps.filter(e => 
+        (e.sessionId !== undefined && e.sessionId !== null && String(e.sessionId) === String(currentSession.id)) ||
+        (e.date === currentDate)
+      );
+      
+      const totalExpenses = sessionExpenses.reduce((sum, e) => sum + e.amount, 0);
+      const expectedCash = currentSession.startingCash + cashRev - totalExpenses;
+
+      setSummaryData({
+        cashRevenue: cashRev,
+        nonCashRevenue: nonCashRev,
+        totalExpenses,
+        expectedCash
+      });
+      setActualCashInput(expectedCash); // default to expected
+      setIsClosingModalOpen(true);
+      sound.playBeep(600);
+    } catch (err) {
+      console.error(err);
+      sound.playError();
+      toast.error('Gagal memuat ringkasan shift');
+    }
+  };
 
   // POS billing states
   const [trxId, setTrxId] = useState('');
@@ -219,43 +276,6 @@ export const Cashier: React.FC = () => {
     await openSession(startingCashInput);
   };
 
-  // Prepare closing shift details
-  const handlePrepareCloseShift = async () => {
-    if (!currentSession || !currentSession.id) return;
-    try {
-      const allTxs = await db.transactions.toArray();
-      const sessionTransactions = allTxs.filter(t => 
-        (t.sessionId !== undefined && t.sessionId !== null && String(t.sessionId) === String(currentSession.id)) ||
-        (t.date === currentDate && t.status !== 'batal')
-      );
-      
-      const cashRevenue = sessionTransactions
-        .filter(t => t.paymentMethod === 'Cash' && t.status !== 'batal')
-        .reduce((sum, t) => sum + t.total, 0);
-
-      const sessionExpenses = await db.expenses
-        .where('sessionId')
-        .equals(currentSession.id)
-        .toArray();
-      
-      const totalExpenses = sessionExpenses.reduce((sum, e) => sum + e.amount, 0);
-      const expectedCash = currentSession.startingCash + cashRevenue - totalExpenses;
-
-      setSummaryData({
-        cashRevenue,
-        totalExpenses,
-        expectedCash
-      });
-      setActualCashInput(expectedCash); // default to expected
-      setIsClosingModalOpen(true);
-      sound.playBeep(600);
-    } catch (err) {
-      console.error(err);
-      sound.playError();
-      toast.error('Gagal memuat ringkasan shift');
-    }
-  };
-
   // Close shift submission (allows closing with negative balance/deficit if expenses exceed cash)
   const handleConfirmCloseShift = async () => {
     const success = await closeSession(actualCashInput, closingNotes);
@@ -342,22 +362,23 @@ export const Cashier: React.FC = () => {
     if (!currentSession || !currentSession.id) return;
     try {
       const allTxs = await db.transactions.toArray();
-      const sessionTxs = allTxs.filter(t => 
-        (t.sessionId !== undefined && t.sessionId !== null && String(t.sessionId) === String(currentSession.id)) ||
-        (t.date === currentDate && t.status !== 'batal')
+      const sessionTxs = allTxs.filter(isShiftTx);
+
+      const cashRev = sessionTxs.filter(t => isCashPayment(t.paymentMethod)).reduce((s, t) => s + t.total, 0);
+      const nonCashRev = sessionTxs.filter(t => !isCashPayment(t.paymentMethod)).reduce((s, t) => s + t.total, 0);
+
+      const allExps = await db.expenses.toArray();
+      const sessionExps = allExps.filter(e => 
+        (e.sessionId !== undefined && e.sessionId !== null && String(e.sessionId) === String(currentSession.id)) ||
+        (e.date === currentDate)
       );
 
-      const sessionExps = await db.expenses
-        .where('sessionId')
-        .equals(currentSession.id)
-        .toArray();
-
-      const cashRev = sessionTxs.filter(t => t.paymentMethod === 'Cash' && t.status !== 'batal').reduce((s, t) => s + t.total, 0);
       const totalExp = sessionExps.reduce((s, e) => s + e.amount, 0);
       const expected = currentSession.startingCash + cashRev - totalExp;
 
       setSummaryData({
         cashRevenue: cashRev,
+        nonCashRevenue: nonCashRev,
         totalExpenses: totalExp,
         expectedCash: expected
       });
@@ -374,18 +395,17 @@ export const Cashier: React.FC = () => {
     if (!currentSession || !currentSession.id) return;
     try {
       const allTxs = await db.transactions.toArray();
-      const sessionTxs = allTxs.filter(t => 
-        (t.sessionId !== undefined && t.sessionId !== null && String(t.sessionId) === String(currentSession.id)) ||
-        (t.date === currentDate && t.status !== 'batal')
+      const sessionTxs = allTxs.filter(isShiftTx);
+
+      const cashRev = sessionTxs.filter(t => isCashPayment(t.paymentMethod)).reduce((s, t) => s + t.total, 0);
+      const nonCashRev = sessionTxs.filter(t => !isCashPayment(t.paymentMethod)).reduce((s, t) => s + t.total, 0);
+
+      const allExps = await db.expenses.toArray();
+      const sessionExps = allExps.filter(e => 
+        (e.sessionId !== undefined && e.sessionId !== null && String(e.sessionId) === String(currentSession.id)) ||
+        (e.date === currentDate)
       );
 
-      const sessionExps = await db.expenses
-        .where('sessionId')
-        .equals(currentSession.id)
-        .toArray();
-
-      const cashRev = sessionTxs.filter(t => t.paymentMethod === 'Cash' && t.status !== 'batal').reduce((s, t) => s + t.total, 0);
-      const nonCashRev = sessionTxs.filter(t => t.paymentMethod !== 'Cash' && t.status !== 'batal').reduce((s, t) => s + t.total, 0);
       const totalExp = sessionExps.reduce((s, e) => s + e.amount, 0);
       const expected = currentSession.startingCash + cashRev - totalExp;
 
@@ -407,6 +427,15 @@ export const Cashier: React.FC = () => {
       };
 
       await db.shiftReports.add(reportObj);
+
+      // Also sync to backend API
+      const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '').replace(/\/$/, '');
+      fetch(`${API_URL}/api/shift-reports`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reportObj)
+      }).catch(e => console.warn('API shift report sync warning:', e));
+
       sound.playKaching();
       toast.success('Laporan Shift Kasir Berhasil Dikirim ke Web Admin!');
       setIsReportModalOpen(false);
@@ -1279,6 +1308,12 @@ export const Cashier: React.FC = () => {
                     <span className="summary-lbl">Total Omset Tunai (Cash):</span>
                     <span className="summary-val success-text">+{formatMoney(summaryData.cashRevenue)}</span>
                   </div>
+                  {summaryData.nonCashRevenue > 0 && (
+                    <div className="summary-row">
+                      <span className="summary-lbl">Total Omset QRIS (Non-Tunai):</span>
+                      <span className="summary-val" style={{ color: '#3B82F6', fontWeight: 700 }}>+{formatMoney(summaryData.nonCashRevenue)}</span>
+                    </div>
+                  )}
                   <div className="summary-row">
                     <span className="summary-lbl">Total Pengeluaran Tunai:</span>
                     <span className="summary-val danger-text">-{formatMoney(summaryData.totalExpenses)}</span>
@@ -1378,8 +1413,14 @@ export const Cashier: React.FC = () => {
                   </div>
                   <div className="summary-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', fontSize: '0.85rem' }}>
                     <span className="summary-lbl" style={{ color: '#A1A1AA' }}>Total Pendapatan Tunai:</span>
-                    <span className="summary-val success-text" style={{ color: '#22C55E' }}>+{formatMoney(summaryData.cashRevenue)}</span>
+                    <span className="summary-val success-text" style={{ color: '#22C55E', fontWeight: 700 }}>+{formatMoney(summaryData.cashRevenue)}</span>
                   </div>
+                  {summaryData.nonCashRevenue > 0 && (
+                    <div className="summary-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', fontSize: '0.85rem' }}>
+                      <span className="summary-lbl" style={{ color: '#A1A1AA' }}>Total Pendapatan QRIS:</span>
+                      <span className="summary-val" style={{ color: '#3B82F6', fontWeight: 700 }}>+{formatMoney(summaryData.nonCashRevenue)}</span>
+                    </div>
+                  )}
                   <div className="summary-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', fontSize: '0.85rem' }}>
                     <span className="summary-lbl" style={{ color: '#A1A1AA' }}>Total Pengeluaran Kas:</span>
                     <span className="summary-val danger-text" style={{ color: '#EF4444' }}>-{formatMoney(summaryData.totalExpenses)}</span>
