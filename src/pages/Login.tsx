@@ -95,49 +95,53 @@ export const Login: React.FC = () => {
     setIsSubmitting(true);
     try {
       const passHash = await hashPassword(data.password);
-      const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '').replace(/\/$/, '');
 
-      // 1. Try API Register
-      try {
-        const res = await fetch(`${API_URL}/api/auth/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: data.name, email: data.email, passwordHash: passHash })
-        });
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          throw new Error(errData.message || 'Gagal mendaftar email');
-        }
-      } catch (apiErr: any) {
-        console.warn('Backend API register fallback to local DB:', apiErr.message);
-        // Fallback local DB insert
-        const username = data.email.split('@')[0] + Math.floor(100 + Math.random() * 900);
-        const newUserObj = {
-          username,
-          email: data.email,
-          name: data.name,
-          passwordHash: passHash,
-          role: 'customer' as const,
-          isActive: true,
-          createdAt: new Date().toISOString()
-        };
-        await db.users.add(newUserObj);
+      // Check if email already exists locally
+      const allUsers = await db.users.toArray();
+      const existing = allUsers.find((u: any) => u.email === data.email || u.username === data.email);
+      if (existing) {
+        sound.playError();
+        toast.error('Email ini sudah terdaftar. Silakan login.');
+        setIsSubmitting(false);
+        return;
       }
 
+      // Generate username from email
+      const username = data.email.split('@')[0] + Math.floor(100 + Math.random() * 900);
+      const newUserObj = {
+        username,
+        email: data.email,
+        name: data.name,
+        passwordHash: passHash,
+        role: 'customer' as const,
+        isActive: true,
+        createdAt: new Date().toISOString()
+      };
+
+      // Save locally (and try backend in background)
+      await db.users.add(newUserObj);
+
       sound.playSuccess();
-      toast.success(`Akun Customer (${data.email}) berhasil dibuat!`);
+      toast.success(`Akun berhasil dibuat! Selamat datang, ${data.name}!`);
       
       // Auto Login & Redirect to Booking Portal
       const loggedIn = await login(data.email, data.password, true);
       if (loggedIn) {
         navigate('/booking');
       } else {
-        setMode('login');
+        // Try login with username as fallback
+        const loggedIn2 = await login(username, data.password, true);
+        if (loggedIn2) {
+          navigate('/booking');
+        } else {
+          setMode('login');
+          toast('Silakan login dengan email yang baru didaftarkan.', { icon: '👋' });
+        }
       }
     } catch (err: any) {
       console.error(err);
       sound.playError();
-      toast.error(err.message || 'Gagal mendaftar akun');
+      toast.error(err.message || 'Gagal mendaftar akun. Coba lagi.');
     } finally {
       setIsSubmitting(false);
     }

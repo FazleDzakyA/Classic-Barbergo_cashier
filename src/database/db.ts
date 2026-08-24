@@ -211,25 +211,8 @@ class MockTable<T, PK extends string | number> {
   }
 
   async add(item: any): Promise<PK> {
+    // Optimistic local-first: save immediately then sync to backend
     try {
-      const res = await fetch(`${API_URL}${this.apiPath}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(item)
-      });
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        const msg = errJson.message || (errJson.errors ? Object.values(errJson.errors).flat().join(', ') : null);
-        throw new Error(msg || `Gagal menambah data (${res.status})`);
-      }
-      const data = await res.json();
-      this.cache = null;
-      this.fetchPromise = null;
-      notifyChange();
-      return (data.id || data.key || data.sessionId) as PK;
-    } catch (err: any) {
-      if (err.message && !err.message.includes('fetch')) throw err;
-      // Offline fallback
       const items = await this.toArray();
       const newId = item.id || Date.now();
       const newItem = { ...item, id: newId };
@@ -237,7 +220,25 @@ class MockTable<T, PK extends string | number> {
       this.setLocalStore(updated as T[]);
       this.cache = updated as T[];
       notifyChange();
+
+      // Try to sync to backend in background
+      fetch(`${API_URL}${this.apiPath}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(item)
+      }).then(res => {
+        if (res.ok) {
+          this.cache = null;
+          this.fetchPromise = null;
+        }
+      }).catch(() => {
+        // Backend sync failed silently - local already saved
+      });
+
       return newId as PK;
+    } catch (err: any) {
+      console.error('Add error:', err);
+      throw err;
     }
   }
 
