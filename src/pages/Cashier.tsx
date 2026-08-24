@@ -70,14 +70,8 @@ export const Cashier: React.FC = () => {
 
   const customerBookingsList = useMemo(() => {
     if (!allTransactions) return [];
-    const list = allTransactions.filter(t => 
-      t.status === 'menunggu_konfirmasi' ||
-      t.status === 'proses' ||
-      t.status === 'layanan_selesai' ||
-      t.status === 'selesai' ||
-      t.status === 'batal' ||
-      t.id.startsWith('BOOK-')
-    ).sort((a, b) => b.createdAt - a.createdAt);
+    // Show ALL transactions in the booking tab (both walk-in POS and online bookings)
+    const list = [...allTransactions].sort((a, b) => b.createdAt - a.createdAt);
 
     if (bookingFilterStatus === 'Semua') return list;
     return list.filter(t => t.status === bookingFilterStatus);
@@ -90,6 +84,11 @@ export const Cashier: React.FC = () => {
   const [reportNotes, setReportNotes] = useState('');
   const [actualCashInput, setActualCashInput] = useState<number>(0);
   const [closingNotes, setClosingNotes] = useState('');
+
+  // Notification from admin verification
+  const [verifiedNotif, setVerifiedNotif] = useState<string | null>(() => {
+    try { return localStorage.getItem('barberflow_shift_verified_notif') || null; } catch { return null; }
+  });
   
   // Shift summary states for close session
   const [summaryData, setSummaryData] = useState({
@@ -137,6 +136,7 @@ export const Cashier: React.FC = () => {
       );
       
       const totalExpenses = sessionExpenses.reduce((sum, e) => sum + e.amount, 0);
+      // expectedCash: only cash revenue affects physical drawer (QRIS goes directly to digital)
       const expectedCash = currentSession.startingCash + cashRev - totalExpenses;
 
       setSummaryData({
@@ -630,6 +630,26 @@ export const Cashier: React.FC = () => {
   // SCREEN 2: Cashier POS is active
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+
+      {/* NOTIFICATION: Admin sudah verifikasi laporan shift */}
+      {verifiedNotif && (
+        <div style={{ background: 'linear-gradient(135deg, rgba(34,197,94,0.2), rgba(16,185,129,0.15))', border: '1.5px solid #22C55E', borderRadius: '14px', padding: '1rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ background: '#22C55E', color: '#fff', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', flexShrink: 0 }}>✓</div>
+            <div>
+              <p style={{ margin: 0, fontWeight: 800, color: '#22C55E', fontSize: '1rem' }}>✅ Laporan Shift Diterima & Diverifikasi Admin!</p>
+              <p style={{ margin: '0.1rem 0 0', fontSize: '0.82rem', color: '#A1A1AA' }}>{verifiedNotif}</p>
+            </div>
+          </div>
+          <button type="button" style={{ background: 'transparent', border: 'none', color: '#71717A', cursor: 'pointer', fontSize: '1.1rem', padding: '0.25rem' }}
+            onClick={() => {
+              localStorage.removeItem('barberflow_shift_verified_notif');
+              setVerifiedNotif(null);
+            }}
+          >✕</button>
+        </div>
+      )}
+
       {/* CASHIER NAVIGATION TAB SWITCHER */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', background: '#121212', border: '1px solid rgba(212,175,55,0.3)', borderRadius: '16px', padding: '0.75rem 1.25rem' }}>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
@@ -729,7 +749,7 @@ export const Cashier: React.FC = () => {
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
               {['Semua', 'menunggu_konfirmasi', 'proses', 'layanan_selesai', 'selesai', 'batal'].map(st => {
                 const getLabel = (s: string) => {
-                  if (s === 'Semua') return 'Semua Status';
+                  if (s === 'Semua') return '📋 Semua Transaksi';
                   if (s === 'menunggu_konfirmasi') return '⏳ Perlu ACC';
                   if (s === 'proses') return '✂️ Dalam Proses';
                   if (s === 'layanan_selesai') return '✨ Layanan Selesai';

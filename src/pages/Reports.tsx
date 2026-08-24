@@ -1211,22 +1211,26 @@ export const Reports: React.FC = () => {
 
                               {rpt.status === 'diverifikasi' ? (
                                 <span style={{ color: '#22C55E', fontWeight: 700, fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-                                  ✓ Diverifikasi
+                                  ✅ Diverifikasi
                                 </span>
                               ) : (
                                 <button
                                   type="button"
                                   className="btn"
-                                  style={{ background: '#D4AF37', color: '#000', fontWeight: 800, fontSize: '0.72rem', padding: '0.25rem 0.65rem', borderRadius: '6px' }}
+                                  style={{ background: '#D4AF37', color: '#000', fontWeight: 800, fontSize: '0.72rem', padding: '0.25rem 0.65rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
                                   onClick={async () => {
                                     if (rpt.id) {
                                       await db.shiftReports.update(rpt.id, { status: 'diverifikasi' });
+                                      // Save notif for cashier to read
+                                      const msg = `Admin telah memverifikasi laporan shift tanggal ${rpt.date} oleh ${rpt.cashierName}. Terima kasih!`;
+                                      localStorage.setItem('barberflow_shift_verified_notif', msg);
                                       sound.playSuccess();
-                                      toast.success('Laporan shift berhasil diverifikasi oleh Admin!');
+                                      toast.success('✅ Laporan shift berhasil diverifikasi! Notifikasi dikirim ke kasir.');
                                     }
                                   }}
                                 >
-                                  Verifikasi
+                                  <ShieldCheck size={12} />
+                                  <span>ACC</span>
                                 </button>
                               )}
                             </div>
@@ -1445,8 +1449,11 @@ export const Reports: React.FC = () => {
                     onClick={async () => {
                       if (selectedShiftForModal.id) {
                         await db.shiftReports.update(selectedShiftForModal.id, { status: 'diverifikasi' });
+                        // Write notif for Cashier to read when they open /cashier
+                        const msg = `Admin telah memverifikasi laporan shift tanggal ${selectedShiftForModal.date} oleh ${selectedShiftForModal.cashierName}. Terima kasih!`;
+                        localStorage.setItem('barberflow_shift_verified_notif', msg);
                         sound.playSuccess();
-                        toast.success('Laporan shift berhasil diverifikasi oleh Admin!');
+                        toast.success('✅ Laporan shift diverifikasi! Notifikasi berhasil dikirim ke kasir.');
                         setIsInspectModalOpen(false);
                         setSelectedShiftForModal(null);
                       }
