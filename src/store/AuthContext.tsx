@@ -42,14 +42,56 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     checkSession();
   }, []);
 
-  const login = async (username: string, password: string, remember: boolean): Promise<boolean> => {
+  const login = async (identity: string, password: string, remember: boolean): Promise<boolean> => {
     try {
       const hashedPassword = await hashPassword(password);
-      const dbUser = await db.users.where('username').equalsIgnoreCase(username).first();
+      const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '').replace(/\/$/, '');
+
+      // 1. Try Backend API
+      try {
+        const res = await fetch(`${API_URL}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: identity, passwordHash: hashedPassword })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.user) {
+            const loggedUser: User = {
+              username: data.user.username,
+              email: data.user.email,
+              name: data.user.name,
+              role: data.user.role,
+              passwordHash: hashedPassword,
+              isActive: true,
+              createdAt: new Date().toISOString()
+            };
+            setUser(loggedUser);
+            const userStr = JSON.stringify(loggedUser);
+            if (remember) {
+              localStorage.setItem('barberflow_user', userStr);
+            } else {
+              sessionStorage.setItem('barberflow_user', userStr);
+            }
+            sound.playLogin();
+            toast.success(`Selamat datang kembali, ${loggedUser.name}!`);
+            return true;
+          }
+        }
+      } catch (_apiErr) {
+        console.warn('Backend login API offline, using local DB check...');
+      }
+
+      // 2. Local DB Fallback
+      const allUsers = await db.users.toArray();
+      const dbUser = allUsers.find(u => 
+        (u.username.toLowerCase() === identity.toLowerCase() || (u.email && u.email.toLowerCase() === identity.toLowerCase()))
+      );
       
       if (!dbUser) {
         sound.playError();
-        toast.error('Username tidak ditemukan');
+        toast.error('Username atau Email tidak ditemukan');
         return false;
       }
       
@@ -65,7 +107,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return false;
       }
       
-      // Successful Login
+      // Successful Fallback Login
       setUser(dbUser);
       const userStr = JSON.stringify(dbUser);
       if (remember) {

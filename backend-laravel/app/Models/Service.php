@@ -19,6 +19,7 @@ class Service extends Model
         'labelColor',
         'isActive',
         'stock',
+        'image',
     ];
 
     protected $casts = [

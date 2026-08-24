@@ -1,8 +1,9 @@
 export interface User {
   id?: number;
   username: string;
+  email?: string;
   passwordHash: string;
-  role: 'owner' | 'admin' | 'cashier';
+  role: 'owner' | 'admin' | 'cashier' | 'customer';
   name: string;
   isActive: boolean;
   createdAt: string;
@@ -15,7 +16,7 @@ export interface Barber {
   address: string;
   shift: 'Pagi' | 'Siang' | 'Malam';
   isActive: boolean;
-  photo?: string; // base64 or placeholder url
+  photo?: string;
   joinedDate: string;
 }
 
@@ -28,6 +29,7 @@ export interface Service {
   labelColor: string; // hex code
   isActive: boolean;
   stock?: number | null;
+  image?: string;
 }
 
 export interface Transaction {
@@ -36,6 +38,7 @@ export interface Transaction {
   time: string; // HH:mm
   customerName: string;
   customerPhone?: string;
+  customerEmail?: string;
   barberId: number;
   serviceIds: number[]; // Array of Service IDs
   subtotal: number;
@@ -50,35 +53,36 @@ export interface Transaction {
   sessionId?: number;
   cashReceived?: number;
   changeReturned?: number;
+  status?: 'menunggu_konfirmasi' | 'menunggu_pembayaran' | 'proses' | 'layanan_selesai' | 'selesai' | 'batal';
 }
 
 export interface Expense {
   id?: number;
   date: string; // YYYY-MM-DD
   time: string; // HH:mm
-  category: string; // Listrik, Air, Pomade, etc.
+  category: string;
   amount: number;
-  handler: string; // Penanggung Jawab
+  handler: string;
   notes: string;
   sessionId?: number;
 }
 
 export interface Settings {
-  key: string; // 'app_settings'
+  key: string;
   logo: string;
   name: string;
   address: string;
   phone: string;
   receiptFooter: string;
-  defaultTax: number; // percentage
-  currency: string; // 'IDR', etc.
+  defaultTax: number;
+  currency: string;
 }
 
 export interface CashierSession {
   id?: number;
   openedBy: string;
-  openTime: number; // timestamp
-  closeTime?: number; // timestamp
+  openTime: number;
+  closeTime?: number;
   startingCash: number;
   expectedCash?: number;
   actualCash?: number;
@@ -86,11 +90,29 @@ export interface CashierSession {
   notes?: string;
 }
 
+export interface ShiftReport {
+  id?: number;
+  sessionId: number;
+  cashierName: string;
+  date: string;
+  totalTransactions: number;
+  cashRevenue: number;
+  nonCashRevenue: number;
+  totalExpenses: number;
+  startingCash: number;
+  expectedCash: number;
+  actualCash: number;
+  difference: number;
+  notes?: string;
+  status: 'terkirim' | 'diverifikasi';
+  submittedAt: number;
+}
+
 export interface Review {
   id?: number;
   customerName: string;
   barberId: number;
-  rating: number; // 1 to 5
+  rating: number;
   comment?: string;
   tags?: string;
   createdAt: number;
@@ -100,4 +122,3 @@ export interface Review {
     photo?: string;
   };
 }
-

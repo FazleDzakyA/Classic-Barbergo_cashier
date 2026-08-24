@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import type { User, Barber, Service, Transaction, Expense, Settings, CashierSession, Review } from '../types';
+import type { User, Barber, Service, Transaction, Expense, Settings, CashierSession, Review, ShiftReport } from '../types';
 
-const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '').replace(/\/$/, '');
+const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '').replace(/\/$/, '');
 
 // Global Event Emitter for reactive updates (custom pub/sub)
 type Listener = () => void;
@@ -136,17 +136,17 @@ class MockTable<T, PK extends string | number> {
     }
     if (path.includes('services')) {
       return [
-        { id: 1, name: 'Potong', category: 'Haircut', price: 20000, duration: 30, labelColor: '#D4AF37', isActive: true, stock: null },
-        { id: 2, name: 'Potong Kramas', category: 'Haircut', price: 23000, duration: 40, labelColor: '#4169E1', isActive: true, stock: null },
-        { id: 3, name: 'Shaving', category: 'Treatment', price: 10000, duration: 15, labelColor: '#20B2AA', isActive: true, stock: null },
-        { id: 4, name: 'Hair Color Mulai', category: 'Hair Color', price: 70000, duration: 60, labelColor: '#FF69B4', isActive: true, stock: null },
-        { id: 5, name: 'Highlight Mulai', category: 'Hair Color', price: 80000, duration: 60, labelColor: '#BA55D3', isActive: true, stock: null },
-        { id: 6, name: 'Semir Hitam', category: 'Hair Color', price: 60000, duration: 45, labelColor: '#778899', isActive: true, stock: null },
-        { id: 7, name: 'Hair Tonic', category: 'Treatment', price: 25000, duration: 10, labelColor: '#3CB371', isActive: true, stock: null },
-        { id: 8, name: 'Hair Tonic Besar', category: 'Treatment', price: 30000, duration: 15, labelColor: '#2E8B57', isActive: true, stock: null },
-        { id: 9, name: 'Pomade', category: 'Product', price: 25000, duration: 5, labelColor: '#CD853F', isActive: true, stock: 25 },
-        { id: 10, name: 'Creambath', category: 'Treatment', price: 50000, duration: 45, labelColor: '#FF8C00', isActive: true, stock: null },
-        { id: 11, name: 'Smoting', category: 'Treatment', price: 60000, duration: 90, labelColor: '#4682B4', isActive: true, stock: null }
+        { id: 1, name: 'Potong', category: 'Haircut', price: 20000, duration: 30, labelColor: '#D4AF37', isActive: true, stock: null, image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80' },
+        { id: 2, name: 'Potong Kramas', category: 'Haircut', price: 23000, duration: 40, labelColor: '#4169E1', isActive: true, stock: null, image: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=600&q=80' },
+        { id: 3, name: 'Shaving', category: 'Treatment', price: 10000, duration: 15, labelColor: '#20B2AA', isActive: true, stock: null, image: 'https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=600&q=80' },
+        { id: 4, name: 'Hair Color Mulai', category: 'Hair Color', price: 70000, duration: 60, labelColor: '#FF69B4', isActive: true, stock: null, image: 'https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&w=600&q=80' },
+        { id: 5, name: 'Highlight Mulai', category: 'Hair Color', price: 80000, duration: 60, labelColor: '#BA55D3', isActive: true, stock: null, image: 'https://images.unsplash.com/photo-1605497788044-5a32c7078486?auto=format&fit=crop&w=600&q=80' },
+        { id: 6, name: 'Semir Hitam', category: 'Hair Color', price: 60000, duration: 45, labelColor: '#778899', isActive: true, stock: null, image: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=600&q=80' },
+        { id: 7, name: 'Hair Tonic', category: 'Treatment', price: 25000, duration: 10, labelColor: '#3CB371', isActive: true, stock: null, image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80' },
+        { id: 8, name: 'Hair Tonic Besar', category: 'Treatment', price: 30000, duration: 15, labelColor: '#2E8B57', isActive: true, stock: null, image: 'https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?auto=format&fit=crop&w=600&q=80' },
+        { id: 9, name: 'Pomade', category: 'Product', price: 25000, duration: 5, labelColor: '#CD853F', isActive: true, stock: 25, image: 'https://images.unsplash.com/photo-1597852074816-d933c7d2b988?auto=format&fit=crop&w=600&q=80' },
+        { id: 10, name: 'Creambath', category: 'Treatment', price: 50000, duration: 45, labelColor: '#FF8C00', isActive: true, stock: null, image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=600&q=80' },
+        { id: 11, name: 'Smoting', category: 'Treatment', price: 60000, duration: 90, labelColor: '#4682B4', isActive: true, stock: null, image: 'https://images.unsplash.com/photo-1519699047748-de8e457a634e?auto=format&fit=crop&w=600&q=80' }
       ];
     }
     if (path.includes('settings')) {
@@ -447,6 +447,7 @@ export const db = {
   sessions: new MockTable<CashierSession, number>('/api/sessions'),
   settings: new SettingsTable(),
   reviews: new MockTable<Review, number>('/api/reviews'),
+  shiftReports: new MockTable<ShiftReport, number>('/api/shift-reports'),
 
   // Transaction method shim
   async transaction(_mode: string, _tables: any[], callback: () => Promise<void>) {
@@ -475,6 +476,7 @@ export class BarberFlowDatabase {
   sessions = db.sessions;
   settings = db.settings;
   reviews = db.reviews;
+  shiftReports = db.shiftReports;
 }
 
 // Dummy seedDatabase check (handled by backend on startup)

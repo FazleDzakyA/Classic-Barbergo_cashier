@@ -14,12 +14,16 @@ import { Expenses } from './pages/Expenses';
 import { Reports } from './pages/Reports';
 import { Settings } from './pages/Settings';
 import { Backup } from './pages/Backup';
+import { CustomerBooking } from './pages/CustomerBooking';
 import { Toaster } from 'react-hot-toast';
 
 const HomeRedirect: React.FC = () => {
   const { user } = useAuth();
   if (user?.role === 'cashier') {
     return <Navigate to="/cashier" replace />;
+  }
+  if (user?.role === 'customer') {
+    return <Navigate to="/booking" replace />;
   }
   return <Navigate to="/dashboard" replace />;
 };
@@ -30,8 +34,9 @@ export const App: React.FC = () => {
       <SessionProvider>
         <BrowserRouter>
           <Routes>
-            {/* Public Route */}
+            {/* Public Routes */}
             <Route path="/login" element={<Login />} />
+            <Route path="/booking" element={<CustomerBooking />} />
 
             {/* Protected Main Routes (Wrapped in AppLayout) */}
             <Route 

@@ -310,6 +310,7 @@ export const TransactionsHistory: React.FC = () => {
                     TOTAL {sortBy === 'total' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
                   </th>
                   <th>METODE</th>
+                  <th>STATUS LAYANAN</th>
                   <th style={{ textAlign: 'right' }}>AKSI</th>
                 </tr>
               </thead>
@@ -367,6 +368,39 @@ export const TransactionsHistory: React.FC = () => {
                         <span className={`badge-payment ${trx.paymentMethod.toLowerCase()}`}>
                           {trx.paymentMethod}
                         </span>
+                      </td>
+                      <td>
+                        <select
+                          value={trx.status || 'selesai'}
+                          onChange={async (e) => {
+                            const newStatus = e.target.value as any;
+                            await db.transactions.update(trx.id, { status: newStatus });
+                            sound.playSuccess();
+                            toast.success(`Status transaksi ${trx.id} diperbarui menjadi: ${newStatus.replace('_', ' ')}`);
+                          }}
+                          style={{
+                            padding: '0.25rem 0.5rem',
+                            fontSize: '0.75rem',
+                            fontWeight: 700,
+                            borderRadius: '6px',
+                            border: 'none',
+                            cursor: 'pointer',
+                            background: 
+                              trx.status === 'menunggu_konfirmasi' ? '#EAB308' :
+                              trx.status === 'menunggu_pembayaran' ? '#F97316' :
+                              trx.status === 'proses' ? '#3B82F6' :
+                              trx.status === 'layanan_selesai' ? '#A855F7' :
+                              trx.status === 'batal' ? '#EF4444' : '#22C55E',
+                            color: trx.status === 'menunggu_konfirmasi' ? '#000' : '#FFF'
+                          }}
+                        >
+                          <option value="menunggu_konfirmasi" style={{ background: '#18181B', color: '#FFF' }}>Menunggu Konfirmasi</option>
+                          <option value="menunggu_pembayaran" style={{ background: '#18181B', color: '#FFF' }}>Menunggu Pembayaran</option>
+                          <option value="proses" style={{ background: '#18181B', color: '#FFF' }}>Proses Pengerjaan</option>
+                          <option value="layanan_selesai" style={{ background: '#18181B', color: '#FFF' }}>Layanan Selesai</option>
+                          <option value="selesai" style={{ background: '#18181B', color: '#FFF' }}>Selesai</option>
+                          <option value="batal" style={{ background: '#18181B', color: '#FFF' }}>Batal</option>
+                        </select>
                       </td>
                       <td style={{ textAlign: 'right' }}>
                         <div className="actions-cell-wrapper" style={{ display: 'flex', gap: '0.35rem', justifyContent: 'flex-end' }}>

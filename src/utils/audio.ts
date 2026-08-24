@@ -6,28 +6,28 @@ class SoundManager {
   private isUnlocked: boolean = false;
 
   constructor() {
-    const saved = typeof window !== 'undefined' ? localStorage.getItem('barberflow_sound_enabled') : null;
-    this.enabled = saved !== null ? saved === 'true' : true;
-    
-    // Auto-unlock AudioContext on first user interaction in browser
+    this.enabled = true;
     if (typeof window !== 'undefined') {
+      localStorage.setItem('barberflow_sound_enabled', 'true');
+      
       const unlockAudio = () => {
-        if (!this.isUnlocked) {
-          this.getContext();
+        try {
+          const ctx = this.getContext();
+          if (ctx && ctx.state === 'suspended') {
+            ctx.resume();
+          }
           this.isUnlocked = true;
-        }
-        window.removeEventListener('click', unlockAudio);
-        window.removeEventListener('keydown', unlockAudio);
-        window.removeEventListener('touchstart', unlockAudio);
+        } catch (_e) {}
       };
-      window.addEventListener('click', unlockAudio, { once: true });
-      window.addEventListener('keydown', unlockAudio, { once: true });
-      window.addEventListener('touchstart', unlockAudio, { once: true });
+      
+      ['click', 'keydown', 'touchstart', 'pointerdown', 'mousedown'].forEach(evt => {
+        window.addEventListener(evt, unlockAudio, { passive: true });
+      });
     }
   }
 
   private getContext(): AudioContext | null {
-    if (!this.enabled || typeof window === 'undefined') return null;
+    if (typeof window === 'undefined') return null;
     try {
       if (!this.ctx) {
         const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
@@ -46,6 +46,10 @@ class SoundManager {
 
   public isEnabled(): boolean {
     return this.enabled;
+  }
+
+  public isAudioUnlocked(): boolean {
+    return this.isUnlocked;
   }
 
   public setEnabled(value: boolean): void {

@@ -54,6 +54,7 @@ export const Reports: React.FC = () => {
   const barbers = useLiveQuery(() => db.barbers.toArray());
   const services = useLiveQuery(() => db.services.toArray());
   const settings = useLiveQuery(() => db.settings.get());
+  const shiftReports = useLiveQuery(() => db.shiftReports.toArray());
 
   const currency = settings?.currency || 'Rp';
 
@@ -1036,6 +1037,94 @@ export const Reports: React.FC = () => {
             </div>
             <div style={{ height: '220px', width: '100%' }}>
               <Line data={monthlyChartData} options={lineChartOptions} />
+            </div>
+          </div>
+
+          {/* Cashier Shift Reports Section (Match / Differ Inspection) */}
+          <div className="glass-card" style={{ background: '#121212', borderRadius: '12px', border: '1px solid #D4AF37', padding: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <div>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0, color: '#D4AF37' }}>
+                  Hasil Laporan Shift dari Kasir (Pemeriksaan Match / Selisih)
+                </h3>
+                <p style={{ fontSize: '0.8rem', color: '#A1A1AA', margin: '0.2rem 0 0' }}>
+                  Daftar rekapitulasi shift yang dikirimkan oleh Kasir melalui web. Bandingkan fisik vs estimasi sistem.
+                </p>
+              </div>
+            </div>
+
+            <div className="table-container" style={{ border: 'none', background: 'transparent' }}>
+              <table className="custom-table">
+                <thead>
+                  <tr>
+                    <th>TANGGAL</th>
+                    <th>KASIR</th>
+                    <th>TRANSAKSI</th>
+                    <th>OMSET TUNAI</th>
+                    <th>PENGELUARAN</th>
+                    <th>ESTIMASI SISTEM</th>
+                    <th>FISIK KASIR</th>
+                    <th>SELISIH</th>
+                    <th>STATUS & VERIFIKASI</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {shiftReports && shiftReports.length > 0 ? (
+                    shiftReports.map((rpt) => {
+                      const isMatch = rpt.difference === 0;
+                      return (
+                        <tr key={rpt.id || rpt.submittedAt}>
+                          <td>{rpt.date}</td>
+                          <td style={{ fontWeight: 700, color: '#FFF' }}>{rpt.cashierName}</td>
+                          <td>{rpt.totalTransactions} Trx</td>
+                          <td style={{ color: '#22C55E' }}>+{formatMoney(rpt.cashRevenue)}</td>
+                          <td style={{ color: '#EF4444' }}>-{formatMoney(rpt.totalExpenses)}</td>
+                          <td style={{ fontWeight: 700 }}>{formatMoney(rpt.expectedCash)}</td>
+                          <td style={{ fontWeight: 800, color: '#D4AF37' }}>{formatMoney(rpt.actualCash)}</td>
+                          <td>
+                            {isMatch ? (
+                              <span style={{ background: 'rgba(34, 197, 94, 0.2)', color: '#22C55E', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 800, fontSize: '0.75rem' }}>
+                                KLOP (0)
+                              </span>
+                            ) : (
+                              <span style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#EF4444', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 800, fontSize: '0.75rem' }}>
+                                {rpt.difference > 0 ? '+' : ''}{formatMoney(rpt.difference)}
+                              </span>
+                            )}
+                          </td>
+                          <td>
+                            {rpt.status === 'diverifikasi' ? (
+                              <span style={{ color: '#22C55E', fontWeight: 700, fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                                ✓ Diverifikasi
+                              </span>
+                            ) : (
+                              <button
+                                className="btn"
+                                style={{ background: '#D4AF37', color: '#000', fontWeight: 800, fontSize: '0.75rem', padding: '0.25rem 0.65rem', borderRadius: '6px' }}
+                                onClick={async () => {
+                                  if (rpt.id) {
+                                    await db.shiftReports.update(rpt.id, { status: 'diverifikasi' });
+                                    sound.playSuccess();
+                                    toast.success('Laporan shift berhasil diverifikasi oleh Admin!');
+                                  }
+                                }}
+                              >
+                                Verifikasi
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={9} style={{ textAlign: 'center', color: '#71717A', padding: '1.5rem' }}>
+                        Belum ada laporan shift yang dikirim kasir.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
 

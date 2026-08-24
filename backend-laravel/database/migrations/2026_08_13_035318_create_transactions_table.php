@@ -27,9 +27,11 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->string('paymentMethod', 20);
             $table->bigInteger('createdAt');
-            $table->integer('sessionId')->nullable();
+            $table->bigInteger('sessionId')->nullable();
             $table->integer('cashReceived')->nullable();
             $table->integer('changeReturned')->nullable();
+            $table->string('customerEmail', 100)->nullable();
+            $table->string('status', 30)->default('selesai');
         });
     }
 

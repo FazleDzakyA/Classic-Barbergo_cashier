@@ -44,10 +44,12 @@ class TransactionController extends Controller
             'total' => 'required|integer',
             'notes' => 'nullable|string',
             'paymentMethod' => 'required|string',
-            'createdAt' => 'required|integer',
-            'sessionId' => 'nullable|integer',
+            'createdAt' => 'required|numeric',
+            'sessionId' => 'nullable|numeric',
             'cashReceived' => 'nullable|integer',
             'changeReturned' => 'nullable|integer',
+            'customerEmail' => 'nullable|string',
+            'status' => 'nullable|string',
         ]);
 
         $serviceIdsStr = implode(',', $data['serviceIds']);
@@ -71,6 +73,8 @@ class TransactionController extends Controller
             'sessionId' => $data['sessionId'] ?? null,
             'cashReceived' => $data['cashReceived'] ?? null,
             'changeReturned' => $data['changeReturned'] ?? null,
+            'customerEmail' => $data['customerEmail'] ?? null,
+            'status' => $data['status'] ?? 'selesai',
         ]);
 
         // If Cash, increment expectedCash in active session
@@ -95,6 +99,23 @@ class TransactionController extends Controller
         }
 
         return response()->json($request->all(), 201);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $tx = Transaction::find($id);
+        if (!$tx) {
+            return response()->json(['message' => 'Transaksi tidak ditemukan'], 404);
+        }
+
+        $data = $request->validate([
+            'status' => 'nullable|string',
+            'notes' => 'nullable|string',
+            'paymentMethod' => 'nullable|string',
+        ]);
+
+        $tx->update(array_filter($data, fn($v) => !is_null($v)));
+        return response()->json($tx);
     }
 
     public function destroy($id)

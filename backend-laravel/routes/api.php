@@ -11,8 +11,11 @@ use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\DatabaseController;
 use App\Http\Controllers\Api\ReviewController;
 
+use App\Http\Controllers\Api\ShiftReportController;
+
 // 1. Auth API
 Route::post('/auth/login', [AuthController::class, 'login']);
+Route::post('/auth/register', [AuthController::class, 'register']);
 Route::get('/users', [AuthController::class, 'index']);
 Route::put('/users/{id}', [AuthController::class, 'update']);
 
@@ -31,18 +34,24 @@ Route::post('/sessions/close', [SessionController::class, 'close']);
 // 5. Transaction API
 Route::get('/transactions', [TransactionController::class, 'index']);
 Route::post('/transactions', [TransactionController::class, 'store']);
+Route::put('/transactions/{id}', [TransactionController::class, 'update']);
 Route::delete('/transactions/{id}', [TransactionController::class, 'destroy']);
 
 // 6. Expense API
 Route::apiResource('/expenses', ExpenseController::class);
 
-// 7. Setting API
+// 7. Shift Reports API
+Route::get('/shift-reports', [ShiftReportController::class, 'index']);
+Route::post('/shift-reports', [ShiftReportController::class, 'store']);
+Route::put('/shift-reports/{id}/verify', [ShiftReportController::class, 'verify']);
+
+// 8. Setting API
 Route::get('/settings', [SettingController::class, 'index']);
 Route::put('/settings', [SettingController::class, 'update']);
 
-// 8. Database API
+// 9. Database API
 Route::post('/database/reset', [DatabaseController::class, 'reset']);
 Route::post('/database/import', [DatabaseController::class, 'import']);
 
-// 9. Review API
+// 10. Review API
 Route::apiResource('/reviews', ReviewController::class);

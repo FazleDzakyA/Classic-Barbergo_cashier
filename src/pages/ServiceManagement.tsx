@@ -28,7 +28,8 @@ const serviceSchema = zod.object({
   duration: zod.number({ message: 'Durasi harus tidak boleh nol' }).gt(0, 'Durasi tidak boleh nol'),
   labelColor: zod.string().min(4, 'Warna label tidak valid'),
   isActive: zod.boolean(),
-  stock: zod.number().nullable().optional()
+  stock: zod.number().nullable().optional(),
+  image: zod.string().optional()
 });
 
 type ServiceFormValues = zod.infer<typeof serviceSchema>;
@@ -69,7 +70,8 @@ export const ServiceManagement: React.FC = () => {
       duration: 30,
       labelColor: '#D4AF37', // Default Gold
       isActive: true,
-      stock: null
+      stock: null,
+      image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80'
     });
     setIsModalOpen(true);
   };
@@ -85,7 +87,8 @@ export const ServiceManagement: React.FC = () => {
       duration: service.duration,
       labelColor: service.labelColor,
       isActive: service.isActive,
-      stock: service.stock !== undefined ? service.stock : null
+      stock: service.stock !== undefined ? service.stock : null,
+      image: service.image || ''
     });
     setIsModalOpen(true);
   };
@@ -253,6 +256,13 @@ export const ServiceManagement: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Service Image */}
+                <img 
+                  src={service.image || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80'} 
+                  alt={service.name} 
+                  style={{ width: '100%', height: '110px', objectFit: 'cover', borderRadius: '8px', marginBottom: '0.75rem' }} 
+                />
+
                 {/* Service Title */}
                 <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: '0 0 0.5rem 0', color: '#FFFFFF' }}>
                   {service.name}
@@ -365,6 +375,17 @@ export const ServiceManagement: React.FC = () => {
                       })}
                     />
                   </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="serviceImage">URL Gambar Layanan</label>
+                  <input
+                    id="serviceImage"
+                    type="text"
+                    className="form-input"
+                    placeholder="https://images.unsplash.com/..."
+                    {...register('image')}
+                  />
                 </div>
 
                 <div className="form-group">

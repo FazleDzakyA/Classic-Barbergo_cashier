@@ -15,14 +15,17 @@ class AuthController extends Controller
             'passwordHash' => 'required|string',
         ]);
 
-        $user = User::where('username', $request->username)
-                    ->where('isActive', true)
-                    ->first();
+        $user = User::where(function($q) use ($request) {
+                    $q->where('username', $request->username)
+                      ->orWhere('email', $request->username);
+                })
+                ->where('isActive', true)
+                ->first();
 
         if (!$user) {
             return response()->json([
                 'success' => false,
-                'message' => 'Username tidak ditemukan'
+                'message' => 'Username atau Email tidak ditemukan'
             ], 401);
         }
 
@@ -37,10 +40,44 @@ class AuthController extends Controller
             'success' => true,
             'user' => [
                 'username' => $user->username,
+                'email' => $user->email,
                 'name' => $user->name,
                 'role' => $user->role,
             ]
         ]);
+    }
+
+    public function register(Request $request)
+    {
+        $data = $request->validate([
+            'name' => 'required|string',
+            'email' => 'required|string|email|unique:users,email',
+            'passwordHash' => 'required|string',
+        ], [
+            'email.unique' => 'Email ini sudah terdaftar. Silakan login.'
+        ]);
+
+        $username = explode('@', $data['email'])[0] . rand(100, 999);
+
+        $user = User::create([
+            'username' => $username,
+            'email' => $data['email'],
+            'name' => $data['name'],
+            'passwordHash' => $data['passwordHash'],
+            'role' => 'customer',
+            'isActive' => true,
+            'createdAt' => now()->toIso8601String()
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'user' => [
+                'username' => $user->username,
+                'email' => $user->email,
+                'name' => $user->name,
+                'role' => $user->role,
+            ]
+        ], 201);
     }
 
     public function index()

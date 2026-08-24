@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('labelColor', 10)->nullable();
             $table->boolean('isActive')->default(true);
             $table->integer('stock')->nullable();
+            $table->longText('image')->nullable();
         });
     }
 

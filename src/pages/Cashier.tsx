@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { db, useLiveQuery } from '../database/db';
-import type { Transaction } from '../types';
+import type { Transaction, ShiftReport } from '../types';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as zod from 'zod';
@@ -14,7 +14,9 @@ import {
   Unlock,
   Lock,
   DollarSign,
-  QrCode
+  QrCode,
+  Send,
+  CalendarCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -45,12 +47,15 @@ export const Cashier: React.FC = () => {
   const services = useLiveQuery(() => db.services.toArray().then(arr => arr.filter(s => s.isActive)));
   const barbers = useLiveQuery(() => db.barbers.toArray().then(arr => arr.filter(b => b.isActive)));
   const settings = useLiveQuery(() => db.settings.get());
+  const pendingBookings = useLiveQuery(() => db.transactions.toArray().then(arr => arr.filter(t => t.status === 'menunggu_konfirmasi')));
 
   const currency = settings?.currency || 'Rp';
 
   // States
   const [startingCashInput, setStartingCashInput] = useState<number>(0);
   const [isClosingModalOpen, setIsClosingModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [reportNotes, setReportNotes] = useState('');
   const [actualCashInput, setActualCashInput] = useState<number>(0);
   const [closingNotes, setClosingNotes] = useState('');
   
@@ -186,13 +191,14 @@ export const Cashier: React.FC = () => {
   const handlePrepareCloseShift = async () => {
     if (!currentSession || !currentSession.id) return;
     try {
-      const sessionTransactions = await db.transactions
-        .where('sessionId')
-        .equals(currentSession.id)
-        .toArray();
+      const allTxs = await db.transactions.toArray();
+      const sessionTransactions = allTxs.filter(t => 
+        (t.sessionId !== undefined && t.sessionId !== null && String(t.sessionId) === String(currentSession.id)) ||
+        (t.date === currentDate && t.status !== 'batal')
+      );
       
       const cashRevenue = sessionTransactions
-        .filter(t => t.paymentMethod === 'Cash')
+        .filter(t => t.paymentMethod === 'Cash' && t.status !== 'batal')
         .reduce((sum, t) => sum + t.total, 0);
 
       const sessionExpenses = await db.expenses
@@ -228,6 +234,158 @@ export const Cashier: React.FC = () => {
     }
   };
 
+  // Rejection modal states
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [rejectingTrx, setRejectingTrx] = useState<Transaction | null>(null);
+  const [cancelReasonInput, setCancelReasonInput] = useState('');
+
+  // ACC Booking Customer
+  const handleAccBooking = async (trx: Transaction) => {
+    try {
+      sound.playSuccess();
+      await db.transactions.update(trx.id, { 
+        status: 'proses',
+        sessionId: currentSession?.id 
+      });
+      toast.success(`Booking ${trx.id} (${trx.customerName}) di-ACC! Status: Proses`);
+    } catch (_err) {
+      toast.error('Gagal meng-ACC booking');
+    }
+  };
+
+  // Complete Booking Customer -> Move to Shift History & Admin Database + Kasir Income
+  const handleCompleteBooking = async (trx: Transaction) => {
+    try {
+      sound.playKaching();
+      await db.transactions.update(trx.id, { 
+        status: 'selesai', 
+        sessionId: currentSession?.id 
+      });
+      toast.success(`Booking ${trx.id} (${trx.customerName}) Rp ${trx.total.toLocaleString('id-ID')} telah Selesai! Masuk ke pendapatan kasir + database admin.`);
+    } catch (_err) {
+      toast.error('Gagal menyelesaikan booking');
+    }
+  };
+
+  // Open Reject Booking Modal
+  const handleOpenRejectModal = (trx: Transaction) => {
+    sound.playBeep(600);
+    setRejectingTrx(trx);
+    setCancelReasonInput('');
+    setIsRejectModalOpen(true);
+  };
+
+  // Confirm Reject Booking Customer with Notes/Reason
+  const handleConfirmRejectBooking = async () => {
+    if (!rejectingTrx) return;
+    const reasonText = cancelReasonInput.trim() || 'Slot Barber Penuh / Kendala Operasional';
+    const notesStr = `Dibatalkan Kasir: ${reasonText}`;
+
+    try {
+      sound.playDelete();
+      await db.transactions.update(rejectingTrx.id, { 
+        status: 'batal',
+        notes: notesStr 
+      });
+
+      // Sync update to backend API
+      const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '').replace(/\/$/, '');
+      fetch(`${API_URL}/api/transactions/${rejectingTrx.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'batal', notes: notesStr })
+      }).catch(e => console.warn('API sync warning:', e));
+
+      toast.success(`Booking ${rejectingTrx.id} (${rejectingTrx.customerName}) dibatalkan dengan alasan: "${reasonText}"`);
+      setIsRejectModalOpen(false);
+      setRejectingTrx(null);
+      setCancelReasonInput('');
+    } catch (_err) {
+      toast.error('Gagal membatalkan booking');
+    }
+  };
+
+  // Prepare & Send Shift Report to Admin
+  const handleOpenSendReportModal = async () => {
+    if (!currentSession || !currentSession.id) return;
+    try {
+      const allTxs = await db.transactions.toArray();
+      const sessionTxs = allTxs.filter(t => 
+        (t.sessionId !== undefined && t.sessionId !== null && String(t.sessionId) === String(currentSession.id)) ||
+        (t.date === currentDate && t.status !== 'batal')
+      );
+
+      const sessionExps = await db.expenses
+        .where('sessionId')
+        .equals(currentSession.id)
+        .toArray();
+
+      const cashRev = sessionTxs.filter(t => t.paymentMethod === 'Cash' && t.status !== 'batal').reduce((s, t) => s + t.total, 0);
+      const totalExp = sessionExps.reduce((s, e) => s + e.amount, 0);
+      const expected = currentSession.startingCash + cashRev - totalExp;
+
+      setSummaryData({
+        cashRevenue: cashRev,
+        totalExpenses: totalExp,
+        expectedCash: expected
+      });
+      setActualCashInput(expected);
+      setIsReportModalOpen(true);
+      sound.playBeep(700);
+    } catch (err) {
+      console.error(err);
+      toast.error('Gagal menyiapkan laporan shift');
+    }
+  };
+
+  const handleSendShiftReport = async () => {
+    if (!currentSession || !currentSession.id) return;
+    try {
+      const allTxs = await db.transactions.toArray();
+      const sessionTxs = allTxs.filter(t => 
+        (t.sessionId !== undefined && t.sessionId !== null && String(t.sessionId) === String(currentSession.id)) ||
+        (t.date === currentDate && t.status !== 'batal')
+      );
+
+      const sessionExps = await db.expenses
+        .where('sessionId')
+        .equals(currentSession.id)
+        .toArray();
+
+      const cashRev = sessionTxs.filter(t => t.paymentMethod === 'Cash' && t.status !== 'batal').reduce((s, t) => s + t.total, 0);
+      const nonCashRev = sessionTxs.filter(t => t.paymentMethod !== 'Cash' && t.status !== 'batal').reduce((s, t) => s + t.total, 0);
+      const totalExp = sessionExps.reduce((s, e) => s + e.amount, 0);
+      const expected = currentSession.startingCash + cashRev - totalExp;
+
+      const reportObj: ShiftReport = {
+        sessionId: currentSession.id,
+        cashierName: currentSession.openedBy,
+        date: currentDate,
+        totalTransactions: sessionTxs.length,
+        cashRevenue: cashRev,
+        nonCashRevenue: nonCashRev,
+        totalExpenses: totalExp,
+        startingCash: currentSession.startingCash,
+        expectedCash: expected,
+        actualCash: actualCashInput,
+        difference: actualCashInput - expected,
+        notes: reportNotes || 'Laporan Shift Kasir via Web',
+        status: 'terkirim',
+        submittedAt: Date.now()
+      };
+
+      await db.shiftReports.add(reportObj);
+      sound.playKaching();
+      toast.success('Laporan Shift Kasir Berhasil Dikirim ke Web Admin!');
+      setIsReportModalOpen(false);
+      setReportNotes('');
+    } catch (err) {
+      console.error(err);
+      sound.playError();
+      toast.error('Gagal mengirim laporan ke Admin');
+    }
+  };
+
   // Toggle service in cart
   const toggleService = (id: number) => {
     sound.playBeep(880);
@@ -260,12 +418,23 @@ export const Cashier: React.FC = () => {
     }
 
     try {
+      // Ensure unique transaction ID
+      let finalTrxId = trxId;
+      if (!finalTrxId) {
+        finalTrxId = `TRX-${dayjs().format('YYYYMMDD')}-${Math.floor(1000 + Math.random() * 9000)}`;
+      }
+      const allTxs = await db.transactions.toArray();
+      const existing = allTxs.find(t => t.id === finalTrxId);
+      if (existing) {
+        finalTrxId = `TRX-${dayjs().format('YYYYMMDD')}-${Math.floor(1000 + Math.random() * 9000)}`;
+      }
+
       const transactionObj: Transaction = {
-        id: trxId,
+        id: finalTrxId,
         date: currentDate,
         time: currentTime,
-        customerName: data.customerName,
-        customerPhone: data.customerPhone,
+        customerName: data.customerName || 'Pelanggan Walk-In',
+        customerPhone: data.customerPhone || '',
         barberId: data.barberId,
         serviceIds: data.serviceIds,
         subtotal: pricing.subtotal,
@@ -274,20 +443,29 @@ export const Cashier: React.FC = () => {
         taxPercent: 0,
         taxNominal: 0,
         total: pricing.total,
-        notes: data.notes,
+        notes: data.notes || '',
         paymentMethod: data.paymentMethod,
         createdAt: Date.now(),
         sessionId: currentSession.id,
+        status: 'selesai',
         cashReceived: data.paymentMethod === 'Cash' ? cashReceived : undefined,
         changeReturned: data.paymentMethod === 'Cash' ? changeAmount : undefined
       };
 
       await db.transactions.add(transactionObj);
 
+      // Decrement product stock if applicable
+      for (const sid of data.serviceIds) {
+        const srv = services?.find(s => s.id === sid);
+        if (srv && srv.stock !== undefined && srv.stock !== null && srv.stock > 0) {
+          await db.services.update(sid, { stock: Math.max(0, srv.stock - 1) });
+        }
+      }
+
       // Play joyful cash register sound!
       sound.playKaching();
 
-      toast.success('Transaksi berhasil disimpan!');
+      toast.success('Transaksi Kasir berhasil disimpan!');
       
       setSavedTransaction(transactionObj);
 
@@ -298,7 +476,7 @@ export const Cashier: React.FC = () => {
         
         const bName = barbers?.find(b => b.id === data.barberId)?.name || '';
         const sList = selectedServicesList.map(s => `• ${s.name} (${currency} ${s.price.toLocaleString('id-ID')})`).join('\n');
-        let text = `✂ *${(settings?.name || 'CLASSIC BARBER GO').toUpperCase()}* ✂\n*BarberFlow Premium Grooming*\n----------------------------------------\n*No. TRX*: ${trxId}\n*Tanggal*: ${currentDate} ${currentTime}\n*Pelanggan*: ${data.customerName}\n*Barber*: ${bName}\n----------------------------------------\n*Detail Layanan*:\n${sList}\n----------------------------------------\n*TOTAL AKHIR*: *${currency} ${pricing.total.toLocaleString('id-ID')}*\n*Metode Bayar*: ${data.paymentMethod}\n`;
+        let text = `✂ *${(settings?.name || 'CLASSIC BARBER GO').toUpperCase()}* ✂\n*BarberFlow Premium Grooming*\n----------------------------------------\n*No. TRX*: ${finalTrxId}\n*Tanggal*: ${currentDate} ${currentTime}\n*Pelanggan*: ${data.customerName || 'Walk-In'}\n*Barber*: ${bName}\n----------------------------------------\n*Detail Layanan*:\n${sList}\n----------------------------------------\n*TOTAL AKHIR*: *${currency} ${pricing.total.toLocaleString('id-ID')}*\n*Metode Bayar*: ${data.paymentMethod}\n`;
         if (data.paymentMethod === 'Cash') {
           text += `*Uang Tunai*: ${currency} ${cashReceived.toLocaleString('id-ID')}\n*Kembalian*: ${currency} ${changeAmount.toLocaleString('id-ID')}\n`;
         }
@@ -318,10 +496,10 @@ export const Cashier: React.FC = () => {
       });
       setCashReceived(0);
       fetchNextTrxId();
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error('Error submitting cashier transaction:', err);
       sound.playError();
-      toast.error('Gagal memproses transaksi');
+      toast.error(err?.message || 'Gagal memproses transaksi');
     }
   };
 
@@ -393,6 +571,65 @@ export const Cashier: React.FC = () => {
     <div className="cashier-layout-grid">
       {/* Services selection (Left Side) */}
       <div className="cashier-left-panel">
+        {/* PENDING BOOKINGS FROM CUSTOMERS */}
+        {pendingBookings && pendingBookings.length > 0 && (
+          <div className="glass-card" style={{ marginBottom: '1rem', border: '1px solid #D4AF37', background: 'rgba(212, 175, 55, 0.08)', padding: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <CalendarCheck size={20} color="#D4AF37" />
+                <h4 style={{ margin: 0, fontWeight: 700, color: '#D4AF37', fontSize: '0.95rem' }}>
+                  Permintaan Booking Customer ({pendingBookings.length})
+                </h4>
+              </div>
+              <span className="badge" style={{ background: '#EAB308', color: '#000', fontWeight: 800, fontSize: '0.7rem' }}>PERLU ACC</span>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '200px', overflowY: 'auto' }}>
+              {pendingBookings.map((bk) => {
+                const bName = barbers?.find(b => b.id === bk.barberId)?.name || 'Barber';
+                return (
+                  <div key={bk.id} style={{ background: '#18181B', border: '1px solid #27272A', borderRadius: '8px', padding: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ fontWeight: 700, color: '#FFF', fontSize: '0.9rem' }}>{bk.customerName}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#A1A1AA' }}>
+                        💈 Barber: <strong>{bName}</strong> | 📅 {bk.date} ({bk.time}) | Total: <strong style={{ color: '#D4AF37' }}>{currency} {bk.total.toLocaleString('id-ID')}</strong>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.4rem' }}>
+                      {bk.status === 'menunggu_konfirmasi' && (
+                        <button 
+                          type="button" 
+                          className="btn" 
+                          style={{ background: '#3B82F6', color: '#FFF', fontWeight: 700, padding: '0.3rem 0.65rem', fontSize: '0.75rem', borderRadius: '6px' }}
+                          onClick={() => handleAccBooking(bk)}
+                        >
+                          ACC / Proses
+                        </button>
+                      )}
+                      <button 
+                        type="button" 
+                        className="btn" 
+                        style={{ background: '#22C55E', color: '#FFF', fontWeight: 800, padding: '0.3rem 0.65rem', fontSize: '0.75rem', borderRadius: '6px' }}
+                        onClick={() => handleCompleteBooking(bk)}
+                      >
+                        Selesai (Masuk Admin)
+                      </button>
+                      <button 
+                        type="button" 
+                        className="btn" 
+                        style={{ background: '#EF4444', color: '#FFF', padding: '0.3rem 0.5rem', fontSize: '0.75rem', borderRadius: '6px' }}
+                        onClick={() => handleOpenRejectModal(bk)}
+                      >
+                        Tolak
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         <div className="glass-card cashier-search-bar">
           <div className="search-box-container">
             <Search size={18} className="search-icon" />
@@ -509,15 +746,26 @@ export const Cashier: React.FC = () => {
             <span className="shift-label">Shift Aktif: {currentSession.openedBy}</span>
             <span className="shift-time">Dibuka: {dayjs(currentSession.openTime).format('HH:mm')}</span>
           </div>
-          <button 
-            type="button" 
-            className="btn btn-danger btn-icon tutup-shift-btn-small"
-            title="Tutup Shift"
-            onClick={handlePrepareCloseShift}
-          >
-            <Lock size={15} />
-            <span>Tutup Shift</span>
-          </button>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <button 
+              type="button" 
+              className="btn"
+              style={{ background: '#D4AF37', color: '#000', fontWeight: 700, fontSize: '0.8rem', padding: '0.35rem 0.75rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+              onClick={handleOpenSendReportModal}
+            >
+              <Send size={14} />
+              <span>Kirim Laporan ke Admin</span>
+            </button>
+            <button 
+              type="button" 
+              className="btn btn-danger btn-icon tutup-shift-btn-small"
+              title="Tutup Shift"
+              onClick={handlePrepareCloseShift}
+            >
+              <Lock size={15} />
+              <span>Tutup Shift</span>
+            </button>
+          </div>
         </div>
 
         <div className="cashier-panel-scroll">
@@ -806,6 +1054,190 @@ export const Cashier: React.FC = () => {
                     Tutup Shift Sekarang
                   </button>
                 </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Send Shift Report to Admin Modal */}
+      <AnimatePresence>
+        {isReportModalOpen && (
+          <div className="modal-overlay">
+            <motion.div 
+              className="modal-box glass-panel"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              style={{ maxWidth: '480px', background: '#121212', border: '1px solid #D4AF37', borderRadius: '18px' }}
+            >
+              <div className="modal-header" style={{ borderBottom: '1px solid #27272A', paddingBottom: '0.75rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Send size={20} color="#D4AF37" />
+                  <h3 style={{ margin: 0, color: '#D4AF37', fontWeight: 800 }}>Kirim Laporan Shift ke Admin</h3>
+                </div>
+                <button className="modal-close" onClick={() => setIsReportModalOpen(false)}>
+                  ✕
+                </button>
+              </div>
+
+              <div className="modal-form" style={{ marginTop: '1rem' }}>
+                <p style={{ fontSize: '0.85rem', color: '#A1A1AA', margin: '0 0 1rem' }}>
+                  Hasil rekapitulasi transaksi shift ini akan dikirimkan secara otomatis ke halaman Laporan Web Admin.
+                </p>
+
+                <div className="shift-summary-block" style={{ background: '#18181B', borderRadius: '12px', padding: '1rem' }}>
+                  <div className="summary-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', fontSize: '0.85rem' }}>
+                    <span className="summary-lbl" style={{ color: '#A1A1AA' }}>Kasir:</span>
+                    <span className="summary-val" style={{ fontWeight: 700, color: '#FFF' }}>{currentSession.openedBy}</span>
+                  </div>
+                  <div className="summary-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', fontSize: '0.85rem' }}>
+                    <span className="summary-lbl" style={{ color: '#A1A1AA' }}>Modal Tunai Awal:</span>
+                    <span className="summary-val">{formatMoney(currentSession.startingCash)}</span>
+                  </div>
+                  <div className="summary-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', fontSize: '0.85rem' }}>
+                    <span className="summary-lbl" style={{ color: '#A1A1AA' }}>Total Pendapatan Tunai:</span>
+                    <span className="summary-val success-text" style={{ color: '#22C55E' }}>+{formatMoney(summaryData.cashRevenue)}</span>
+                  </div>
+                  <div className="summary-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', fontSize: '0.85rem' }}>
+                    <span className="summary-lbl" style={{ color: '#A1A1AA' }}>Total Pengeluaran Kas:</span>
+                    <span className="summary-val danger-text" style={{ color: '#EF4444' }}>-{formatMoney(summaryData.totalExpenses)}</span>
+                  </div>
+                  <div className="summary-row expected-cash-row" style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid #27272A', fontWeight: 800 }}>
+                    <span className="summary-lbl" style={{ color: '#D4AF37' }}>Estimasi Saldo Fisik:</span>
+                    <span className="summary-val gold-text" style={{ color: '#D4AF37', fontSize: '1rem' }}>{formatMoney(summaryData.expectedCash)}</span>
+                  </div>
+                </div>
+
+                <div className="form-group" style={{ marginTop: '1rem' }}>
+                  <label className="form-label">Hasil Saldo Fisik Kasir ({currency})</label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    value={actualCashInput}
+                    onChange={(e) => setActualCashInput(Number(e.target.value))}
+                  />
+                </div>
+
+                <div className="form-group" style={{ marginTop: '1rem' }}>
+                  <label className="form-label">Catatan Hasil Laporan</label>
+                  <textarea
+                    className="form-input textarea-input"
+                    placeholder="Masukkan pesan atau penjelasan laporan untuk Admin..."
+                    rows={2}
+                    value={reportNotes}
+                    onChange={(e) => setReportNotes(e.target.value)}
+                  />
+                </div>
+
+                <div className="modal-footer" style={{ marginTop: '1.25rem', display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary" 
+                    onClick={() => setIsReportModalOpen(false)}
+                  >
+                    Batal
+                  </button>
+                  <button 
+                    type="button" 
+                    className="btn"
+                    style={{ background: '#D4AF37', color: '#000', fontWeight: 800, padding: '0.65rem 1.25rem', borderRadius: '10px' }}
+                    onClick={handleSendShiftReport}
+                  >
+                    Kirim Laporan ke Admin
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* REJECT BOOKING MODAL WITH REASON SELECTION & INPUT */}
+      <AnimatePresence>
+        {isRejectModalOpen && rejectingTrx && (
+          <div className="modal-overlay">
+            <motion.div 
+              className="modal-box glass-panel"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              style={{ maxWidth: '460px', background: '#121212', border: '1px solid #EF4444', borderRadius: '20px', padding: '1.75rem' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#EF4444', marginBottom: '1rem' }}>
+                <h3 style={{ margin: 0, fontWeight: 900, fontSize: '1.25rem', color: '#FFF' }}>
+                  🚫 Tolak / Batalkan Booking
+                </h3>
+              </div>
+
+              <p style={{ color: '#A1A1AA', fontSize: '0.88rem', margin: '0 0 1.25rem' }}>
+                Pelanggan: <strong style={{ color: '#FFF' }}>{rejectingTrx.customerName}</strong> ({rejectingTrx.id})<br />
+                Tanggal: <strong>{rejectingTrx.date} ({rejectingTrx.time})</strong>
+              </p>
+
+              <div style={{ marginBottom: '1.25rem' }}>
+                <label style={{ display: 'block', color: '#D4AF37', fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.5rem' }}>
+                  Pilih atau Ketik Alasan Pembatalan:
+                </label>
+                
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.85rem' }}>
+                  {[
+                    'Slot Jam / Barber Penuh',
+                    'Barber Sedang Berhalangan / Libur',
+                    'Jadwal Bertabrakan dengan Pelanggan Lain',
+                    'Mati Listrik / Kendala Operasional Toko'
+                  ].map(reason => (
+                    <button
+                      key={reason}
+                      type="button"
+                      className="btn"
+                      style={{
+                        background: cancelReasonInput === reason ? 'rgba(239, 68, 68, 0.25)' : 'rgba(255,255,255,0.06)',
+                        color: cancelReasonInput === reason ? '#EF4444' : '#A1A1AA',
+                        border: cancelReasonInput === reason ? '1px solid #EF4444' : '1px solid rgba(255,255,255,0.1)',
+                        fontSize: '0.78rem',
+                        padding: '0.35rem 0.75rem',
+                        borderRadius: '8px',
+                        fontWeight: 600
+                      }}
+                      onClick={() => setCancelReasonInput(reason)}
+                    >
+                      {reason}
+                    </button>
+                  ))}
+                </div>
+
+                <textarea
+                  className="form-input"
+                  rows={3}
+                  placeholder="Tuliskan catatan detail alasan kenapa booking dicancel..."
+                  value={cancelReasonInput}
+                  onChange={(e) => setCancelReasonInput(e.target.value)}
+                  style={{ width: '100%', background: '#18181B', color: '#FFF', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.15)', padding: '0.75rem' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.85rem' }}>
+                <button
+                  type="button"
+                  className="btn"
+                  style={{ background: 'rgba(255,255,255,0.1)', color: '#FFF', borderRadius: '10px', padding: '0.65rem 1.25rem', fontWeight: 700 }}
+                  onClick={() => {
+                    setIsRejectModalOpen(false);
+                    setRejectingTrx(null);
+                    setCancelReasonInput('');
+                  }}
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  className="btn"
+                  style={{ background: '#EF4444', color: '#FFF', borderRadius: '10px', padding: '0.65rem 1.5rem', fontWeight: 900 }}
+                  onClick={handleConfirmRejectBooking}
+                >
+                  Kirim Pembatalan & Catatan
+                </button>
               </div>
             </motion.div>
           </div>

@@ -32,6 +32,8 @@ class Transaction extends Model
         'sessionId',
         'cashReceived',
         'changeReturned',
+        'customerEmail',
+        'status',
     ];
 
     protected $casts = [
