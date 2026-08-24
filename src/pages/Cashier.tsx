@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { db, useLiveQuery } from '../database/db';
 import type { Transaction, ShiftReport } from '../types';
 import { useForm, Controller } from 'react-hook-form';
@@ -16,7 +17,8 @@ import {
   DollarSign,
   QrCode,
   Send,
-  CalendarCheck
+  CalendarCheck,
+  Scissors
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -46,10 +48,40 @@ export const Cashier: React.FC = () => {
   // DB queries
   const services = useLiveQuery(() => db.services.toArray().then(arr => arr.filter(s => s.isActive)));
   const barbers = useLiveQuery(() => db.barbers.toArray().then(arr => arr.filter(b => b.isActive)));
+  const allServices = useLiveQuery(() => db.services.toArray());
   const settings = useLiveQuery(() => db.settings.get());
   const pendingBookings = useLiveQuery(() => db.transactions.toArray().then(arr => arr.filter(t => t.status === 'menunggu_konfirmasi')));
+  const allTransactions = useLiveQuery(() => db.transactions.toArray());
 
   const currency = settings?.currency || 'Rp';
+
+  // Cashier View Tab Switcher State
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab') === 'booking' ? 'booking' : 'pos';
+  const [cashierTab, setCashierTab] = useState<'pos' | 'booking'>(initialTab);
+  const [bookingFilterStatus, setBookingFilterStatus] = useState<string>('Semua');
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'booking') {
+      setCashierTab('booking');
+    }
+  }, [searchParams]);
+
+  const customerBookingsList = useMemo(() => {
+    if (!allTransactions) return [];
+    const list = allTransactions.filter(t => 
+      t.status === 'menunggu_konfirmasi' ||
+      t.status === 'proses' ||
+      t.status === 'layanan_selesai' ||
+      t.status === 'selesai' ||
+      t.status === 'batal' ||
+      t.id.startsWith('BOOK-')
+    ).sort((a, b) => b.createdAt - a.createdAt);
+
+    if (bookingFilterStatus === 'Semua') return list;
+    return list.filter(t => t.status === bookingFilterStatus);
+  }, [allTransactions, bookingFilterStatus]);
 
   // States
   const [startingCashInput, setStartingCashInput] = useState<number>(0);
@@ -568,9 +600,256 @@ export const Cashier: React.FC = () => {
 
   // SCREEN 2: Cashier POS is active
   return (
-    <div className="cashier-layout-grid">
-      {/* Services selection (Left Side) */}
-      <div className="cashier-left-panel">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      {/* CASHIER NAVIGATION TAB SWITCHER */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', background: '#121212', border: '1px solid rgba(212,175,55,0.3)', borderRadius: '16px', padding: '0.75rem 1.25rem' }}>
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <button
+            type="button"
+            className="btn"
+            style={{
+              background: cashierTab === 'pos' ? '#D4AF37' : 'rgba(255,255,255,0.06)',
+              color: cashierTab === 'pos' ? '#000' : '#A1A1AA',
+              fontWeight: 800,
+              padding: '0.65rem 1.5rem',
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontSize: '0.92rem'
+            }}
+            onClick={() => {
+              sound.playNav();
+              setCashierTab('pos');
+              setSearchParams({ tab: 'pos' });
+            }}
+          >
+            <Scissors size={18} />
+            <span>Kasir / POS Walk-In</span>
+          </button>
+
+          <button
+            type="button"
+            className="btn"
+            style={{
+              background: cashierTab === 'booking' ? '#D4AF37' : 'rgba(255,255,255,0.06)',
+              color: cashierTab === 'booking' ? '#000' : '#A1A1AA',
+              fontWeight: 800,
+              padding: '0.65rem 1.5rem',
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.55rem',
+              fontSize: '0.92rem',
+              position: 'relative'
+            }}
+            onClick={() => {
+              sound.playNav();
+              setCashierTab('booking');
+              setSearchParams({ tab: 'booking' });
+            }}
+          >
+            <CalendarCheck size={18} />
+            <span>Daftar Booking Masuk ({allTransactions?.filter(t => t.status === 'menunggu_konfirmasi').length || 0})</span>
+          </button>
+        </div>
+
+        {/* Quick Shift Report Trigger Buttons */}
+        <div style={{ display: 'flex', gap: '0.65rem' }}>
+          <button
+            type="button"
+            className="btn"
+            style={{ background: '#3B82F6', color: '#FFF', fontWeight: 800, padding: '0.55rem 1.15rem', borderRadius: '10px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+            onClick={handleOpenSendReportModal}
+          >
+            <Send size={15} />
+            <span>Kirim Laporan ke Admin</span>
+          </button>
+
+          <button
+            type="button"
+            className="btn"
+            style={{ background: 'rgba(239,68,68,0.2)', color: '#EF4444', border: '1px solid #EF4444', fontWeight: 800, padding: '0.55rem 1.15rem', borderRadius: '10px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+            onClick={handlePrepareCloseShift}
+          >
+            <Lock size={15} />
+            <span>Tutup Shift</span>
+          </button>
+        </div>
+      </div>
+
+      {/* VIEW 1: DAFTAR BOOKING MASUK TABLE/LIST */}
+      {cashierTab === 'booking' && (
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="glass-card" 
+          style={{ padding: '1.75rem', background: '#121212', border: '1px solid rgba(212, 175, 55, 0.3)', borderRadius: '20px' }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+            <div>
+              <h3 style={{ fontSize: '1.35rem', fontWeight: 900, color: '#D4AF37', margin: 0 }}>
+                Daftar Reservasi Booking Customer
+              </h3>
+              <p style={{ color: '#A1A1AA', fontSize: '0.85rem', margin: '0.2rem 0 0' }}>
+                Kelola status konfirmasi, ACC pengerjaan, penyelesaian, dan pembatalan booking.
+              </p>
+            </div>
+
+            {/* Filter Pills */}
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              {['Semua', 'menunggu_konfirmasi', 'proses', 'layanan_selesai', 'selesai', 'batal'].map(st => {
+                const getLabel = (s: string) => {
+                  if (s === 'Semua') return 'Semua Status';
+                  if (s === 'menunggu_konfirmasi') return '⏳ Perlu ACC';
+                  if (s === 'proses') return '✂️ Dalam Proses';
+                  if (s === 'layanan_selesai') return '✨ Layanan Selesai';
+                  if (s === 'selesai') return '✅ Selesai (Lunas)';
+                  return '❌ Dibatalkan';
+                };
+
+                return (
+                  <button
+                    key={st}
+                    type="button"
+                    className="btn"
+                    style={{
+                      padding: '0.4rem 0.85rem',
+                      fontSize: '0.78rem',
+                      borderRadius: '10px',
+                      background: bookingFilterStatus === st ? '#D4AF37' : 'rgba(255,255,255,0.06)',
+                      color: bookingFilterStatus === st ? '#000' : '#A1A1AA',
+                      fontWeight: bookingFilterStatus === st ? 800 : 500
+                    }}
+                    onClick={() => setBookingFilterStatus(st)}
+                  >
+                    {getLabel(st)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {!customerBookingsList || customerBookingsList.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '3.5rem 1rem', color: '#A1A1AA' }}>
+              <CalendarCheck size={48} color="#D4AF37" style={{ marginBottom: '1rem', opacity: 0.6 }} />
+              <h4>Tidak Ada Booking dalam Filter Ini</h4>
+              <p style={{ fontSize: '0.85rem' }}>Belum ada reservasi customer yang cocok dengan filter yang dipilih.</p>
+            </div>
+          ) : (
+            <div className="table-container" style={{ border: 'none', background: 'transparent' }}>
+              <table className="custom-table">
+                <thead>
+                  <tr>
+                    <th>NO. TRX / TANGGAL</th>
+                    <th>NAMA PELANGGAN</th>
+                    <th>BARBER STYLIST</th>
+                    <th>LAYANAN & PERAWATAN</th>
+                    <th>METODE BAYAR</th>
+                    <th>TOTAL BIAYA</th>
+                    <th>STATUS & AKSI KASIR</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {customerBookingsList.map((bk) => {
+                    const bName = barbers?.find(b => b.id === bk.barberId)?.name || 'Barber';
+                    const sNames = bk.serviceIds.map(sid => services?.find(s => s.id === sid)?.name || allServices?.find(s => s.id === sid)?.name).filter(Boolean).join(', ');
+
+                    return (
+                      <tr key={bk.id}>
+                        <td>
+                          <div style={{ fontWeight: 800, color: '#D4AF37', fontFamily: 'var(--font-mono)' }}>{bk.id}</div>
+                          <div style={{ fontSize: '0.75rem', color: '#A1A1AA' }}>📅 {bk.date} ({bk.time})</div>
+                        </td>
+                        <td>
+                          <div style={{ fontWeight: 700, color: '#FFF' }}>{bk.customerName}</div>
+                          <div style={{ fontSize: '0.75rem', color: '#71717A' }}>{bk.customerEmail || bk.customerPhone || 'Online'}</div>
+                        </td>
+                        <td>
+                          <span style={{ fontWeight: 700, color: '#E4E4E7' }}>💈 {bName}</span>
+                        </td>
+                        <td>
+                          <div style={{ fontSize: '0.82rem', color: '#E4E4E7', maxWidth: '220px' }}>✂️ {sNames || 'Potong Grooming'}</div>
+                        </td>
+                        <td>
+                          <span style={{ background: bk.paymentMethod === 'QRIS' ? 'rgba(59,130,246,0.2)' : 'rgba(34,197,94,0.2)', color: bk.paymentMethod === 'QRIS' ? '#3B82F6' : '#22C55E', padding: '0.2rem 0.55rem', borderRadius: '6px', fontWeight: 800, fontSize: '0.75rem' }}>
+                            {bk.paymentMethod === 'QRIS' ? '📱 QRIS di Tempat' : '💵 Cash di Tempat'}
+                          </span>
+                        </td>
+                        <td style={{ fontWeight: 900, color: '#D4AF37' }}>
+                          {currency} {bk.total.toLocaleString('id-ID')}
+                        </td>
+                        <td>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', alignItems: 'flex-start' }}>
+                            {/* Status Badge */}
+                            {bk.status === 'menunggu_konfirmasi' && (
+                              <span style={{ background: '#EAB308', color: '#000', padding: '0.2rem 0.6rem', borderRadius: '6px', fontWeight: 800, fontSize: '0.72rem' }}>⏳ Menunggu Konfirmasi</span>
+                            )}
+                            {bk.status === 'proses' && (
+                              <span style={{ background: '#3B82F6', color: '#FFF', padding: '0.2rem 0.6rem', borderRadius: '6px', fontWeight: 800, fontSize: '0.72rem' }}>✂️ Dalam Proses</span>
+                            )}
+                            {bk.status === 'layanan_selesai' && (
+                              <span style={{ background: '#A855F7', color: '#FFF', padding: '0.2rem 0.6rem', borderRadius: '6px', fontWeight: 800, fontSize: '0.72rem' }}>✨ Layanan Selesai</span>
+                            )}
+                            {bk.status === 'selesai' && (
+                              <span style={{ background: '#22C55E', color: '#FFF', padding: '0.2rem 0.6rem', borderRadius: '6px', fontWeight: 800, fontSize: '0.72rem' }}>✅ Selesai (Lunas)</span>
+                            )}
+                            {bk.status === 'batal' && (
+                              <span style={{ background: '#EF4444', color: '#FFF', padding: '0.2rem 0.6rem', borderRadius: '6px', fontWeight: 800, fontSize: '0.72rem' }}>❌ Dibatalkan</span>
+                            )}
+
+                            {/* Actions */}
+                            <div style={{ display: 'flex', gap: '0.35rem', marginTop: '0.2rem' }}>
+                              {bk.status === 'menunggu_konfirmasi' && (
+                                <button 
+                                  type="button" 
+                                  className="btn"
+                                  style={{ background: '#3B82F6', color: '#FFF', fontWeight: 700, padding: '0.25rem 0.55rem', fontSize: '0.72rem', borderRadius: '6px' }}
+                                  onClick={() => handleAccBooking(bk)}
+                                >
+                                  ACC / Proses
+                                </button>
+                              )}
+
+                              {bk.status !== 'selesai' && bk.status !== 'batal' && (
+                                <button 
+                                  type="button" 
+                                  className="btn"
+                                  style={{ background: '#22C55E', color: '#FFF', fontWeight: 800, padding: '0.25rem 0.55rem', fontSize: '0.72rem', borderRadius: '6px' }}
+                                  onClick={() => handleCompleteBooking(bk)}
+                                >
+                                  Selesai (Lunas)
+                                </button>
+                              )}
+
+                              {bk.status !== 'batal' && bk.status !== 'selesai' && (
+                                <button 
+                                  type="button" 
+                                  className="btn"
+                                  style={{ background: '#EF4444', color: '#FFF', padding: '0.25rem 0.45rem', fontSize: '0.72rem', borderRadius: '6px' }}
+                                  onClick={() => handleOpenRejectModal(bk)}
+                                >
+                                  Tolak
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </motion.div>
+      )}
+
+      {/* VIEW 2: CASHIER POS WALK-IN */}
+      {cashierTab === 'pos' && (
+        <div className="cashier-layout-grid">
+          {/* Services selection (Left Side) */}
+          <div className="cashier-left-panel">
         {/* PENDING BOOKINGS FROM CUSTOMERS */}
         {pendingBookings && pendingBookings.length > 0 && (
           <div className="glass-card" style={{ marginBottom: '1rem', border: '1px solid #D4AF37', background: 'rgba(212, 175, 55, 0.08)', padding: '1rem' }}>
@@ -963,13 +1242,15 @@ export const Cashier: React.FC = () => {
             Bayar & Cetak Struk
           </button>
         </div>
-      </form>
+        </form>
 
-      {/* Receipt Modal */}
-      <ReceiptPreview 
-        transaction={savedTransaction} 
-        onClose={() => setSavedTransaction(null)} 
-      />
+        {/* Receipt Modal */}
+        <ReceiptPreview 
+          transaction={savedTransaction} 
+          onClose={() => setSavedTransaction(null)} 
+        />
+      </div>
+    )}
 
       {/* Close Shift Modal */}
       <AnimatePresence>

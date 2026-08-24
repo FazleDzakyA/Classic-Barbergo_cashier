@@ -1,13 +1,18 @@
 import React, { useState, useMemo } from 'react';
 import { db, useLiveQuery } from '../database/db';
+import type { ShiftReport } from '../types';
 import { 
   Printer, 
   Download, 
   FileSpreadsheet, 
   TrendingUp, 
   TrendingDown, 
-  Equal
+  Equal,
+  Bell,
+  Eye,
+  ShieldCheck
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import dayjs from 'dayjs';
 import toast from 'react-hot-toast';
 import { sound } from '../utils/audio';
@@ -63,6 +68,55 @@ export const Reports: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(dayjs().format('YYYY-MM-DD'));
   const [selectedMonth, setSelectedMonth] = useState(dayjs().format('YYYY-MM'));
   const [selectedYear, setSelectedYear] = useState(dayjs().format('YYYY'));
+
+  // Shift Inspection Modal State
+  const [selectedShiftForModal, setSelectedShiftForModal] = useState<ShiftReport | null>(null);
+  const [isInspectModalOpen, setIsInspectModalOpen] = useState<boolean>(false);
+
+  // Unverified Shift Reports Alert Filter
+  const unverifiedReports = useMemo(() => {
+    if (!shiftReports) return [];
+    return shiftReports.filter(r => r.status === 'terkirim').sort((a, b) => b.submittedAt - a.submittedAt);
+  }, [shiftReports]);
+
+  // Barber share breakdown calculation for selected shift report modal
+  const selectedShiftBarberBreakdown = useMemo(() => {
+    if (!selectedShiftForModal || !transactions || !barbers) return [];
+    const reportDate = selectedShiftForModal.date;
+    const reportSessionId = selectedShiftForModal.sessionId;
+
+    const shiftTxs = transactions.filter(t => 
+      (t.sessionId !== undefined && String(t.sessionId) === String(reportSessionId)) ||
+      (t.date === reportDate && t.status !== 'batal')
+    );
+
+    const shiftTotalRev = shiftTxs.reduce((sum, t) => sum + t.total, 0);
+
+    const bRev: { [id: number]: number } = {};
+    const bCount: { [id: number]: number } = {};
+    barbers.forEach(b => {
+      bRev[b.id!] = 0;
+      bCount[b.id!] = 0;
+    });
+
+    shiftTxs.forEach(t => {
+      bRev[t.barberId] = (bRev[t.barberId] || 0) + t.total;
+      bCount[t.barberId] = (bCount[t.barberId] || 0) + 1;
+    });
+
+    return barbers.map(b => {
+      const rev = bRev[b.id!] || 0;
+      const count = bCount[b.id!] || 0;
+      const share = shiftTotalRev > 0 ? Math.round((rev / shiftTotalRev) * 100) : 0;
+      return {
+        id: b.id!,
+        name: b.name,
+        revenue: rev,
+        count,
+        share
+      };
+    }).sort((a, b) => b.revenue - a.revenue);
+  }, [selectedShiftForModal, transactions, barbers]);
 
   // Calculate Date Ranges
   const reportRange = useMemo(() => {
@@ -987,6 +1041,54 @@ export const Reports: React.FC = () => {
             <p>Periode: {getPeriodText()}</p>
           </div>
 
+          {/* TOP ALERT BANNER: UNVERIFIED SHIFT REPORTS FROM CASHIER */}
+          {unverifiedReports && unverifiedReports.length > 0 && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              style={{ 
+                background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.25), rgba(34, 197, 94, 0.2))', 
+                border: '2px solid #D4AF37', 
+                borderRadius: '16px', 
+                padding: '1.25rem 1.5rem', 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                flexWrap: 'wrap', 
+                gap: '1rem',
+                boxShadow: '0 8px 24px rgba(212, 175, 55, 0.25)'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ background: '#D4AF37', color: '#000', padding: '0.6rem', borderRadius: '12px', display: 'flex' }}>
+                  <Bell size={26} />
+                </div>
+                <div>
+                  <h4 style={{ margin: 0, fontWeight: 900, color: '#D4AF37', fontSize: '1.1rem' }}>
+                    🔔 ALERT: Ada Laporan Shift Masuk dari Kasir! ({unverifiedReports.length} Laporan)
+                  </h4>
+                  <p style={{ margin: '0.2rem 0 0', fontSize: '0.88rem', color: '#FFF' }}>
+                    Kasir <strong style={{ color: '#D4AF37' }}>{unverifiedReports[0].cashierName}</strong> telah mengirim rekapitulasi shift tanggal <strong>{unverifiedReports[0].date}</strong>. Silakan periksa kesesuaian pemasukan, pengeluaran & share barber.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className="btn"
+                style={{ background: '#D4AF37', color: '#000', fontWeight: 900, padding: '0.7rem 1.4rem', borderRadius: '10px', fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                onClick={() => {
+                  sound.playBeep(800);
+                  setSelectedShiftForModal(unverifiedReports[0]);
+                  setIsInspectModalOpen(true);
+                }}
+              >
+                <Eye size={18} />
+                <span>Periksa & Verifikasi Laporan Kasir</span>
+              </button>
+            </motion.div>
+          )}
+
           {/* Metrics Row (3 Cards matching Figma) */}
           <div className="metrics-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
             {/* Total Omset Card */}
@@ -1093,25 +1195,41 @@ export const Reports: React.FC = () => {
                             )}
                           </td>
                           <td>
-                            {rpt.status === 'diverifikasi' ? (
-                              <span style={{ color: '#22C55E', fontWeight: 700, fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-                                ✓ Diverifikasi
-                              </span>
-                            ) : (
+                            <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
                               <button
+                                type="button"
                                 className="btn"
-                                style={{ background: '#D4AF37', color: '#000', fontWeight: 800, fontSize: '0.75rem', padding: '0.25rem 0.65rem', borderRadius: '6px' }}
-                                onClick={async () => {
-                                  if (rpt.id) {
-                                    await db.shiftReports.update(rpt.id, { status: 'diverifikasi' });
-                                    sound.playSuccess();
-                                    toast.success('Laporan shift berhasil diverifikasi oleh Admin!');
-                                  }
+                                style={{ background: 'rgba(255,255,255,0.08)', color: '#FFF', fontSize: '0.72rem', padding: '0.25rem 0.5rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                                onClick={() => {
+                                  setSelectedShiftForModal(rpt);
+                                  setIsInspectModalOpen(true);
                                 }}
                               >
-                                Verifikasi
+                                <Eye size={13} />
+                                <span>Periksa</span>
                               </button>
-                            )}
+
+                              {rpt.status === 'diverifikasi' ? (
+                                <span style={{ color: '#22C55E', fontWeight: 700, fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                                  ✓ Diverifikasi
+                                </span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  className="btn"
+                                  style={{ background: '#D4AF37', color: '#000', fontWeight: 800, fontSize: '0.72rem', padding: '0.25rem 0.65rem', borderRadius: '6px' }}
+                                  onClick={async () => {
+                                    if (rpt.id) {
+                                      await db.shiftReports.update(rpt.id, { status: 'diverifikasi' });
+                                      sound.playSuccess();
+                                      toast.success('Laporan shift berhasil diverifikasi oleh Admin!');
+                                    }
+                                  }}
+                                >
+                                  Verifikasi
+                                </button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       );
@@ -1204,6 +1322,145 @@ export const Reports: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* SHIFT REPORT INSPECTION MODAL */}
+      <AnimatePresence>
+        {isInspectModalOpen && selectedShiftForModal && (
+          <div className="modal-overlay">
+            <motion.div 
+              className="modal-box glass-panel"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              style={{ maxWidth: '680px', width: '100%', background: '#121212', border: '1px solid #D4AF37', borderRadius: '20px', padding: '2rem' }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '1rem' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontWeight: 900, fontSize: '1.35rem', color: '#D4AF37' }}>
+                    🔍 Pemeriksaan Laporan Shift Kasir
+                  </h3>
+                  <p style={{ color: '#A1A1AA', fontSize: '0.85rem', margin: '0.2rem 0 0' }}>
+                    Kasir: <strong>{selectedShiftForModal.cashierName}</strong> | Tanggal: <strong>{selectedShiftForModal.date}</strong>
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="modal-close"
+                  onClick={() => setIsInspectModalOpen(false)}
+                >
+                  &times;
+                </button>
+              </div>
+
+              {/* SECTION 1: RINGKASAN PEMASUKAN & PENGELUARAN */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.85rem', marginBottom: '1.25rem' }}>
+                <div style={{ background: '#18181B', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '12px', padding: '0.85rem' }}>
+                  <span style={{ color: '#A1A1AA', fontSize: '0.75rem', display: 'block' }}>Total Omset Tunai:</span>
+                  <span style={{ fontWeight: 900, color: '#22C55E', fontSize: '1.1rem' }}>+{formatMoney(selectedShiftForModal.cashRevenue)}</span>
+                </div>
+                <div style={{ background: '#18181B', border: '1px solid rgba(59,130,246,0.3)', borderRadius: '12px', padding: '0.85rem' }}>
+                  <span style={{ color: '#A1A1AA', fontSize: '0.75rem', display: 'block' }}>Omset Non-Tunai (QRIS):</span>
+                  <span style={{ fontWeight: 900, color: '#3B82F6', fontSize: '1.1rem' }}>+{formatMoney(selectedShiftForModal.nonCashRevenue)}</span>
+                </div>
+                <div style={{ background: '#18181B', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '12px', padding: '0.85rem' }}>
+                  <span style={{ color: '#A1A1AA', fontSize: '0.75rem', display: 'block' }}>Pengeluaran Toko:</span>
+                  <span style={{ fontWeight: 900, color: '#EF4444', fontSize: '1.1rem' }}>-{formatMoney(selectedShiftForModal.totalExpenses)}</span>
+                </div>
+              </div>
+
+              {/* SECTION 2: ESTIMASI VS FISIK KASIR */}
+              <div style={{ background: '#18181B', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1rem', marginBottom: '1.25rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.88rem' }}>
+                  <span style={{ color: '#A1A1AA' }}>Estimasi Saldo Fisik Sistem:</span>
+                  <span style={{ fontWeight: 800, color: '#FFF' }}>{formatMoney(selectedShiftForModal.expectedCash)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.88rem' }}>
+                  <span style={{ color: '#A1A1AA' }}>Uang Fisik di Laci Kasir:</span>
+                  <span style={{ fontWeight: 900, color: '#D4AF37' }}>{formatMoney(selectedShiftForModal.actualCash)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.1)', fontSize: '0.9rem', fontWeight: 800 }}>
+                  <span style={{ color: '#FFF' }}>Hasil Pemeriksaan Kesesuaian:</span>
+                  {selectedShiftForModal.difference === 0 ? (
+                    <span style={{ color: '#22C55E' }}>✓ KLOP (0 - Sesuai Presisi)</span>
+                  ) : (
+                    <span style={{ color: '#EF4444' }}>
+                      {selectedShiftForModal.difference > 0 ? '+' : ''}{formatMoney(selectedShiftForModal.difference)} (Ada Selisih)
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* SECTION 3: PERFORMA & SHARE BARBER SHIFT INI */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <h4 style={{ margin: '0 0 0.75rem', fontWeight: 800, color: '#D4AF37', fontSize: '0.95rem' }}>
+                  💈 Performa & Share Barber pada Shift Ini
+                </h4>
+                
+                <div className="table-container" style={{ border: 'none', background: 'transparent' }}>
+                  <table className="custom-table" style={{ fontSize: '0.82rem' }}>
+                    <thead>
+                      <tr>
+                        <th>BARBER</th>
+                        <th>TRANSAKSI</th>
+                        <th>TOTAL REVENUE</th>
+                        <th>SHARE (%)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedShiftBarberBreakdown.map((b) => (
+                        <tr key={b.id}>
+                          <td style={{ fontWeight: 700, color: '#FFF' }}>💈 {b.name}</td>
+                          <td>{b.count} sesi</td>
+                          <td style={{ fontWeight: 800, color: '#D4AF37' }}>{formatMoney(b.revenue)}</td>
+                          <td>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <div style={{ flex: 1, height: '6px', background: '#27272A', borderRadius: '4px', overflow: 'hidden' }}>
+                                <div style={{ width: `${b.share}%`, height: '100%', background: '#D4AF37' }} />
+                              </div>
+                              <span style={{ fontWeight: 800, color: '#FFF' }}>{b.share}%</span>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* MODAL FOOTER */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                <button
+                  type="button"
+                  className="btn"
+                  style={{ background: 'rgba(255,255,255,0.1)', color: '#FFF', borderRadius: '10px', padding: '0.65rem 1.25rem', fontWeight: 700 }}
+                  onClick={() => setIsInspectModalOpen(false)}
+                >
+                  Tutup
+                </button>
+                {selectedShiftForModal.status !== 'diverifikasi' && (
+                  <button
+                    type="button"
+                    className="btn"
+                    style={{ background: '#D4AF37', color: '#000', borderRadius: '10px', padding: '0.65rem 1.5rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                    onClick={async () => {
+                      if (selectedShiftForModal.id) {
+                        await db.shiftReports.update(selectedShiftForModal.id, { status: 'diverifikasi' });
+                        sound.playSuccess();
+                        toast.success('Laporan shift berhasil diverifikasi oleh Admin!');
+                        setIsInspectModalOpen(false);
+                        setSelectedShiftForModal(null);
+                      }
+                    }}
+                  >
+                    <ShieldCheck size={18} />
+                    <span>Verifikasi Laporan Shift (ACC)</span>
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
