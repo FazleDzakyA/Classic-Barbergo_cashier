@@ -1,135 +1,120 @@
-# BarberFlow - Smart Barbershop Management System ✂👑
+# Classic BarberGo - Smart Barbershop Management System & Customer Booking Portal ✂️👑
 
-BarberFlow adalah aplikasi web **Progressive Web App (PWA)** profesional untuk manajemen operasional barbershop. Aplikasi ini dirancang khusus untuk memenuhi kebutuhan proyek Uji Kompetensi Keahlian (UKK) Jurusan Pengembangan Perangkat Lunak dan Gim (PPLG) dengan estetika premium bertema modern dark-gold.
+![BarberFlow Banner](https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=1200&q=80)
 
-Aplikasi ini bersifat **100% offline-first**, berjalan sepenuhnya di sisi browser menggunakan database **IndexedDB (Dexie.js)** tanpa bergantung pada database online, Firebase, atau Supabase. Semua data tersimpan aman di local browser dan tetap ada meskipun browser ditutup.
+**Classic BarberGo (BarberFlow POS)** adalah sistem manajemen operasional barbershop modern fullstack yang mengintegrasikan **Aplikasi Kasir (POS Walk-in)**, **Portal Booking Customer Online**, **Manajemen Shift Kasir**, serta **Audit & Laporan Keuangan Web Admin**.
 
----
-
-## 🚀 Fitur Utama
-
-- **Akses Role-based**: Login terpisah untuk **Owner**, **Admin**, dan **Kasir** dengan otentikasi aman (hashing password).
-- **Dashboard Realtime**: Grafik omset harian (7 hari), bulanan (6 bulan), proporsi layanan terlaris, dan metode pembayaran yang ter-update secara realtime.
-- **Kasir Cepat (POS)**: Pemilihan layanan multi-card, auto-number transaksi (`TRX-YYYYMMDD-XXXX`), perhitungan diskon ganda (% dan nominal), pajak otomatis, serta cetak struk (standard print & download PDF).
-- **Manajemen Barber (CRUD)**: Data lengkap barber beserta shift kerja, status keaktifan, dan upload foto (konversi base64 untuk offline storage).
-- **Manajemen Layanan (CRUD)**: Pengaturan jenis potong rambut, harga, durasi, dan label warna highlight.
-- **Riwayat Lengkap**: Pencarian cepat, filter mutakhir, pengurutan, pengubahan detail transaksi, dan penghapusan data dengan konfirmasi.
-- **Pencatatan Pengeluaran**: CRUD pengeluaran operasional (listrik, air, gaji, peralatan, dll.) untuk menghitung laba bersih secara akurat.
-- **Laporan Keuangan**: Laporan Harian, Mingguan, Bulanan, dan Tahunan dengan fitur ekspor ke **PDF** (menggunakan jsPDF) dan **Excel** (menggunakan SheetJS).
-- **Sistem Backup & Restore**: Ekspor database ke file JSON dan impor file backup untuk pemulihan data instan, serta reset data.
-- **PWA (Progressive Web App)**: Bisa diinstal di Android, iOS, maupun Desktop (Standalone Mode), dilengkapi Service Worker caching untuk akses 100% offline.
+Sistem ini dirancang dengan standar industri profesional menggunakan **React + TypeScript + Vite** untuk frontend, **Laravel 11 REST API + MySQL** untuk backend, serta mekanisme **Offline-First Fallback (IndexedDB / Dexie)**.
 
 ---
 
-## 🛠 Teknologi yang Digunakan
+## 🎨 Desain Figma & Repository GitHub
 
-- **React 18** & **TypeScript** (Vite Bundler)
-- **React Router DOM** (Routing Dinamis)
-- **Dexie.js** (IndexedDB Wrapper)
-- **React Hook Form** & **Zod** (Validasi Form & Keamanan Skema)
-- **Framer Motion** (Animasi Transisi Halaman & Modal)
-- **Chart.js** & **React ChartJS 2** (Visualisasi Statistik & Grafik)
-- **jsPDF** & **SheetJS (XLSX)** (Ekspor Laporan Keuangan)
-- **React Hot Toast** (Notifikasi Pop-up Interaktif)
-- **Lucide React** (Ikon Vektor Premium)
-- **Vanilla CSS** (Desain Kustom Premium Dark-Gold: Background `#0F0F0F`, Card `#1A1A1A`, Primary `#D4AF37`)
+- 🎨 **Link Desain Official Figma**: [**BARBER GO DESAIN CUY (Figma)**](https://www.figma.com/design/F86x4JvYeXdJoI9qjLaCtp/BARBER-GO-DESAIN-CUY?node-id=0-1&t=H3eeUGyMRLyyOZMa-1)
+- 🐙 **Repository GitHub**: [**Classic-Barbergo_cashier (GitHub)**](https://github.com/FazleDzakyA/Classic-Barbergo_cashier)
 
 ---
 
-## 📥 Panduan Instalasi & Penggunaan Lokal
+## 🚀 Fitur Utama & Pembaruan Keseluruhan
 
-### 1. Prasyarat
-Pastikan Anda sudah menginstal [Node.js](https://nodejs.org/) (versi 16 ke atas direkomendasikan) di sistem Anda.
+### 1. 💈 Kasir & Point of Sale (POS Walk-In) (`/cashier`)
+- **Checkout Cepat**: Pemilihan barber, layanan multi-card, serta produk fisik (seperti Pomade) dengan fitur **auto-decrement stok otomatis**.
+- **Perhitungan Transaksi Akurat**: Penanganan uang tunai (*Cash*) & kembalian otomatis, pencatatan metode pembayaran, serta efek suara mesin kasir (*kaching sound*).
+- **Struk Digital & WhatsApp**: Cetak struk cetak standar/PDF serta integrasi pengiriman nota otomatis via **WhatsApp API**.
+- **Keunikan Kode Transaksi (`TRX-ID`)**: Sistem penomoran otomatis berbasis tanggal & acak untuk mencegah *primary key collision*.
 
-### 2. Kloning / Ekstrak Project
-Buka terminal/command prompt pada folder project `barberflow`:
+### 2. 📅 Portal Booking Customer Modern (`/booking`)
+- **Desain Ultra-Modern & Glassmorphic**: Dibalut tema *Luxury Dark-Gold* dengan efek *glass blur*, animasi transisi Framer Motion, serta tipografi Google Fonts internasional (**Plus Jakarta Sans** & **Outfit**).
+- **3D Pin Person Barber Icons**: Tampilan presisi untuk 3 Barber Stylist (Fadli - Pink, Faiz - Cyan, Rizki - Purple) dengan efek *glowing border* dan status *Siap Melayani*.
+- **Pilihan Metode Pembayaran di Tempat**: Opsi ringkas **💵 Cash di Tempat** atau **📱 QRIS di Tempat**.
+- **Tab Riwayat Booking Saya**: Pantau status reservasi secara *real-time* (`Menunggu Konfirmasi`, `ACC / Dalam Proses`, `Selesai`, `Dibatalkan`).
+- **Alert Pembatalan & Catatan Kasir**: Jika reservasi dibatalkan oleh kasir, secara otomatis muncul **Alert Box Merah** bertuliskan alasan/catatan pembatalan dari kasir.
+- **Tombol Logout & Auto-Redirect**: Logout customer mengarahkan kembali secara bersih ke `/login`.
+
+### 3. 📋 Daftar Booking Masuk & Catatan Pembatalan Kasir (`/cashier?tab=booking`)
+- **Pencegahan Akses Kasir**: Pengguna dengan peran Kasir yang menekan menu *Daftar Booking* di Sidebar akan langsung diarahkan ke kelola booking kasir (`/cashier?tab=booking`), bukan ke halaman booking customer.
+- **Aksi ACC & Selesai**: Kasir dapat mengubah status booking menjadi `proses` (ACC) dan `selesai` (langsung masuk ke pendapatan kasir + database admin).
+- **Modal Alasan Pembatalan**: Saat menolak booking, kasir diwajibkan memasukkan alasan pembatalan melalui chip opsi cepat (*Slot Jam Penuh*, *Barber Libur*, *Bertabrakan*) atau catatan khusus.
+
+### 4. 📊 Laporan Shift Kasir & Audit Web Admin (`/reports`)
+- **Pengiriman Laporan Shift**: Kasir mengirimkan laporan saldo fisik vs estimasi sistem di akhir shift. Mendukung timestamp 64-bit (`bigInteger` / `numeric`).
+- **Pemeriksaan Match / Selisih**: Halaman Admin Laporan menyajikan tabel verifikasi rekapitulasi shift kasir lengkap dengan badge `KLOP (0)` atau status selisih.
+- **Visualisasi Grafik HD Executive**: Grafik tren omset bulanan dan kontribusi barber berbasis **Chart.js** & **Canvas 2D HD**.
+- **Ekspor Laporan PDF & Excel Multi-Sheet**: Download laporan keuangan lengkap dalam format PDF berlogo resmi dan file Excel multi-sheet.
+
+### 5. 🔒 Unified Auth & Otentikasi Terpadu (`/login`)
+- **Unified Login & Register Page**: Halaman login tunggal dengan dual-tab switcher (**🔑 Masuk** & **📝 Daftar Akun**).
+- **Validasi Email Beneran**: Menggunakan **Zod schema** untuk pendaftaran customer dengan format email yang valid.
+- **Direct Link Role-Based**: 
+  - Kasir -> `/cashier`
+  - Customer -> `/booking`
+  - Admin -> `/dashboard`
+
+---
+
+## 🛠️ Arsitektur & Tech Stack
+
+| Layer | Teknologi & Library |
+| :--- | :--- |
+| **Frontend Framework** | React 18, TypeScript, Vite |
+| **Styling & Icons** | Vanilla CSS (Dark Gold Glassmorphic), Lucide React Icons |
+| **Typography** | Google Fonts (*Plus Jakarta Sans* & *Outfit*) |
+| **State & Forms** | React Hook Form, Zod Schema Validation |
+| **Animations** | Framer Motion |
+| **Charts & Export** | Chart.js, React-ChartJS-2, jsPDF, SheetJS (XLSX) |
+| **Backend REST API** | Laravel 11 (PHP 8.2+), Eloquent ORM |
+| **Database Primary** | MySQL |
+| **Offline Storage Fallback** | Custom Reactive Event-Driven IndexedDB Wrapper (Dexie.js API compatible) |
+
+---
+
+## 💻 Panduan Instalasi & Penggunaan Lokal
+
+### 1. Kloning Repository
 ```bash
-# Masuk ke direktori project
-cd barberflow
+git clone https://github.com/FazleDzakyA/Classic-Barbergo_cashier.git
+cd Classic-Barbergo_cashier
 ```
 
-### 3. Instalasi Dependensi
-Jalankan perintah berikut untuk menginstal semua package yang diperlukan:
+### 2. Setup Frontend (React + Vite)
 ```bash
+# Instal dependensi frontend
 npm install
-```
 
-### 4. Menjalankan Server Pengembangan (Local Dev)
-Jalankan server lokal untuk melihat aplikasi secara langsung di browser:
-```bash
+# Jalankan server dev frontend (http://localhost:5173)
 npm run dev
 ```
-Buka browser dan buka alamat yang tertera di terminal (biasanya `http://localhost:5173`).
 
----
-
-## 🔐 Kredensial Login Default (Offline)
-
-Gunakan akun berikut untuk menguji aplikasi:
-
-| Role | Username | Password | Hak Akses |
-| :--- | :--- | :--- | :--- |
-| **Owner** | `owner` | `owner123` | Semua fitur (termasuk Pengaturan & Backup) |
-| **Admin** | `admin` | `admin123` | Semua CRUD + Laporan, kecuali Pengaturan & Backup |
-| **Kasir** | `kasir` | `kasir123` | Dashboard, Kasir (POS), Riwayat Transaksi |
-
----
-
-## 📦 Panduan Build untuk Produksi
-
-Sebelum melakukan deployment, lakukan kompilasi project untuk menghasilkan file produksi yang optimal:
+### 3. Setup Backend (Laravel 11 + MySQL)
 ```bash
-npm run build
+# Masuk ke folder backend
+cd backend-laravel
+
+# Instal dependensi PHP via Composer
+composer install
+
+# Salin konfigurasi environment
+cp .env.example .env
+
+# Jalankan migrasi database & seeder
+php artisan migrate:fresh --seed
+
+# Jalankan server backend API (http://localhost:8000)
+php artisan serve
 ```
-File hasil kompilasi akan berada di dalam folder `dist/` dan siap di-hosting.
 
 ---
 
-## ☁ Cara Deploy ke Vercel (Gratis & Cepat)
+## 🔑 Kredensial Pengujian Default
 
-Project ini telah dikonfigurasi agar **siap dideploy ke Vercel** tanpa perubahan kode apa pun.
-
-### Opsi A: Menggunakan Vercel CLI (Direkomendasikan via Terminal)
-1. Instal Vercel CLI secara global (jika belum ada):
-   ```bash
-   npm install -g vercel
-   ```
-2. Jalankan perintah deploy di dalam folder project:
-   ```bash
-   vercel
-   ```
-3. Masuk ke akun Vercel Anda dan ikuti panduan di terminal:
-   - *Set up and deploy?* Ketik `y`
-   - *Which scope?* Pilih profil Anda
-   - *Link to existing project?* Ketik `n` (karena ini project baru)
-   - *What's your project's name?* Ketik `barberflow`
-   - *In which directory is your code located?* Tekan `Enter` (untuk `./`)
-   - *Want to modify settings?* Ketik `n` (Vite akan otomatis terdeteksi)
-4. Tunggu beberapa detik hingga proses selesai. Untuk menjadikannya produksi (Live URL), jalankan:
-   ```bash
-   vercel --prod
-   ```
-
-### Opsi B: Menggunakan Integrasi GitHub (Otomatis & Continuous Deployment)
-1. Buat repositori baru di [GitHub](https://github.com/) Anda dengan nama `barberflow`.
-2. Lakukan push folder project ini ke GitHub:
-   ```bash
-   git init
-   git add .
-   git commit -m "initial commit"
-   git branch -M main
-   git remote add origin https://github.com/USERNAME-ANDA/barberflow.git
-   git push -u origin main
-   ```
-3. Buka dashboard [Vercel](https://vercel.com/) Anda.
-4. Klik **Add New** -> **Project**.
-5. Impor repositori `barberflow` dari akun GitHub Anda.
-6. Klik **Deploy** tanpa perlu mengubah konfigurasi build. Vercel akan membaca file Vite secara otomatis dan men-deploy-nya secara realtime. Setiap kali Anda melakukan `git push`, web Anda akan ter-update otomatis!
+| Peran (Role) | Username / Email | Password | Akses Halaman |
+| :--- | :--- | :--- | :--- |
+| **Admin / Owner** | `admin` | `admin123` | Dashboard, Kasir, Laporan, Barber, Layanan, Settings |
+| **Kasir** | `kasir` | `kasir123` | Kasir POS (`/cashier`), Daftar Booking (`/cashier?tab=booking`), Riwayat |
+| **Customer** | *(Email Beneran contoh: `user@gmail.com`)* | *(Password bebas)* | Portal Booking (`/booking`), Riwayat Booking Saya |
 
 ---
 
-## 📝 Catatan Tambahan (Pengembangan Mandiri Jurusan PPLG)
+## 📄 Lisensi & Hak Cipta
 
-1. **Keamanan offline**: Hashing password menggunakan algoritma SHA-256 yang aman di sisi klien.
-2. **Cetak Struk**: Desain struk menggunakan kustomisasi print CSS sehingga ketika tombol Cetak diklik, browser akan mencetak struk format 80mm POS Roll secara rapi (menyembunyikan sidebar dan navigasi admin).
-3. **PWA Mobile**: Pada ponsel Android/iOS, buka URL web di Chrome/Safari lalu pilih menu "Tambah ke Layar Utama" (Add to Home Screen) untuk menginstalnya sebagai aplikasi native tanpa border browser.
+© 2026 **Classic BarberGo / BarberFlow System**. Dikembangkan secara profesional untuk kompetensi UKK PPLG & Manajemen Barbershop Komersial.
