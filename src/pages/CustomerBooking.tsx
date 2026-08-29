@@ -769,7 +769,7 @@ export const CustomerBooking: React.FC = () => {
 
                 <div style={{ marginTop: '1.75rem', paddingTop: '1.25rem', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
                   <a 
-                    href="https://maps.google.com/?q=Jl.+Mr.+Koesbiyono+Tjondrowibowo+Jl.+Raya+Muntal,+Patemon,+Kec.+Gn.+Pati,+Kota+Semarang,+Jawa+Tengah+50228"
+                    href="https://maps.app.goo.gl/UkuQRQ9dTKWekAR88"
                     target="_blank"
                     rel="noreferrer"
                     className="btn"
