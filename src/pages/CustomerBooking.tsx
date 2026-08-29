@@ -735,7 +735,7 @@ export const CustomerBooking: React.FC = () => {
                       <div>
                         <strong style={{ color: '#FFF', fontSize: '0.9rem', display: 'block' }}>Alamat Barbershop:</strong>
                         <span style={{ color: '#A1A1AA', fontSize: '0.85rem' }}>
-                          {settings?.address || 'Jl. Mr. Koesbiyono Tjondrowibowo, Semarang, Jawa Tengah'}
+                          {settings?.address || 'Jl. Mr. Koesbiyono Tjondrowibowo Jl. Raya Muntal, Patemon, Kec. Gn. Pati, Kota Semarang, Jawa Tengah 50228'}
                         </span>
                       </div>
                     </div>
@@ -769,7 +769,7 @@ export const CustomerBooking: React.FC = () => {
 
                 <div style={{ marginTop: '1.75rem', paddingTop: '1.25rem', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
                   <a 
-                    href={`https://maps.google.com/?q=${encodeURIComponent(settings?.address || 'Classic Barber Go Semarang')}`}
+                    href="https://maps.google.com/?q=Jl.+Mr.+Koesbiyono+Tjondrowibowo+Jl.+Raya+Muntal,+Patemon,+Kec.+Gn.+Pati,+Kota+Semarang,+Jawa+Tengah+50228"
                     target="_blank"
                     rel="noreferrer"
                     className="btn"
@@ -782,19 +782,27 @@ export const CustomerBooking: React.FC = () => {
               </div>
 
               {/* Right: Embedded Google Maps Iframe */}
-              <div style={{ background: '#18181F', border: '1px solid rgba(212, 175, 55, 0.25)', borderRadius: '20px', overflow: 'hidden', minHeight: '320px', position: 'relative' }}>
+              <div style={{ 
+                background: '#18181F', 
+                border: '2px solid rgba(212, 175, 55, 0.55)', 
+                borderRadius: '20px', 
+                overflow: 'hidden', 
+                minHeight: '320px', 
+                position: 'relative',
+                boxShadow: '0 0 0 4px rgba(212, 175, 55, 0.1), 0 8px 32px rgba(0,0,0,0.6)'
+              }}>
                 <iframe
                   title="Lokasi Barbershop Google Maps"
-                  src="https://maps.google.com/maps?q=-7.0267215,110.4074218&z=15&output=embed"
+                  src="https://maps.google.com/maps?q=Jl.+Mr.+Koesbiyono+Tjondrowibowo+Jl.+Raya+Muntal,+Patemon,+Kec.+Gn.+Pati,+Kota+Semarang,+Jawa+Tengah+50228&z=16&output=embed"
                   width="100%"
                   height="100%"
-                  style={{ border: 0, minHeight: '320px', width: '100%', height: '100%' }}
+                  style={{ border: 0, minHeight: '320px', width: '100%', height: '100%', display: 'block' }}
                   allowFullScreen={false}
                   loading="lazy"
                 />
                 <div style={{ position: 'absolute', bottom: '12px', left: '12px', background: 'rgba(18, 18, 23, 0.95)', border: '1px solid #D4AF37', borderRadius: '10px', padding: '0.45rem 0.85rem', color: '#D4AF37', fontWeight: 800, fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '0.35rem', boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
                   <MapPin size={14} />
-                  <span>📍 {settings?.name || 'Classic Barber Go'} Semarang</span>
+                  <span>📍 {settings?.name || 'Classic Barber Go'} — Patemon, Gunung Pati, Semarang</span>
                 </div>
               </div>
             </div>
