@@ -186,14 +186,30 @@ class MockTable<T, PK extends string | number> {
         return res.json();
       })
       .then(data => {
-        // Merge API data with local-only items (preserve offline-added items)
+        // Merge API data with local data, preserving local modifications (e.g. status updates)
         const localData = this.getLocalStore();
-        const apiIds = new Set((data as any[]).map((item: any) => String(item.id ?? item.key ?? item.key_name)));
+        const localMap = new Map((localData as any[]).map((item: any) => [
+          String(item.id ?? item.key ?? item.key_name ?? item.submittedAt ?? item.sessionId),
+          item
+        ]));
+
+        const mergedApi = (data as any[]).map((apiItem: any) => {
+          const itemId = String(apiItem.id ?? apiItem.key ?? apiItem.key_name ?? apiItem.submittedAt ?? apiItem.sessionId);
+          const localItem = localMap.get(itemId);
+          if (localItem) {
+            // Preserve local modifications (e.g. status 'diverifikasi') over API defaults
+            return { ...apiItem, ...localItem };
+          }
+          return apiItem;
+        });
+
+        const apiIds = new Set((data as any[]).map((item: any) => String(item.id ?? item.key ?? item.key_name ?? item.submittedAt ?? item.sessionId)));
         const onlyLocal = localData.filter((item: any) => {
-          const itemId = String(item.id ?? item.key ?? item.key_name);
+          const itemId = String(item.id ?? item.key ?? item.key_name ?? item.submittedAt ?? item.sessionId);
           return !apiIds.has(itemId);
         });
-        const merged = onlyLocal.length > 0 ? [...data, ...onlyLocal] : data;
+
+        const merged = [...mergedApi, ...onlyLocal];
         this.cache = merged;
         this.setLocalStore(merged);
         this.fetchPromise = null;

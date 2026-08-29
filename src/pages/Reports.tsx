@@ -59,7 +59,34 @@ export const Reports: React.FC = () => {
   const barbers = useLiveQuery(() => db.barbers.toArray());
   const services = useLiveQuery(() => db.services.toArray());
   const settings = useLiveQuery(() => db.settings.get());
-  const shiftReports = useLiveQuery(() => db.shiftReports.toArray());
+  const shiftReportsRaw = useLiveQuery(() => db.shiftReports.toArray());
+
+  // Verified shift reports IDs stored persistently in localStorage
+  const [verifiedReportIds, setVerifiedReportIds] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('barberflow_verified_report_ids') || '[]');
+    } catch {
+      return [];
+    }
+  });
+
+  // Shift reports mapped with verified status
+  const shiftReports = useMemo(() => {
+    if (!shiftReportsRaw) return [];
+    return shiftReportsRaw.map(r => {
+      const id1 = String(r.id || '');
+      const id2 = String(r.submittedAt || '');
+      const id3 = String(r.sessionId || '');
+      const isVerified = r.status === 'diverifikasi' || 
+                         (id1 && verifiedReportIds.includes(id1)) || 
+                         (id2 && verifiedReportIds.includes(id2)) || 
+                         (id3 && verifiedReportIds.includes(id3));
+      if (isVerified && r.status !== 'diverifikasi') {
+        return { ...r, status: 'diverifikasi' as const };
+      }
+      return r;
+    });
+  }, [shiftReportsRaw, verifiedReportIds]);
 
   const currency = settings?.currency || 'Rp';
 
@@ -81,14 +108,22 @@ export const Reports: React.FC = () => {
 
   // Helper to verify a shift report
   const handleVerifyShiftReport = async (rpt: ShiftReport) => {
+    const id1 = String(rpt.id || '');
+    const id2 = String(rpt.submittedAt || '');
+    const id3 = String(rpt.sessionId || '');
     const reportId = rpt.id || rpt.submittedAt || rpt.sessionId;
     if (!reportId) return;
 
     try {
-      // 1. Update in DB using db.shiftReports.update
+      // 1. Save to persistent verifiedReportIds state & localStorage
+      const newVerified = Array.from(new Set([...verifiedReportIds, id1, id2, id3].filter(Boolean)));
+      setVerifiedReportIds(newVerified);
+      localStorage.setItem('barberflow_verified_report_ids', JSON.stringify(newVerified));
+
+      // 2. Update in DB using db.shiftReports.update
       await db.shiftReports.update(reportId, { status: 'diverifikasi' });
 
-      // 2. Direct localStorage backup update for instant persistence
+      // 3. Direct localStorage backup update for instant persistence
       try {
         const raw = localStorage.getItem('barberflow_/api/shift-reports');
         if (raw) {
@@ -105,11 +140,11 @@ export const Reports: React.FC = () => {
         }
       } catch (_e) {}
 
-      // 3. Save notification for cashier page
+      // 4. Save notification for cashier page
       const msg = `Admin telah memverifikasi laporan shift tanggal ${rpt.date} oleh ${rpt.cashierName}. Terima kasih!`;
       localStorage.setItem('barberflow_shift_verified_notif', msg);
 
-      // 4. Update local modal state if open so modal UI updates immediately
+      // 5. Update local modal state if open so modal UI updates immediately
       setSelectedShiftForModal(prev => prev ? { ...prev, status: 'diverifikasi' } : null);
 
       sound.playSuccess();
