@@ -16,8 +16,7 @@ import {
   Smartphone,
   MapPin,
   Phone,
-  Clock,
-  Star
+  Clock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -229,13 +228,6 @@ export const CustomerBooking: React.FC = () => {
         return <span style={{ background: '#22C55E', color: '#FFF', padding: '0.3rem 0.75rem', borderRadius: '8px', fontWeight: 800, fontSize: '0.78rem' }}>✅ Selesai (Lunas)</span>;
     }
   };
-
-  const defaultBarbers = [
-    { id: 1, name: 'Faiz', shift: 'Pagi (09:00 - 15:00)', photo: '/images/barber_faiz.jpg' },
-    { id: 2, name: 'Fadli', shift: 'Siang (12:00 - 18:00)', photo: '/images/barber_fadli.jpg' },
-    { id: 3, name: 'Rizki', shift: 'Malam (15:00 - 21:00)', photo: '/images/barber_rizki.jpg' }
-  ];
-  const displayBarbers = (barbers && barbers.length > 0) ? barbers : defaultBarbers;
 
   return (
     <div className="booking-page-container">
@@ -804,88 +796,6 @@ export const CustomerBooking: React.FC = () => {
                   <MapPin size={14} />
                   <span>📍 {settings?.name || 'Classic Barber Go'} Semarang</span>
                 </div>
-              </div>
-            </div>
-
-            {/* SECTION 2: DETAIL INFORMASI BARBER STYLIST */}
-            <div>
-              <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-                <span style={{ background: 'rgba(212, 175, 55, 0.15)', color: '#D4AF37', border: '1px solid rgba(212, 175, 55, 0.3)', padding: '0.35rem 1rem', borderRadius: '20px', fontWeight: 800, fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  💈 Tim Hair Stylist Professional
-                </span>
-                <h3 style={{ fontSize: '1.65rem', fontWeight: 900, color: '#FFF', margin: '0.5rem 0 0.25rem' }}>
-                  Detail & Informasi Barber Stylist
-                </h3>
-                <p style={{ color: '#A1A1AA', fontSize: '0.88rem', margin: 0 }}>
-                  Pilih barber berpengalaman favorit Anda untuk hasil cukur terbaik & presisi tinggi
-                </p>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
-                {displayBarbers.map((barber) => (
-                  <motion.div
-                    key={barber.id}
-                    whileHover={{ y: -6 }}
-                    style={{ background: 'rgba(24, 24, 30, 0.85)', border: '1px solid rgba(212, 175, 55, 0.25)', borderRadius: '20px', padding: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', position: 'relative', boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}
-                  >
-                    {/* Rating Badge */}
-                    <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'rgba(234, 179, 8, 0.15)', border: '1px solid #EAB308', borderRadius: '12px', padding: '0.2rem 0.55rem', display: 'flex', alignItems: 'center', gap: '0.25rem', color: '#EAB308', fontWeight: 900, fontSize: '0.75rem' }}>
-                      <Star size={12} fill="#EAB308" />
-                      <span>5.0</span>
-                    </div>
-
-                    {/* Photo Avatar */}
-                    <div style={{ width: '88px', height: '88px', borderRadius: '50%', border: '3px solid #D4AF37', padding: '3px', marginBottom: '1rem', overflow: 'hidden', background: '#18181B' }}>
-                      <img 
-                        src={barber.photo || `https://api.dicebear.com/7.x/avataaars/svg?seed=${barber.name}`} 
-                        alt={barber.name} 
-                        style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} 
-                      />
-                    </div>
-
-                    {/* Barber Name */}
-                    <h4 style={{ margin: '0 0 0.25rem', fontSize: '1.2rem', fontWeight: 900, color: '#FFF' }}>
-                      💈 {barber.name}
-                    </h4>
-                    <p style={{ margin: '0 0 1rem', fontSize: '0.82rem', color: '#D4AF37', fontWeight: 700 }}>
-                      Senior Hair Stylist
-                    </p>
-
-                    {/* Badges / Details */}
-                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.5rem', background: '#18181F', borderRadius: '12px', padding: '0.75rem', marginBottom: '1rem', fontSize: '0.8rem' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#A1A1AA' }}>
-                        <span>Shift Kerja:</span>
-                        <strong style={{ color: '#FFF' }}>{barber.shift || 'Pagi & Siang'}</strong>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#A1A1AA' }}>
-                        <span>Pengalaman:</span>
-                        <strong style={{ color: '#22C55E' }}>3+ Tahun Pro</strong>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#A1A1AA' }}>
-                        <span>Status:</span>
-                        <span style={{ color: '#22C55E', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
-                          <CheckCircle2 size={12} /> Siap Melayani
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Action Button */}
-                    <button
-                      type="button"
-                      className="btn"
-                      style={{ width: '100%', background: selectedBarberId === barber.id ? '#22C55E' : 'rgba(212, 175, 55, 0.15)', color: selectedBarberId === barber.id ? '#FFF' : '#D4AF37', border: '1px solid #D4AF37', borderRadius: '10px', padding: '0.55rem', fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer' }}
-                      onClick={() => {
-                        setSelectedBarberId(barber.id!);
-                        setActiveTab('new_booking');
-                        sound.playBeep(900);
-                        toast.success(`Barber ${barber.name} dipilih!`);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      }}
-                    >
-                      {selectedBarberId === barber.id ? '✓ Barber Terpilih' : 'Pilih Barber Ini'}
-                    </button>
-                  </motion.div>
-                ))}
               </div>
             </div>
 
