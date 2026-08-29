@@ -13,7 +13,11 @@ import {
   Calendar,
   User as UserIcon,
   DollarSign,
-  Smartphone
+  Smartphone,
+  MapPin,
+  Phone,
+  Clock,
+  Star
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -704,6 +708,196 @@ export const CustomerBooking: React.FC = () => {
           </>
         )}
       </div>
+
+      {/* ── FOOTER INFORMASI LOKASI MAPS & DETAIL BARBER ── */}
+      <footer style={{ marginTop: '4rem', background: '#0D0D11', borderTop: '2px solid rgba(212, 175, 55, 0.3)', paddingTop: '3.5rem', paddingBottom: '2.5rem', width: '100%' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1.5rem', display: 'flex', flexDirection: 'column', gap: '3rem' }}>
+          
+          {/* SECTION 1: MAPS & LOKASI DETAIL */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem', alignItems: 'stretch' }}>
+            {/* Left: Info Barbershop & Maps Card */}
+            <div style={{ background: '#121217', border: '1px solid rgba(212, 175, 55, 0.25)', borderRadius: '20px', padding: '2rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                  <div style={{ background: '#D4AF37', color: '#000', padding: '0.65rem', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Scissors size={24} />
+                  </div>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 900, color: '#D4AF37' }}>
+                      {settings?.name || 'Classic Barber Go'}
+                    </h3>
+                    <p style={{ margin: '0.15rem 0 0', fontSize: '0.82rem', color: '#A1A1AA' }}>
+                      Premium Grooming & Professional Haircut Experience
+                    </p>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                    <MapPin size={20} color="#D4AF37" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <div>
+                      <strong style={{ color: '#FFF', fontSize: '0.9rem', display: 'block' }}>Alamat Barbershop:</strong>
+                      <span style={{ color: '#A1A1AA', fontSize: '0.85rem' }}>
+                        {settings?.address || 'Jl. Mr. Koesbiyono Tjondrowibowo, Semarang, Jawa Tengah'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <Clock size={20} color="#D4AF37" style={{ flexShrink: 0 }} />
+                    <div>
+                      <strong style={{ color: '#FFF', fontSize: '0.9rem', display: 'block' }}>Jam Operasional:</strong>
+                      <span style={{ color: '#22C55E', fontWeight: 700, fontSize: '0.85rem' }}>
+                        Senin - Minggu: 09.00 - 21.00 WIB (Buka Setiap Hari)
+                      </span>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <Phone size={20} color="#D4AF37" style={{ flexShrink: 0 }} />
+                    <div>
+                      <strong style={{ color: '#FFF', fontSize: '0.9rem', display: 'block' }}>Kontak & WhatsApp:</strong>
+                      <a 
+                        href={`https://wa.me/${(settings?.phone || '081234567890').replace(/[^0-9]/g, '')}`} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        style={{ color: '#D4AF37', fontWeight: 800, fontSize: '0.88rem', textDecoration: 'underline' }}
+                      >
+                        {settings?.phone || '0812-3456-7890'} ↗
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: '1.75rem', paddingTop: '1.25rem', borderTop: '1px solid rgba(255,255,255,0.08)', display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <a 
+                  href={`https://maps.google.com/?q=${encodeURIComponent(settings?.address || 'Classic Barber Go Semarang')}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn"
+                  style={{ flex: 1, background: '#D4AF37', color: '#000', fontWeight: 900, borderRadius: '12px', padding: '0.65rem 1rem', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', textDecoration: 'none' }}
+                >
+                  <MapPin size={16} />
+                  <span>Buka di Google Maps</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Right: Embedded Google Maps Iframe */}
+            <div style={{ background: '#121217', border: '1px solid rgba(212, 175, 55, 0.25)', borderRadius: '20px', overflow: 'hidden', minHeight: '320px', position: 'relative' }}>
+              <iframe
+                title="Lokasi Barbershop Google Maps"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3959.851989428574!2d110.4074218!3d-7.0267215!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e708b7921a4fa05%3A0xb3cf5aa739343cfb!2sSemarang%2C%20Jawa%20Tengah!5e0!3m2!1sid!2sid!4v1700000000000!5m2!1sid!2sid"
+                width="100%"
+                height="100%"
+                style={{ border: 0, minHeight: '320px', filter: 'invert(90%) hue-rotate(180deg) contrast(1.2)' }}
+                allowFullScreen={false}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+              <div style={{ position: 'absolute', bottom: '12px', left: '12px', background: 'rgba(18, 18, 23, 0.9)', border: '1px solid #D4AF37', borderRadius: '10px', padding: '0.4rem 0.85rem', color: '#D4AF37', fontWeight: 800, fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <MapPin size={14} />
+                <span>📍 {settings?.name || 'Classic Barber Go'} Semarang</span>
+              </div>
+            </div>
+          </div>
+
+          {/* SECTION 2: DETAIL INFORMASI BARBER STYLIST */}
+          <div>
+            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+              <span style={{ background: 'rgba(212, 175, 55, 0.15)', color: '#D4AF37', border: '1px solid rgba(212, 175, 55, 0.3)', padding: '0.35rem 1rem', borderRadius: '20px', fontWeight: 800, fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                💈 Tim Hair Stylist Professional
+              </span>
+              <h3 style={{ fontSize: '1.65rem', fontWeight: 900, color: '#FFF', margin: '0.5rem 0 0.25rem' }}>
+                Detail & Informasi Barber Stylist
+              </h3>
+              <p style={{ color: '#A1A1AA', fontSize: '0.88rem', margin: 0 }}>
+                Pilih barber berpengalaman favorit Anda untuk hasil cukur terbaik & presisi tinggi
+              </p>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.5rem' }}>
+              {barbers && barbers.map((barber) => (
+                <motion.div
+                  key={barber.id}
+                  whileHover={{ y: -6 }}
+                  style={{ background: '#121217', border: '1px solid rgba(212, 175, 55, 0.25)', borderRadius: '20px', padding: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', position: 'relative', boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}
+                >
+                  {/* Rating Badge */}
+                  <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'rgba(234, 179, 8, 0.15)', border: '1px solid #EAB308', borderRadius: '12px', padding: '0.2rem 0.55rem', display: 'flex', alignItems: 'center', gap: '0.25rem', color: '#EAB308', fontWeight: 900, fontSize: '0.75rem' }}>
+                    <Star size={12} fill="#EAB308" />
+                    <span>5.0</span>
+                  </div>
+
+                  {/* Photo Avatar */}
+                  <div style={{ width: '88px', height: '88px', borderRadius: '50%', border: '3px solid #D4AF37', padding: '3px', marginBottom: '1rem', overflow: 'hidden', background: '#18181B' }}>
+                    <img 
+                      src={barber.photo || `https://api.dicebear.com/7.x/avataaars/svg?seed=${barber.name}`} 
+                      alt={barber.name} 
+                      style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} 
+                    />
+                  </div>
+
+                  {/* Barber Name */}
+                  <h4 style={{ margin: '0 0 0.25rem', fontSize: '1.2rem', fontWeight: 900, color: '#FFF' }}>
+                    💈 {barber.name}
+                  </h4>
+                  <p style={{ margin: '0 0 1rem', fontSize: '0.82rem', color: '#D4AF37', fontWeight: 700 }}>
+                    Senior Hair Stylist
+                  </p>
+
+                  {/* Badges / Details */}
+                  <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.5rem', background: '#18181F', borderRadius: '12px', padding: '0.75rem', marginBottom: '1rem', fontSize: '0.8rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#A1A1AA' }}>
+                      <span>Shift Kerja:</span>
+                      <strong style={{ color: '#FFF' }}>{barber.shift || 'Pagi & Siang'}</strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#A1A1AA' }}>
+                      <span>Pengalaman:</span>
+                      <strong style={{ color: '#22C55E' }}>3+ Tahun Pro</strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#A1A1AA' }}>
+                      <span>Status:</span>
+                      <span style={{ color: '#22C55E', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                        <CheckCircle2 size={12} /> Siap Melayani
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Action Button */}
+                  <button
+                    type="button"
+                    className="btn"
+                    style={{ width: '100%', background: selectedBarberId === barber.id ? '#22C55E' : 'rgba(212, 175, 55, 0.15)', color: selectedBarberId === barber.id ? '#FFF' : '#D4AF37', border: '1px solid #D4AF37', borderRadius: '10px', padding: '0.55rem', fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer' }}
+                    onClick={() => {
+                      setSelectedBarberId(barber.id!);
+                      setActiveTab('new_booking');
+                      sound.playBeep(900);
+                      toast.success(`Barber ${barber.name} dipilih!`);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                  >
+                    {selectedBarberId === barber.id ? '✓ Barber Terpilih' : 'Pilih Barber Ini'}
+                  </button>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* SECTION 3: COPYRIGHT FOOTER BAR */}
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', color: '#71717A', fontSize: '0.82rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Scissors size={16} color="#D4AF37" />
+              <span>&copy; {new Date().getFullYear()} {settings?.name || 'Classic Barber Go'}. All rights reserved.</span>
+            </div>
+            <div>
+              <span>Powered by BarberFlow Smart Barbershop POS</span>
+            </div>
+          </div>
+
+        </div>
+      </footer>
 
       {/* CUSTOMER AUTH MODAL */}
       <AnimatePresence>
