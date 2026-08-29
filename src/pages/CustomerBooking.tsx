@@ -781,35 +781,140 @@ export const CustomerBooking: React.FC = () => {
                 </div>
               </div>
 
-              {/* Right: Embedded Google Maps Iframe — with decorative border ornaments */}
-              <div style={{ position: 'relative', padding: '10px' }}>
-                {/* Decorative corner ornaments */}
-                {/* Top-left corner */}
-                <div style={{ position: 'absolute', top: 0, left: 0, width: '32px', height: '32px', borderTop: '3px solid #D4AF37', borderLeft: '3px solid #D4AF37', borderRadius: '8px 0 0 0', zIndex: 2 }} />
-                {/* Top-right corner */}
-                <div style={{ position: 'absolute', top: 0, right: 0, width: '32px', height: '32px', borderTop: '3px solid #D4AF37', borderRight: '3px solid #D4AF37', borderRadius: '0 8px 0 0', zIndex: 2 }} />
-                {/* Bottom-left corner */}
-                <div style={{ position: 'absolute', bottom: 0, left: 0, width: '32px', height: '32px', borderBottom: '3px solid #D4AF37', borderLeft: '3px solid #D4AF37', borderRadius: '0 0 0 8px', zIndex: 2 }} />
-                {/* Bottom-right corner */}
-                <div style={{ position: 'absolute', bottom: 0, right: 0, width: '32px', height: '32px', borderBottom: '3px solid #D4AF37', borderRight: '3px solid #D4AF37', borderRadius: '0 0 8px 0', zIndex: 2 }} />
-                {/* Top center diamond ornament */}
-                <div style={{ position: 'absolute', top: '-7px', left: '50%', transform: 'translateX(-50%)', width: '14px', height: '14px', background: '#D4AF37', borderRadius: '2px', rotate: '45deg', zIndex: 3, boxShadow: '0 0 8px rgba(212,175,55,0.8)' }} />
-                {/* Bottom center diamond ornament */}
-                <div style={{ position: 'absolute', bottom: '-7px', left: '50%', transform: 'translateX(-50%)', width: '14px', height: '14px', background: '#D4AF37', borderRadius: '2px', rotate: '45deg', zIndex: 3, boxShadow: '0 0 8px rgba(212,175,55,0.8)' }} />
-                {/* Left center diamond ornament */}
-                <div style={{ position: 'absolute', top: '50%', left: '-7px', transform: 'translateY(-50%)', width: '14px', height: '14px', background: '#D4AF37', borderRadius: '2px', rotate: '45deg', zIndex: 3, boxShadow: '0 0 8px rgba(212,175,55,0.8)' }} />
-                {/* Right center diamond ornament */}
-                <div style={{ position: 'absolute', top: '50%', right: '-7px', transform: 'translateY(-50%)', width: '14px', height: '14px', background: '#D4AF37', borderRadius: '2px', rotate: '45deg', zIndex: 3, boxShadow: '0 0 8px rgba(212,175,55,0.8)' }} />
+
+              {/* Right: Embedded Google Maps Iframe — with SVG ornamental floral border */}
+              <div style={{ position: 'relative', padding: '22px' }}>
+                {/* Ornamental SVG Border — overlaid absolutely */}
+                <svg
+                  viewBox="0 0 600 420"
+                  xmlns="http://www.w3.org/2000/svg"
+                  style={{
+                    position: 'absolute',
+                    top: 0, left: 0,
+                    width: '100%', height: '100%',
+                    pointerEvents: 'none',
+                    zIndex: 10,
+                    filter: 'drop-shadow(0 0 6px rgba(212,175,55,0.6))'
+                  }}
+                  preserveAspectRatio="none"
+                >
+                  <defs>
+                    <style>{`.orn { fill: none; stroke: #D4AF37; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; } .orn-f { fill: #D4AF37; stroke: none; }`}</style>
+                  </defs>
+
+                  {/* Straight border lines - top */}
+                  <line className="orn" x1="80" y1="14" x2="520" y2="14" />
+                  <line className="orn" x1="85" y1="20" x2="515" y2="20" />
+                  {/* bottom */}
+                  <line className="orn" x1="80" y1="406" x2="520" y2="406" />
+                  <line className="orn" x1="85" y1="400" x2="515" y2="400" />
+                  {/* left */}
+                  <line className="orn" x1="14" y1="78" x2="14" y2="342" />
+                  <line className="orn" x1="20" y1="83" x2="20" y2="337" />
+                  {/* right */}
+                  <line className="orn" x1="586" y1="78" x2="586" y2="342" />
+                  <line className="orn" x1="580" y1="83" x2="580" y2="337" />
+
+                  {/* TOP-LEFT corner floral */}
+                  <g transform="translate(76,76)">
+                    <path className="orn" d="M0,0 C-8,-22 -28,-28 -33,-14 C-38,0 -24,12 -14,8 C-4,4 -2,-8 -9,-10" />
+                    <path className="orn" d="M-4,-4 C-16,-16 -32,-9 -28,1" />
+                    <path className="orn" d="M-2,-7 C-7,-20 -19,-26 -21,-17" />
+                    <path className="orn" d="M-27,-17 C-31,-21 -29,-27 -25,-25 C-21,-23 -23,-19 -27,-17" />
+                    <circle className="orn-f" cx="-34" cy="-13" r="2.5" />
+                    <circle className="orn-f" cx="-13" cy="2" r="2" />
+                    <path className="orn" d="M2,-2 C6,-14 0,-28 -8,-22" />
+                    <circle className="orn-f" cx="-8" cy="-23" r="2" />
+                  </g>
+
+                  {/* TOP-RIGHT corner floral (mirror X) */}
+                  <g transform="translate(524,76) scale(-1,1)">
+                    <path className="orn" d="M0,0 C-8,-22 -28,-28 -33,-14 C-38,0 -24,12 -14,8 C-4,4 -2,-8 -9,-10" />
+                    <path className="orn" d="M-4,-4 C-16,-16 -32,-9 -28,1" />
+                    <path className="orn" d="M-2,-7 C-7,-20 -19,-26 -21,-17" />
+                    <path className="orn" d="M-27,-17 C-31,-21 -29,-27 -25,-25 C-21,-23 -23,-19 -27,-17" />
+                    <circle className="orn-f" cx="-34" cy="-13" r="2.5" />
+                    <circle className="orn-f" cx="-13" cy="2" r="2" />
+                    <path className="orn" d="M2,-2 C6,-14 0,-28 -8,-22" />
+                    <circle className="orn-f" cx="-8" cy="-23" r="2" />
+                  </g>
+
+                  {/* BOTTOM-LEFT corner floral (mirror Y) */}
+                  <g transform="translate(76,344) scale(1,-1)">
+                    <path className="orn" d="M0,0 C-8,-22 -28,-28 -33,-14 C-38,0 -24,12 -14,8 C-4,4 -2,-8 -9,-10" />
+                    <path className="orn" d="M-4,-4 C-16,-16 -32,-9 -28,1" />
+                    <path className="orn" d="M-2,-7 C-7,-20 -19,-26 -21,-17" />
+                    <path className="orn" d="M-27,-17 C-31,-21 -29,-27 -25,-25 C-21,-23 -23,-19 -27,-17" />
+                    <circle className="orn-f" cx="-34" cy="-13" r="2.5" />
+                    <circle className="orn-f" cx="-13" cy="2" r="2" />
+                    <path className="orn" d="M2,-2 C6,-14 0,-28 -8,-22" />
+                    <circle className="orn-f" cx="-8" cy="-23" r="2" />
+                  </g>
+
+                  {/* BOTTOM-RIGHT corner floral (mirror XY) */}
+                  <g transform="translate(524,344) scale(-1,-1)">
+                    <path className="orn" d="M0,0 C-8,-22 -28,-28 -33,-14 C-38,0 -24,12 -14,8 C-4,4 -2,-8 -9,-10" />
+                    <path className="orn" d="M-4,-4 C-16,-16 -32,-9 -28,1" />
+                    <path className="orn" d="M-2,-7 C-7,-20 -19,-26 -21,-17" />
+                    <path className="orn" d="M-27,-17 C-31,-21 -29,-27 -25,-25 C-21,-23 -23,-19 -27,-17" />
+                    <circle className="orn-f" cx="-34" cy="-13" r="2.5" />
+                    <circle className="orn-f" cx="-13" cy="2" r="2" />
+                    <path className="orn" d="M2,-2 C6,-14 0,-28 -8,-22" />
+                    <circle className="orn-f" cx="-8" cy="-23" r="2" />
+                  </g>
+
+                  {/* TOP CENTER ornament — scrolling swirl motif */}
+                  <g transform="translate(300,17)">
+                    <rect className="orn-f" x="-5" y="-5" width="10" height="10" rx="1" transform="rotate(45)" />
+                    {/* left scroll chain */}
+                    <path className="orn" d="M-8,0 C-22,-2 -38,10 -48,3 C-58,-4 -53,-16 -44,-15 C-36,-14 -37,-7 -44,-6" />
+                    <path className="orn" d="M-48,3 C-62,5 -74,-6 -72,-15" />
+                    <circle className="orn-f" cx="-71" cy="-16" r="2" />
+                    {/* right scroll chain */}
+                    <path className="orn" d="M8,0 C22,-2 38,10 48,3 C58,-4 53,-16 44,-15 C36,-14 37,-7 44,-6" />
+                    <path className="orn" d="M48,3 C62,5 74,-6 72,-15" />
+                    <circle className="orn-f" cx="71" cy="-16" r="2" />
+                  </g>
+
+                  {/* BOTTOM CENTER ornament — mirror of top */}
+                  <g transform="translate(300,403) scale(1,-1)">
+                    <rect className="orn-f" x="-5" y="-5" width="10" height="10" rx="1" transform="rotate(45)" />
+                    <path className="orn" d="M-8,0 C-22,-2 -38,10 -48,3 C-58,-4 -53,-16 -44,-15 C-36,-14 -37,-7 -44,-6" />
+                    <path className="orn" d="M-48,3 C-62,5 -74,-6 -72,-15" />
+                    <circle className="orn-f" cx="-71" cy="-16" r="2" />
+                    <path className="orn" d="M8,0 C22,-2 38,10 48,3 C58,-4 53,-16 44,-15 C36,-14 37,-7 44,-6" />
+                    <path className="orn" d="M48,3 C62,5 74,-6 72,-15" />
+                    <circle className="orn-f" cx="71" cy="-16" r="2" />
+                  </g>
+
+                  {/* LEFT CENTER ornament */}
+                  <g transform="translate(17,210) rotate(-90)">
+                    <rect className="orn-f" x="-5" y="-5" width="10" height="10" rx="1" transform="rotate(45)" />
+                    <path className="orn" d="M-8,0 C-20,-2 -32,9 -40,3 C-48,-4 -44,-14 -36,-13 C-29,-12 -30,-5 -36,-4" />
+                    <circle className="orn-f" cx="-40" cy="-14" r="1.8" />
+                    <path className="orn" d="M8,0 C20,-2 32,9 40,3 C48,-4 44,-14 36,-13 C29,-12 30,-5 36,-4" />
+                    <circle className="orn-f" cx="40" cy="-14" r="1.8" />
+                  </g>
+
+                  {/* RIGHT CENTER ornament */}
+                  <g transform="translate(583,210) rotate(90)">
+                    <rect className="orn-f" x="-5" y="-5" width="10" height="10" rx="1" transform="rotate(45)" />
+                    <path className="orn" d="M-8,0 C-20,-2 -32,9 -40,3 C-48,-4 -44,-14 -36,-13 C-29,-12 -30,-5 -36,-4" />
+                    <circle className="orn-f" cx="-40" cy="-14" r="1.8" />
+                    <path className="orn" d="M8,0 C20,-2 32,9 40,3 C48,-4 44,-14 36,-13 C29,-12 30,-5 36,-4" />
+                    <circle className="orn-f" cx="40" cy="-14" r="1.8" />
+                  </g>
+                </svg>
 
                 {/* Maps iframe container */}
                 <div style={{ 
                   background: '#18181F', 
-                  border: '1.5px solid rgba(212, 175, 55, 0.45)', 
-                  borderRadius: '16px', 
+                  border: '1px solid rgba(212, 175, 55, 0.3)', 
+                  borderRadius: '12px', 
                   overflow: 'hidden', 
                   minHeight: '320px', 
                   position: 'relative',
-                  boxShadow: '0 0 0 1px rgba(212, 175, 55, 0.15), 0 0 30px rgba(212,175,55,0.15), 0 8px 32px rgba(0,0,0,0.7)'
+                  boxShadow: '0 0 20px rgba(212,175,55,0.12), 0 8px 32px rgba(0,0,0,0.7)'
                 }}>
                   <iframe
                     title="Lokasi Classic Barbergo Google Maps"
