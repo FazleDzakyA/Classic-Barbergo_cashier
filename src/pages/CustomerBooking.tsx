@@ -781,28 +781,50 @@ export const CustomerBooking: React.FC = () => {
                 </div>
               </div>
 
-              {/* Right: Embedded Google Maps Iframe */}
-              <div style={{ 
-                background: '#18181F', 
-                border: '2px solid rgba(212, 175, 55, 0.55)', 
-                borderRadius: '20px', 
-                overflow: 'hidden', 
-                minHeight: '320px', 
-                position: 'relative',
-                boxShadow: '0 0 0 4px rgba(212, 175, 55, 0.1), 0 8px 32px rgba(0,0,0,0.6)'
-              }}>
-                <iframe
-                  title="Lokasi Barbershop Google Maps"
-                  src="https://maps.google.com/maps?q=Jl.+Mr.+Koesbiyono+Tjondrowibowo+Jl.+Raya+Muntal,+Patemon,+Kec.+Gn.+Pati,+Kota+Semarang,+Jawa+Tengah+50228&z=16&output=embed"
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0, minHeight: '320px', width: '100%', height: '100%', display: 'block' }}
-                  allowFullScreen={false}
-                  loading="lazy"
-                />
-                <div style={{ position: 'absolute', bottom: '12px', left: '12px', background: 'rgba(18, 18, 23, 0.95)', border: '1px solid #D4AF37', borderRadius: '10px', padding: '0.45rem 0.85rem', color: '#D4AF37', fontWeight: 800, fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '0.35rem', boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
-                  <MapPin size={14} />
-                  <span>📍 {settings?.name || 'Classic Barber Go'} — Patemon, Gunung Pati, Semarang</span>
+              {/* Right: Embedded Google Maps Iframe — with decorative border ornaments */}
+              <div style={{ position: 'relative', padding: '10px' }}>
+                {/* Decorative corner ornaments */}
+                {/* Top-left corner */}
+                <div style={{ position: 'absolute', top: 0, left: 0, width: '32px', height: '32px', borderTop: '3px solid #D4AF37', borderLeft: '3px solid #D4AF37', borderRadius: '8px 0 0 0', zIndex: 2 }} />
+                {/* Top-right corner */}
+                <div style={{ position: 'absolute', top: 0, right: 0, width: '32px', height: '32px', borderTop: '3px solid #D4AF37', borderRight: '3px solid #D4AF37', borderRadius: '0 8px 0 0', zIndex: 2 }} />
+                {/* Bottom-left corner */}
+                <div style={{ position: 'absolute', bottom: 0, left: 0, width: '32px', height: '32px', borderBottom: '3px solid #D4AF37', borderLeft: '3px solid #D4AF37', borderRadius: '0 0 0 8px', zIndex: 2 }} />
+                {/* Bottom-right corner */}
+                <div style={{ position: 'absolute', bottom: 0, right: 0, width: '32px', height: '32px', borderBottom: '3px solid #D4AF37', borderRight: '3px solid #D4AF37', borderRadius: '0 0 8px 0', zIndex: 2 }} />
+                {/* Top center diamond ornament */}
+                <div style={{ position: 'absolute', top: '-7px', left: '50%', transform: 'translateX(-50%)', width: '14px', height: '14px', background: '#D4AF37', borderRadius: '2px', rotate: '45deg', zIndex: 3, boxShadow: '0 0 8px rgba(212,175,55,0.8)' }} />
+                {/* Bottom center diamond ornament */}
+                <div style={{ position: 'absolute', bottom: '-7px', left: '50%', transform: 'translateX(-50%)', width: '14px', height: '14px', background: '#D4AF37', borderRadius: '2px', rotate: '45deg', zIndex: 3, boxShadow: '0 0 8px rgba(212,175,55,0.8)' }} />
+                {/* Left center diamond ornament */}
+                <div style={{ position: 'absolute', top: '50%', left: '-7px', transform: 'translateY(-50%)', width: '14px', height: '14px', background: '#D4AF37', borderRadius: '2px', rotate: '45deg', zIndex: 3, boxShadow: '0 0 8px rgba(212,175,55,0.8)' }} />
+                {/* Right center diamond ornament */}
+                <div style={{ position: 'absolute', top: '50%', right: '-7px', transform: 'translateY(-50%)', width: '14px', height: '14px', background: '#D4AF37', borderRadius: '2px', rotate: '45deg', zIndex: 3, boxShadow: '0 0 8px rgba(212,175,55,0.8)' }} />
+
+                {/* Maps iframe container */}
+                <div style={{ 
+                  background: '#18181F', 
+                  border: '1.5px solid rgba(212, 175, 55, 0.45)', 
+                  borderRadius: '16px', 
+                  overflow: 'hidden', 
+                  minHeight: '320px', 
+                  position: 'relative',
+                  boxShadow: '0 0 0 1px rgba(212, 175, 55, 0.15), 0 0 30px rgba(212,175,55,0.15), 0 8px 32px rgba(0,0,0,0.7)'
+                }}>
+                  <iframe
+                    title="Lokasi Classic Barbergo Google Maps"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126707.11713669037!2d110.3122344082823!3d-7.056500061716612!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e7089b3330078a3%3A0x3d3d3f121632426!2sClassic%20Barbergo!5e0!3m2!1sen!2sid!4v1787976870314!5m2!1sen!2sid"
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0, minHeight: '340px', width: '100%', height: '100%', display: 'block' }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                  />
+                  <div style={{ position: 'absolute', bottom: '12px', left: '12px', background: 'rgba(18, 18, 23, 0.95)', border: '1px solid #D4AF37', borderRadius: '10px', padding: '0.45rem 0.85rem', color: '#D4AF37', fontWeight: 800, fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '0.35rem', boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
+                    <MapPin size={14} />
+                    <span>📍 {settings?.name || 'Classic Barber Go'} — Patemon, Gunung Pati, Semarang</span>
+                  </div>
                 </div>
               </div>
             </div>
