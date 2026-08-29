@@ -61,6 +61,14 @@ export const Reports: React.FC = () => {
   const settings = useLiveQuery(() => db.settings.get());
   const shiftReportsRaw = useLiveQuery(() => db.shiftReports.toArray());
 
+  // Helper to generate a unique key for any shift report
+  const getReportKey = (r: Partial<ShiftReport>) => {
+    if (r.id) return String(r.id);
+    if (r.submittedAt) return String(r.submittedAt);
+    if (r.sessionId) return String(r.sessionId);
+    return `${r.date || ''}_${r.cashierName || ''}_${r.actualCash || 0}_${r.totalTransactions || 0}`;
+  };
+
   // Verified shift reports IDs stored persistently in localStorage
   const [verifiedReportIds, setVerifiedReportIds] = useState<string[]>(() => {
     try {
@@ -74,10 +82,12 @@ export const Reports: React.FC = () => {
   const shiftReports = useMemo(() => {
     if (!shiftReportsRaw) return [];
     return shiftReportsRaw.map(r => {
+      const key = getReportKey(r);
       const id1 = String(r.id || '');
       const id2 = String(r.submittedAt || '');
       const id3 = String(r.sessionId || '');
       const isVerified = r.status === 'diverifikasi' || 
+                         verifiedReportIds.includes(key) ||
                          (id1 && verifiedReportIds.includes(id1)) || 
                          (id2 && verifiedReportIds.includes(id2)) || 
                          (id3 && verifiedReportIds.includes(id3));
@@ -108,20 +118,20 @@ export const Reports: React.FC = () => {
 
   // Helper to verify a shift report
   const handleVerifyShiftReport = async (rpt: ShiftReport) => {
+    const key = getReportKey(rpt);
     const id1 = String(rpt.id || '');
     const id2 = String(rpt.submittedAt || '');
     const id3 = String(rpt.sessionId || '');
-    const reportId = rpt.id || rpt.submittedAt || rpt.sessionId;
-    if (!reportId) return;
+    const reportId = rpt.id || rpt.submittedAt || rpt.sessionId || key;
 
     try {
       // 1. Save to persistent verifiedReportIds state & localStorage
-      const newVerified = Array.from(new Set([...verifiedReportIds, id1, id2, id3].filter(Boolean)));
+      const newVerified = Array.from(new Set([...verifiedReportIds, key, id1, id2, id3].filter(Boolean)));
       setVerifiedReportIds(newVerified);
       localStorage.setItem('barberflow_verified_report_ids', JSON.stringify(newVerified));
 
       // 2. Update in DB using db.shiftReports.update
-      await db.shiftReports.update(reportId, { status: 'diverifikasi' });
+      await db.shiftReports.update((rpt.id || rpt.submittedAt || rpt.sessionId) as any, { status: 'diverifikasi' });
 
       // 3. Direct localStorage backup update for instant persistence
       try {
@@ -129,6 +139,7 @@ export const Reports: React.FC = () => {
         if (raw) {
           const list = JSON.parse(raw);
           const idx = list.findIndex((item: any) => 
+            getReportKey(item) === key ||
             String(item.id) === String(reportId) ||
             String(item.submittedAt) === String(reportId) ||
             String(item.sessionId) === String(reportId)

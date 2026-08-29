@@ -346,7 +346,8 @@ class MockTable<T, PK extends string | number> {
         String(i.id) === String(id) || 
         String(i.key) === String(id) ||
         (i.submittedAt !== undefined && String(i.submittedAt) === String(id)) ||
-        (i.sessionId !== undefined && String(i.sessionId) === String(id))
+        (i.sessionId !== undefined && String(i.sessionId) === String(id)) ||
+        `${i.date || ''}_${i.cashierName || ''}_${i.actualCash || 0}_${i.totalTransactions || 0}` === String(id)
       );
       const existing = idx >= 0 ? items[idx] : null;
       const merged = existing ? { ...existing, ...changes } : { id, ...changes };
