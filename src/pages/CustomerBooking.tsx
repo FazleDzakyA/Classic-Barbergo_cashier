@@ -230,6 +230,13 @@ export const CustomerBooking: React.FC = () => {
     }
   };
 
+  const defaultBarbers = [
+    { id: 1, name: 'Faiz', shift: 'Pagi (09:00 - 15:00)', photo: '/images/barber_faiz.jpg' },
+    { id: 2, name: 'Fadli', shift: 'Siang (12:00 - 18:00)', photo: '/images/barber_fadli.jpg' },
+    { id: 3, name: 'Rizki', shift: 'Malam (15:00 - 21:00)', photo: '/images/barber_rizki.jpg' }
+  ];
+  const displayBarbers = (barbers && barbers.length > 0) ? barbers : defaultBarbers;
+
   return (
     <div className="booking-page-container">
       <div className="booking-page-overlay" />
@@ -815,7 +822,7 @@ export const CustomerBooking: React.FC = () => {
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
-                {barbers && barbers.map((barber) => (
+                {displayBarbers.map((barber) => (
                   <motion.div
                     key={barber.id}
                     whileHover={{ y: -6 }}
