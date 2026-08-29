@@ -79,6 +79,48 @@ export const Reports: React.FC = () => {
     return shiftReports.filter(r => r.status === 'terkirim').sort((a, b) => b.submittedAt - a.submittedAt);
   }, [shiftReports]);
 
+  // Helper to verify a shift report
+  const handleVerifyShiftReport = async (rpt: ShiftReport) => {
+    const reportId = rpt.id || rpt.submittedAt || rpt.sessionId;
+    if (!reportId) return;
+
+    try {
+      // 1. Update in DB using db.shiftReports.update
+      await db.shiftReports.update(reportId, { status: 'diverifikasi' });
+
+      // 2. Direct localStorage backup update for instant persistence
+      try {
+        const raw = localStorage.getItem('barberflow_/api/shift-reports');
+        if (raw) {
+          const list = JSON.parse(raw);
+          const idx = list.findIndex((item: any) => 
+            String(item.id) === String(reportId) ||
+            String(item.submittedAt) === String(reportId) ||
+            String(item.sessionId) === String(reportId)
+          );
+          if (idx >= 0) {
+            list[idx].status = 'diverifikasi';
+            localStorage.setItem('barberflow_/api/shift-reports', JSON.stringify(list));
+          }
+        }
+      } catch (_e) {}
+
+      // 3. Save notification for cashier page
+      const msg = `Admin telah memverifikasi laporan shift tanggal ${rpt.date} oleh ${rpt.cashierName}. Terima kasih!`;
+      localStorage.setItem('barberflow_shift_verified_notif', msg);
+
+      // 4. Update local modal state if open so modal UI updates immediately
+      setSelectedShiftForModal(prev => prev ? { ...prev, status: 'diverifikasi' } : null);
+
+      sound.playSuccess();
+      toast.success('✅ Laporan shift berhasil terverifikasi (ACC)! Notifikasi dikirim ke kasir.');
+    } catch (err) {
+      console.error('Error verifying shift report:', err);
+      sound.playError();
+      toast.error('Gagal memverifikasi laporan shift');
+    }
+  };
+
   // Barber share breakdown calculation for selected shift report modal
   const selectedShiftBarberBreakdown = useMemo(() => {
     if (!selectedShiftForModal || !transactions || !barbers) return [];
@@ -1210,24 +1252,15 @@ export const Reports: React.FC = () => {
                               </button>
 
                               {rpt.status === 'diverifikasi' ? (
-                                <span style={{ color: '#22C55E', fontWeight: 700, fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-                                  ✅ Diverifikasi
+                                <span style={{ background: 'rgba(34, 197, 94, 0.15)', color: '#22C55E', border: '1px solid rgba(34, 197, 94, 0.4)', padding: '0.3rem 0.65rem', borderRadius: '6px', fontWeight: 800, fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                                  <ShieldCheck size={14} /> Terverifikasi (ACC)
                                 </span>
                               ) : (
                                 <button
                                   type="button"
                                   className="btn"
                                   style={{ background: '#D4AF37', color: '#000', fontWeight: 800, fontSize: '0.72rem', padding: '0.25rem 0.65rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
-                                  onClick={async () => {
-                                    if (rpt.id) {
-                                      await db.shiftReports.update(rpt.id, { status: 'diverifikasi' });
-                                      // Save notif for cashier to read
-                                      const msg = `Admin telah memverifikasi laporan shift tanggal ${rpt.date} oleh ${rpt.cashierName}. Terima kasih!`;
-                                      localStorage.setItem('barberflow_shift_verified_notif', msg);
-                                      sound.playSuccess();
-                                      toast.success('✅ Laporan shift berhasil diverifikasi! Notifikasi dikirim ke kasir.');
-                                    }
-                                  }}
+                                  onClick={() => handleVerifyShiftReport(rpt)}
                                 >
                                   <ShieldCheck size={12} />
                                   <span>ACC</span>
@@ -1441,23 +1474,16 @@ export const Reports: React.FC = () => {
                 >
                   Tutup
                 </button>
-                {selectedShiftForModal.status !== 'diverifikasi' && (
+                {selectedShiftForModal.status === 'diverifikasi' ? (
+                  <span style={{ background: 'rgba(34, 197, 94, 0.15)', color: '#22C55E', border: '1.5px solid #22C55E', borderRadius: '10px', padding: '0.65rem 1.25rem', fontWeight: 800, fontSize: '0.88rem', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <ShieldCheck size={18} /> ✅ Laporan Ini Telah Terverifikasi (ACC)
+                  </span>
+                ) : (
                   <button
                     type="button"
                     className="btn"
                     style={{ background: '#D4AF37', color: '#000', borderRadius: '10px', padding: '0.65rem 1.5rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-                    onClick={async () => {
-                      if (selectedShiftForModal.id) {
-                        await db.shiftReports.update(selectedShiftForModal.id, { status: 'diverifikasi' });
-                        // Write notif for Cashier to read when they open /cashier
-                        const msg = `Admin telah memverifikasi laporan shift tanggal ${selectedShiftForModal.date} oleh ${selectedShiftForModal.cashierName}. Terima kasih!`;
-                        localStorage.setItem('barberflow_shift_verified_notif', msg);
-                        sound.playSuccess();
-                        toast.success('✅ Laporan shift diverifikasi! Notifikasi berhasil dikirim ke kasir.');
-                        setIsInspectModalOpen(false);
-                        setSelectedShiftForModal(null);
-                      }
-                    }}
+                    onClick={() => handleVerifyShiftReport(selectedShiftForModal)}
                   >
                     <ShieldCheck size={18} />
                     <span>Verifikasi Laporan Shift (ACC)</span>

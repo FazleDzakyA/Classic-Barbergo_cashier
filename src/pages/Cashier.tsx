@@ -409,7 +409,9 @@ export const Cashier: React.FC = () => {
       const totalExp = sessionExps.reduce((s, e) => s + e.amount, 0);
       const expected = currentSession.startingCash + cashRev - totalExp;
 
+      const nowId = Date.now();
       const reportObj: ShiftReport = {
+        id: nowId,
         sessionId: currentSession.id,
         cashierName: currentSession.openedBy,
         date: currentDate,
@@ -423,7 +425,7 @@ export const Cashier: React.FC = () => {
         difference: actualCashInput - expected,
         notes: reportNotes || 'Laporan Shift Kasir via Web',
         status: 'terkirim',
-        submittedAt: Date.now()
+        submittedAt: nowId
       };
 
       await db.shiftReports.add(reportObj);

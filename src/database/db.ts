@@ -326,7 +326,12 @@ class MockTable<T, PK extends string | number> {
     try {
       // Always update local store immediately (optimistic)
       const items = await this.toArray();
-      const idx = items.findIndex((i: any) => String(i.id || i.key) === String(id));
+      const idx = items.findIndex((i: any) => 
+        String(i.id) === String(id) || 
+        String(i.key) === String(id) ||
+        (i.submittedAt !== undefined && String(i.submittedAt) === String(id)) ||
+        (i.sessionId !== undefined && String(i.sessionId) === String(id))
+      );
       const existing = idx >= 0 ? items[idx] : null;
       const merged = existing ? { ...existing, ...changes } : { id, ...changes };
 
