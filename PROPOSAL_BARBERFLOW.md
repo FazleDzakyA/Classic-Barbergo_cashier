@@ -178,7 +178,7 @@ graph LR
         Cashier["💈 KASIR / BARBER STYLIST"]:::actor
     end
 
-    Subsystem["💈 0.0 SISTEM POS & BOOKING<br/>BARBERFLOW<br/>(Core Web Platform)"]:::system
+    Subsystem(("💈 0.0 SISTEM POS & BOOKING<br/>BARBERFLOW<br/>(Core Web Platform)")):::system
 
     subgraph MANAJEMEN [" Entitas Manajerial "]
         Admin["🛡️ ADMIN / OWNER"]:::actor
