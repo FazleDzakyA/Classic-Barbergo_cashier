@@ -165,7 +165,24 @@ class MockTable<T, PK extends string | number> {
   private getLocalStore(): T[] {
     try {
       const raw = localStorage.getItem(`barberflow_${this.apiPath}`);
-      if (raw) return JSON.parse(raw);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (this.apiPath.includes('services')) {
+          const fallbackServices = this.getFallbackData('services') as any[];
+          const fallbackMap = new Map(fallbackServices.map(s => [s.id, s.image]));
+          // Force update images to the latest professional HD Unsplash URLs
+          const updated = parsed.map((item: any) => {
+            const newImg = fallbackMap.get(item.id);
+            if (newImg) {
+              return { ...item, image: newImg };
+            }
+            return item;
+          });
+          localStorage.setItem(`barberflow_${this.apiPath}`, JSON.stringify(updated));
+          return updated;
+        }
+        return parsed;
+      }
     } catch (_e) {}
     return this.getFallbackData(this.apiPath) as T[];
   }
