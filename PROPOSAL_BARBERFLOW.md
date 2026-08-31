@@ -16,9 +16,9 @@ Proposal Proyek Uji Kompetensi Keahlian (UKK) yang berjudul:
 
 Disusun oleh:  
 - **Nama Siswa:** Fazle Dzaky A.  
-- **NIS / NISN:** 0081234567 / 0089876543     
-- **Kompetensi Keahlian:** Rekayasa Perangkat Lunak (RPL)  
-- **Instansi Sekolah:** SMK Negeri 1 Semarang / SMK RPL  
+- **NIS / NISN:** 11362 / 0099367411  
+- **Kompetensi Keahlian:** Pengembangan Perangkat Lunak dan Gim (PPLG)  
+- **Instansi Sekolah:** SMK Negeri 8 Semarang  
 
 Telah diperiksa, disetujui, dan disahkan pada:  
 **Hari / Tanggal:** Senin, 31 Agustus 2026  
