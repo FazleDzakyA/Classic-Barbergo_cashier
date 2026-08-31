@@ -1,135 +1,137 @@
 <mxfile host="app.diagrams.net" pages="7">
   <diagram name="Context diagram" id="XIpYmBOHUcILxwoyCMLm">
-    <mxGraphModel dx="2910" dy="2316" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="4970" dy="1332" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <UserObject label="" mermaidData="{&#xa;  &quot;data&quot;: &quot;graph TD\n    classDef actorStyle fill:#1E293B,stroke:#D4AF37,stroke-width:2px,color:#FFF;\n    classDef systemStyle fill:#0F172A,stroke:#38BDF8,stroke-width:3px,color:#FFF;\n\n    Customer[\&quot;👤 CUSTOMER / PELANGGAN\&quot;]:::actorStyle\n    Cashier[\&quot;💈 KASIR / BARBER STYLIST\&quot;]:::actorStyle\n    Admin[\&quot;🛡️ ADMIN / OWNER BARBERSHOP\&quot;]:::actorStyle\n\n    Subsystem[\&quot;💈 SYSTEM POS &amp; BOOKING BARBERFLOW&lt;br/&gt;(Core Web Platform &amp; Offline-First DB)\&quot;]:::systemStyle\n\n    Customer --&gt;|\&quot;1. Registrasi / Login Account\&quot;| Subsystem\n    Customer --&gt;|\&quot;2. Input Reservasi Booking (Layanan, Barber, Jam, Metode Bayar)\&quot;| Subsystem\n    Subsystem --&gt;|\&quot;3. Receipt / Bukti Reservasi &amp; Status Real-time\&quot;| Customer\n\n    Cashier --&gt;|\&quot;4. Autentikasi Kasir &amp; Buka Shift\&quot;| Subsystem\n    Cashier --&gt;|\&quot;5. Konfirmasi/ACC Booking, Update Status Layanan &amp; Cetak Struk\&quot;| Subsystem\n    Cashier --&gt;|\&quot;6. Submit Laporan Shift Akhir Hari (Cash Actual &amp; QRIS)\&quot;| Subsystem\n    Subsystem --&gt;|\&quot;7. Notifikasi Booking Masuk &amp; Ringkasan Transaksi Shift\&quot;| Cashier\n\n    Admin --&gt;|\&quot;8. Kelola Data Barber, Layanan, &amp; User\&quot;| Subsystem\n    Admin --&gt;|\&quot;9. Verifikasi (ACC) Laporan Shift Kasir\&quot;| Subsystem\n    Subsystem --&gt;|\&quot;10. Laporan Keuangan, Analytics Rekapitulasi &amp; Log Audit\&quot;| Admin\n&quot;,&#xa;  &quot;config&quot;: null&#xa;}" id="UnwWWxL9ez4P_17zRF9l-43">
+        <UserObject label="" mermaidData="{&#xa;  &quot;data&quot;: &quot;graph TD\n    classDef actor fill:#0F172A,stroke:#D4AF37,stroke-width:2px,color:#FFF;\n    classDef system fill:#0F172A,stroke:#38BDF8,stroke-width:3px,color:#FFF;\n\n    Customer[\&quot;CUSTOMER / PELANGGAN\&quot;]:::actor\n    Cashier[\&quot;KASIR / BARBER STYLIST\&quot;]:::actor\n    Admin[\&quot;ADMIN / OWNER BARBERSHOP\&quot;]:::actor\n\n    Subsystem((\&quot;0. SISTEM POS &amp; BOOKING BARBERFLOW&lt;br/&gt;(Core Web Platform &amp; Offline-First DB)\&quot;)):::system\n\n    Customer --&gt;|\&quot;1. Registrasi / Login Akun\&quot;| Subsystem\n    Customer --&gt;|\&quot;2. Input Reservasi Booking (Layanan, Barber, Jam, Metode Bayar)\&quot;| Subsystem\n    Subsystem --&gt;|\&quot;3. Receipt / Struk Reservasi &amp; Status Real-Time\&quot;| Customer\n\n    Subsystem --&gt;|\&quot;4. Antrean Booking Masuk &amp; Ringkasan Transaksi Shift\&quot;| Cashier\n    Cashier --&gt;|\&quot;5. Konfirmasi/ACC Booking, Update Status Layanan &amp; Cetak Struk\&quot;| Subsystem\n    Cashier --&gt;|\&quot;6. Submit Laporan Shift Akhir Hari (Cash Fisik &amp; QRIS)\&quot;| Subsystem\n    Subsystem --&gt;|\&quot;7. Audio Alert Kasir &amp; Status Shift\&quot;| Cashier\n\n    Admin --&gt;|\&quot;8. Kelola Data Barber, Layanan, &amp; User\&quot;| Subsystem\n    Admin --&gt;|\&quot;9. Verifikasi (ACC) Laporan Shift Kasir\&quot;| Subsystem\n    Subsystem --&gt;|\&quot;10. Laporan Keuangan, Analytics Rekapitulasi &amp; Log Audit\&quot;| Admin&quot;,&#xa;  &quot;config&quot;: null&#xa;}" id="zIo980OQDXbSx_eHs_f8-15">
           <mxCell connectable="0" parent="1" style="group;transparentBounds=1;editIcon=1;lockedGroup=0;groupPadding=10;" vertex="1">
             <mxGeometry as="geometry" />
           </mxCell>
         </UserObject>
-        <UserObject label="👤 CUSTOMER / PELANGGAN" mermaidId="n:Customer" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=2;fillColor=#1E293B;strokeColor=#D4AF37;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="👤 CUSTOMER / PELANGGAN" id="UnwWWxL9ez4P_17zRF9l-44">
-          <mxCell parent="UnwWWxL9ez4P_17zRF9l-43" style="html=1;whiteSpace=wrap;strokeWidth=2;fillColor=#1E293B;strokeColor=#D4AF37;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
-            <mxGeometry height="54" width="267" x="730" y="-320" as="geometry" />
+        <UserObject label="CUSTOMER / PELANGGAN" mermaidId="n:Customer" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=2;fillColor=#0F172A;strokeColor=#D4AF37;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="CUSTOMER / PELANGGAN" id="zIo980OQDXbSx_eHs_f8-16">
+          <mxCell parent="zIo980OQDXbSx_eHs_f8-15" style="html=1;whiteSpace=wrap;strokeWidth=2;fillColor=#0F172A;strokeColor=#D4AF37;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="54" width="241" x="741" y="1200" as="geometry" />
           </mxCell>
         </UserObject>
-        <UserObject label="💈 KASIR / BARBER STYLIST" mermaidId="n:Cashier" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=2;fillColor=#1E293B;strokeColor=#D4AF37;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="💈 KASIR / BARBER STYLIST" id="UnwWWxL9ez4P_17zRF9l-45">
-          <mxCell parent="UnwWWxL9ez4P_17zRF9l-43" style="html=1;whiteSpace=wrap;strokeWidth=2;fillColor=#1E293B;strokeColor=#D4AF37;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
-            <mxGeometry height="54" width="260" x="-190" y="900" as="geometry" />
+        <UserObject label="KASIR / BARBER STYLIST" mermaidId="n:Cashier" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=2;fillColor=#0F172A;strokeColor=#D4AF37;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="KASIR / BARBER STYLIST" id="zIo980OQDXbSx_eHs_f8-17">
+          <mxCell parent="zIo980OQDXbSx_eHs_f8-15" style="html=1;whiteSpace=wrap;strokeWidth=2;fillColor=#0F172A;strokeColor=#D4AF37;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="54" width="233" x="-350" y="1940" as="geometry" />
           </mxCell>
         </UserObject>
-        <UserObject label="🛡️ ADMIN / OWNER BARBERSHOP" mermaidId="n:Admin" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=2;fillColor=#1E293B;strokeColor=#D4AF37;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="🛡️ ADMIN / OWNER BARBERSHOP" id="UnwWWxL9ez4P_17zRF9l-46">
-          <mxCell parent="UnwWWxL9ez4P_17zRF9l-43" style="html=1;whiteSpace=wrap;strokeWidth=2;fillColor=#1E293B;strokeColor=#D4AF37;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
-            <mxGeometry height="54" width="299" x="1510" y="890" as="geometry" />
+        <UserObject label="ADMIN / OWNER BARBERSHOP" mermaidId="n:Admin" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=2;fillColor=#0F172A;strokeColor=#D4AF37;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="ADMIN / OWNER BARBERSHOP" id="zIo980OQDXbSx_eHs_f8-18">
+          <mxCell parent="zIo980OQDXbSx_eHs_f8-15" style="html=1;whiteSpace=wrap;strokeWidth=2;fillColor=#0F172A;strokeColor=#D4AF37;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="54" width="273" x="1840" y="1940" as="geometry" />
           </mxCell>
         </UserObject>
-        <UserObject label="💈 SYSTEM POS &amp; BOOKING BARBERFLOW&#xa;(Core Web Platform &amp; Offline-First DB)" mermaidId="n:Subsystem" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=3;fillColor=#0F172A;strokeColor=#38BDF8;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="💈 SYSTEM POS &amp; BOOKING BARBERFLOW&#xa;(Core Web Platform &amp; Offline-First DB)" id="UnwWWxL9ez4P_17zRF9l-47">
-          <mxCell parent="UnwWWxL9ez4P_17zRF9l-43" style="html=1;whiteSpace=wrap;strokeWidth=3;fillColor=#0F172A;strokeColor=#38BDF8;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
-            <mxGeometry height="73" width="359" x="696" y="293" as="geometry" />
+        <UserObject label="0. SISTEM POS &amp; BOOKING BARBERFLOW&#xa;(Core Web Platform &amp; Offline-First DB)" mermaidId="n:Subsystem" mermaidBaseStyle="ellipse;html=1;aspect=fixed;strokeWidth=3;whiteSpace=wrap;fillColor=#0F172A;strokeColor=#38BDF8;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="0. SISTEM POS &amp; BOOKING BARBERFLOW&#xa;(Core Web Platform &amp; Offline-First DB)" id="zIo980OQDXbSx_eHs_f8-19">
+          <mxCell parent="zIo980OQDXbSx_eHs_f8-15" style="ellipse;html=1;aspect=fixed;strokeWidth=3;whiteSpace=wrap;fillColor=#0F172A;strokeColor=#38BDF8;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="317" width="317" x="703" y="1696" as="geometry" />
           </mxCell>
         </UserObject>
-        <UserObject label="1. Registrasi / Login Account" mermaidId="e:Customer-&gt;Subsystem#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0;exitY=0.93;entryX=0;entryY=0.05;" mermaidBaseValue="1. Registrasi / Login Account" id="UnwWWxL9ez4P_17zRF9l-48">
-          <mxCell edge="1" parent="UnwWWxL9ez4P_17zRF9l-43" source="UnwWWxL9ez4P_17zRF9l-44" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0;exitY=0.93;entryX=0;entryY=0.05;rounded=0;" target="UnwWWxL9ez4P_17zRF9l-47">
-            <mxGeometry relative="1" as="geometry">
+        <UserObject label="1. Registrasi / Login Akun" mermaidId="e:Customer-&gt;Subsystem#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0;exitY=0.89;entryX=0;entryY=0.25;" mermaidBaseValue="1. Registrasi / Login Akun" id="zIo980OQDXbSx_eHs_f8-20">
+          <mxCell edge="1" parent="zIo980OQDXbSx_eHs_f8-15" source="zIo980OQDXbSx_eHs_f8-16" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0;exitY=0.89;entryX=0.274;entryY=0.068;rounded=0;entryDx=0;entryDy=0;entryPerimeter=0;" target="zIo980OQDXbSx_eHs_f8-19">
+            <mxGeometry relative="1" x="-0.3869" y="46" as="geometry">
+              <mxPoint as="offset" />
               <Array as="points">
-                <mxPoint x="486" y="259" />
+                <mxPoint x="477" y="1539" />
               </Array>
             </mxGeometry>
           </mxCell>
         </UserObject>
-        <UserObject label="2. Input Reservasi Booking (Layanan, Barber, Jam, Metode Bayar)" mermaidId="e:Customer-&gt;Subsystem#1" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.548689138576779;exitY=1;entryX=0.5362116991643454;entryY=0;curved=1;exitX=0.55;exitY=1;entryX=0.54;entryY=0;" mermaidBaseValue="2. Input Reservasi Booking (Layanan, Barber, Jam, Metode Bayar)" id="UnwWWxL9ez4P_17zRF9l-49">
-          <mxCell edge="1" parent="UnwWWxL9ez4P_17zRF9l-43" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.55;exitY=1;entryX=0.937;entryY=0.047;rounded=0;entryDx=0;entryDy=0;entryPerimeter=0;" target="UnwWWxL9ez4P_17zRF9l-47">
+        <UserObject label="2. Input Reservasi Booking (Layanan, Barber, Jam, Metode Bayar)" mermaidId="e:Customer-&gt;Subsystem#1" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.553941908713693;exitY=1;entryX=0.5410094637223974;entryY=0;curved=1;exitX=0.55;exitY=1;entryX=0.54;entryY=0;" mermaidBaseValue="2. Input Reservasi Booking (Layanan, Barber, Jam, Metode Bayar)" id="zIo980OQDXbSx_eHs_f8-21">
+          <mxCell edge="1" parent="zIo980OQDXbSx_eHs_f8-15" source="zIo980OQDXbSx_eHs_f8-16" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.55;exitY=1;entryX=0.54;entryY=0;rounded=0;" target="zIo980OQDXbSx_eHs_f8-19">
             <mxGeometry relative="1" as="geometry">
               <mxPoint as="offset" />
               <Array as="points">
-                <mxPoint x="1218.15" y="245" />
+                <mxPoint x="1120" y="1350" />
+                <mxPoint x="1087" y="1539" />
               </Array>
-              <mxPoint x="989.9999999999999" y="-280" as="sourcePoint" />
-              <mxPoint x="1003.0100000000001" y="279" as="targetPoint" />
             </mxGeometry>
           </mxCell>
         </UserObject>
-        <UserObject label="3. Receipt / Bukti Reservasi &amp; Status Real-time" mermaidId="e:Subsystem-&gt;Customer#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.4637883008356546;exitY=0;entryX=0.45131086142322097;entryY=1;curved=1;exitX=0.46;exitY=0;entryX=0.45;entryY=1;" mermaidBaseValue="3. Receipt / Bukti Reservasi &amp; Status Real-time" id="UnwWWxL9ez4P_17zRF9l-50">
-          <mxCell edge="1" parent="UnwWWxL9ez4P_17zRF9l-43" source="UnwWWxL9ez4P_17zRF9l-47" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.46;exitY=0;entryX=0.45;entryY=1;rounded=0;" target="UnwWWxL9ez4P_17zRF9l-44">
+        <UserObject label="3. Receipt / Struk Reservasi &amp; Status Real-Time" mermaidId="e:Subsystem-&gt;Customer#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.4589905362776025;exitY=0;entryX=0.446058091286307;entryY=1;curved=1;exitX=0.46;exitY=0;entryX=0.45;entryY=1;" mermaidBaseValue="3. Receipt / Struk Reservasi &amp; Status Real-Time" id="zIo980OQDXbSx_eHs_f8-22">
+          <mxCell edge="1" parent="zIo980OQDXbSx_eHs_f8-15" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.46;exitY=0;entryX=0.45;entryY=1;rounded=0;">
+            <mxGeometry relative="1" x="-0.5329" y="-23" as="geometry">
+              <mxPoint as="offset" />
+              <Array as="points">
+                <mxPoint x="680" y="1545" />
+                <mxPoint x="900" y="1356" />
+              </Array>
+              <mxPoint x="870.3656036146558" y="1702.3915713281085" as="sourcePoint" />
+              <mxPoint x="869.4499999999998" y="1260" as="targetPoint" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="4. Antrean Booking Masuk &amp; Ringkasan Transaksi Shift" mermaidId="e:Subsystem-&gt;Cashier#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0;exitY=0.5410094637223974;entryX=1;entryY=0.7407407407407407;curved=1;exitX=0;exitY=0.54;entryX=1;entryY=0.74;" mermaidBaseValue="4. Antrean Booking Masuk &amp; Ringkasan Transaksi Shift" id="zIo980OQDXbSx_eHs_f8-23">
+          <mxCell edge="1" parent="zIo980OQDXbSx_eHs_f8-15" source="zIo980OQDXbSx_eHs_f8-19" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0;exitY=0.54;entryX=1;entryY=0.74;rounded=0;" target="zIo980OQDXbSx_eHs_f8-17">
             <mxGeometry relative="1" as="geometry">
               <mxPoint as="offset" />
               <Array as="points">
-                <mxPoint x="678" y="259" />
-                <mxPoint x="861.14" y="130" />
-                <mxPoint x="870" y="-20" />
+                <mxPoint x="503" y="2062" />
               </Array>
             </mxGeometry>
           </mxCell>
         </UserObject>
-        <UserObject label="4. Autentikasi Kasir &amp; Buka Shift" mermaidId="e:Cashier-&gt;Subsystem#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.24;exitY=0;entryX=0;entryY=0.71;" mermaidBaseValue="4. Autentikasi Kasir &amp; Buka Shift" id="UnwWWxL9ez4P_17zRF9l-51">
-          <mxCell edge="1" parent="UnwWWxL9ez4P_17zRF9l-43" source="UnwWWxL9ez4P_17zRF9l-45" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.24;exitY=0;entryX=0;entryY=0.71;rounded=0;" target="UnwWWxL9ez4P_17zRF9l-47">
-            <mxGeometry relative="1" as="geometry">
-              <Array as="points">
-                <mxPoint x="50" y="401" />
-              </Array>
-            </mxGeometry>
-          </mxCell>
-        </UserObject>
-        <UserObject label="5. Konfirmasi/ACC Booking, Update Status Layanan &amp; Cetak Struk" mermaidId="e:Cashier-&gt;Subsystem#1" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.87;exitY=0;entryX=0;entryY=0.89;" mermaidBaseValue="5. Konfirmasi/ACC Booking, Update Status Layanan &amp; Cetak Struk" id="UnwWWxL9ez4P_17zRF9l-52">
-          <mxCell edge="1" parent="UnwWWxL9ez4P_17zRF9l-43" source="UnwWWxL9ez4P_17zRF9l-45" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.87;exitY=0;entryX=0;entryY=0.89;rounded=0;" target="UnwWWxL9ez4P_17zRF9l-47">
-            <mxGeometry relative="1" as="geometry">
-              <Array as="points">
-                <mxPoint x="422" y="401" />
-              </Array>
-            </mxGeometry>
-          </mxCell>
-        </UserObject>
-        <UserObject label="6. Submit Laporan Shift Akhir Hari (Cash Actual &amp; QRIS)" mermaidId="e:Cashier-&gt;Subsystem#2" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=1;exitY=0.7407407407407407;entryX=0;entryY=0.678082191780822;curved=1;exitX=1;exitY=0.74;entryX=0;entryY=0.68;" mermaidBaseValue="6. Submit Laporan Shift Akhir Hari (Cash Actual &amp; QRIS)" id="UnwWWxL9ez4P_17zRF9l-53">
-          <mxCell edge="1" parent="UnwWWxL9ez4P_17zRF9l-43" source="UnwWWxL9ez4P_17zRF9l-45" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=1;exitY=0.74;entryX=0;entryY=0.68;rounded=0;" target="UnwWWxL9ez4P_17zRF9l-47">
+        <UserObject label="5. Konfirmasi/ACC Booking, Update Status Layanan &amp; Cetak Struk" mermaidId="e:Cashier-&gt;Subsystem#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=1;exitY=0.2592592592592593;entryX=0;entryY=0.4589905362776025;curved=1;exitX=1;exitY=0.26;entryX=0;entryY=0.46;" mermaidBaseValue="5. Konfirmasi/ACC Booking, Update Status Layanan &amp; Cetak Struk" id="zIo980OQDXbSx_eHs_f8-24">
+          <mxCell edge="1" parent="zIo980OQDXbSx_eHs_f8-15" source="zIo980OQDXbSx_eHs_f8-17" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=1;exitY=0.26;entryX=0;entryY=0.46;rounded=0;" target="zIo980OQDXbSx_eHs_f8-19">
             <mxGeometry relative="1" as="geometry">
               <mxPoint as="offset" />
               <Array as="points">
-                <mxPoint x="515" y="606" />
+                <mxPoint x="503" y="1611" />
               </Array>
             </mxGeometry>
           </mxCell>
         </UserObject>
-        <UserObject label="7. Notifikasi Booking Masuk &amp; Ringkasan Transaksi Shift" mermaidId="e:Subsystem-&gt;Cashier#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0;exitY=0.3219178082191781;entryX=1;entryY=0.2592592592592593;curved=1;exitX=0;exitY=0.32;entryX=1;entryY=0.26;" mermaidBaseValue="7. Notifikasi Booking Masuk &amp; Ringkasan Transaksi Shift" id="UnwWWxL9ez4P_17zRF9l-54">
-          <mxCell edge="1" parent="UnwWWxL9ez4P_17zRF9l-43" source="UnwWWxL9ez4P_17zRF9l-47" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0;exitY=0.32;entryX=0.5;entryY=0;rounded=0;entryDx=0;entryDy=0;" target="UnwWWxL9ez4P_17zRF9l-45">
+        <UserObject label="6. Submit Laporan Shift Akhir Hari (Cash Fisik &amp; QRIS)" mermaidId="e:Cashier-&gt;Subsystem#1" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=1;exitY=0.7407407407407407;entryX=0;entryY=0.5410094637223974;curved=1;exitX=1;exitY=0.74;entryX=0;entryY=0.54;" mermaidBaseValue="6. Submit Laporan Shift Akhir Hari (Cash Fisik &amp; QRIS)" id="zIo980OQDXbSx_eHs_f8-25">
+          <mxCell edge="1" parent="zIo980OQDXbSx_eHs_f8-15" source="zIo980OQDXbSx_eHs_f8-17" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=1;exitY=0.74;entryX=0;entryY=0.54;rounded=0;" target="zIo980OQDXbSx_eHs_f8-19">
             <mxGeometry relative="1" as="geometry">
               <mxPoint as="offset" />
               <Array as="points">
-                <mxPoint x="515" y="187" />
+                <mxPoint x="503" y="2063" />
               </Array>
             </mxGeometry>
           </mxCell>
         </UserObject>
-        <UserObject label="8. Kelola Data Barber, Layanan, &amp; User" mermaidId="e:Admin-&gt;Subsystem#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.55;exitY=0;entryX=1;entryY=0.73;" mermaidBaseValue="8. Kelola Data Barber, Layanan, &amp; User" id="UnwWWxL9ez4P_17zRF9l-55">
-          <mxCell edge="1" parent="UnwWWxL9ez4P_17zRF9l-43" source="UnwWWxL9ez4P_17zRF9l-46" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.25;exitY=0;rounded=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitDx=0;exitDy=0;" target="UnwWWxL9ez4P_17zRF9l-47">
-            <mxGeometry relative="1" as="geometry">
-              <Array as="points">
-                <mxPoint x="1571" y="401" />
-              </Array>
-              <mxPoint x="1509.4499999999998" y="810" as="sourcePoint" />
-              <mxPoint x="1140" y="376.28999999999996" as="targetPoint" />
-            </mxGeometry>
-          </mxCell>
-        </UserObject>
-        <UserObject label="9. Verifikasi (ACC) Laporan Shift Kasir" mermaidId="e:Admin-&gt;Subsystem#1" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0;exitY=0.7407407407407407;entryX=1;entryY=0.678082191780822;curved=1;exitX=0;exitY=0.74;entryX=1;entryY=0.68;" mermaidBaseValue="9. Verifikasi (ACC) Laporan Shift Kasir" id="UnwWWxL9ez4P_17zRF9l-56">
-          <mxCell edge="1" parent="UnwWWxL9ez4P_17zRF9l-43" source="UnwWWxL9ez4P_17zRF9l-46" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0;exitY=0.74;entryX=1;entryY=0.68;rounded=0;" target="UnwWWxL9ez4P_17zRF9l-47">
+        <UserObject label="7. Audio Alert Kasir &amp; Status Shift" mermaidId="e:Subsystem-&gt;Cashier#1" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0;exitY=0.4589905362776025;entryX=1;entryY=0.2592592592592593;curved=1;exitX=0;exitY=0.46;entryX=1;entryY=0.26;" mermaidBaseValue="7. Audio Alert Kasir &amp; Status Shift" id="zIo980OQDXbSx_eHs_f8-26">
+          <mxCell edge="1" parent="zIo980OQDXbSx_eHs_f8-15" source="zIo980OQDXbSx_eHs_f8-19" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0;exitY=0.46;entryX=1;entryY=0.26;rounded=0;" target="zIo980OQDXbSx_eHs_f8-17">
             <mxGeometry relative="1" as="geometry">
               <mxPoint as="offset" />
               <Array as="points">
-                <mxPoint x="1268" y="543" />
+                <mxPoint x="503" y="1726" />
+                <mxPoint x="410" y="1980" />
               </Array>
             </mxGeometry>
           </mxCell>
         </UserObject>
-        <UserObject label="10. Laporan Keuangan, Analytics Rekapitulasi &amp; Log Audit" mermaidId="e:Subsystem-&gt;Admin#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=1;exitY=0.3219178082191781;entryX=0;entryY=0.2592592592592593;curved=1;exitX=1;exitY=0.32;entryX=0;entryY=0.26;" mermaidBaseValue="10. Laporan Keuangan, Analytics Rekapitulasi &amp; Log Audit" id="UnwWWxL9ez4P_17zRF9l-57">
-          <mxCell edge="1" parent="UnwWWxL9ez4P_17zRF9l-43" source="UnwWWxL9ez4P_17zRF9l-47" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=1;exitY=0.25;rounded=0;exitDx=0;exitDy=0;entryX=0.895;entryY=0.119;entryDx=0;entryDy=0;entryPerimeter=0;" target="UnwWWxL9ez4P_17zRF9l-46">
+        <UserObject label="8. Kelola Data Barber, Layanan, &amp; User" mermaidId="e:Admin-&gt;Subsystem#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.56;exitY=0;entryX=1;entryY=0.62;" mermaidBaseValue="8. Kelola Data Barber, Layanan, &amp; User" id="zIo980OQDXbSx_eHs_f8-27">
+          <mxCell edge="1" parent="zIo980OQDXbSx_eHs_f8-15" source="zIo980OQDXbSx_eHs_f8-18" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.56;exitY=0;entryX=1;entryY=0.62;rounded=0;" target="zIo980OQDXbSx_eHs_f8-19">
+            <mxGeometry relative="1" as="geometry">
+              <Array as="points">
+                <mxPoint x="1645" y="1925" />
+              </Array>
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="9. Verifikasi (ACC) Laporan Shift Kasir" mermaidId="e:Admin-&gt;Subsystem#1" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0;exitY=0.7407407407407407;entryX=1;entryY=0.5410094637223974;curved=1;exitX=0;exitY=0.74;entryX=1;entryY=0.54;" mermaidBaseValue="9. Verifikasi (ACC) Laporan Shift Kasir" id="zIo980OQDXbSx_eHs_f8-28">
+          <mxCell edge="1" parent="zIo980OQDXbSx_eHs_f8-15" source="zIo980OQDXbSx_eHs_f8-18" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.113;exitY=0.981;entryX=1;entryY=0.54;rounded=0;exitDx=0;exitDy=0;exitPerimeter=0;">
             <mxGeometry relative="1" as="geometry">
               <mxPoint as="offset" />
               <Array as="points">
-                <mxPoint x="1417.75" y="210" />
+                <mxPoint x="1227.39" y="2056.18" />
               </Array>
-              <mxPoint x="1240" y="296" as="sourcePoint" />
-              <mxPoint x="1734.75" y="800" as="targetPoint" />
+              <mxPoint x="1820.39" y="2030.14" as="sourcePoint" />
+              <mxPoint x="999.9984286720133" y="1915.8143963853533" as="targetPoint" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="10. Laporan Keuangan, Analytics Rekapitulasi &amp; Log Audit" mermaidId="e:Subsystem-&gt;Admin#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=1;exitY=0.4589905362776025;entryX=0;entryY=0.2592592592592593;curved=1;exitX=1;exitY=0.46;entryX=0;entryY=0.26;" mermaidBaseValue="10. Laporan Keuangan, Analytics Rekapitulasi &amp; Log Audit" id="zIo980OQDXbSx_eHs_f8-29">
+          <mxCell edge="1" parent="zIo980OQDXbSx_eHs_f8-15" source="zIo980OQDXbSx_eHs_f8-19" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=1;exitY=0.46;entryX=0;entryY=0.26;rounded=0;" target="zIo980OQDXbSx_eHs_f8-18">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint as="offset" />
+              <Array as="points">
+                <mxPoint x="1247" y="1641" />
+              </Array>
             </mxGeometry>
           </mxCell>
         </UserObject>
