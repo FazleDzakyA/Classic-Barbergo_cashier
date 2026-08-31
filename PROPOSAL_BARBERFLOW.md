@@ -562,24 +562,19 @@ flowchart TD
 
 ## 💰 BAB IV: RENCANA ANGGARAN BIAYA (RAB) & JADWAL PELAKSANAAN
 
-### 4.1 Rencana Anggaran Biaya (RAB)
-| No | Item / Komponen Biaya | Volume | Satuan | Harga Satuan (Rp) | Total Harga (Rp) |
-|---|---|:---:|:---:|:---:|:---:|
-| **A** | **Tahap Analisis & Desain (UI/UX)** | | | | |
-| 1 | System Requirement Analysis & Wireframing | 1 | Paket | 750.000 | 750.000 |
-| 2 | Perancangan Database & Diagram System | 1 | Paket | 500.000 | 500.000 |
-| **B** | **Tahap Pemrograman & Frontend/Backend** | | | | |
-| 3 | Frontend React.js + TypeScript Development | 1 | Aplikasi | 2.500.000 | 2.500.000 |
-| 4 | Backend Laravel 11 REST API & Database Sync | 1 | Modul | 2.000.000 | 2.000.000 |
-| 5 | Offline-First IndexedDB Sync Implementation | 1 | Modul | 1.250.000 | 1.250.000 |
-| **C** | **Pengujian & Deployment** | | | | |
-| 6 | Domain Custom (.com / .id) - 1 Tahun | 1 | Tahun | 200.000 | 200.000 |
-| 7 | Cloud Hosting / VPS Web Server - 1 Tahun | 1 | Tahun | 1.200.000 | 1.200.000 |
-| 8 | Thermal Bluetooth/USB Receipt Printer 58mm | 1 | Unit | 350.000 | 350.000 |
-| **D** | **Dokumentasi & Pelatihan** | | | | |
-| 9 | Penyusunan Dokumentasi UKK & User Manual | 1 | Paket | 500.000 | 500.000 |
-| 10| Pelatihan Operator Kasir & Admin (Training) | 1 | Paket | 450.000 | 450.000 |
-| **TOTAL KESELURAHAN ANGGARAN BIAYA (RAB)** | | | | | **Rp 9.700.000** |
+### 4.1 Rencana Anggaran Biaya (RAB) Pembuatan Web Sampai Live
+Berikut adalah rincian anggaran biaya riil yang dibutuhkan untuk pembuatan, pengujian, hingga pengoperasian web **BarberFlow** secara *live*:
+
+| No | Item / Komponen Biaya | Keterangan & Deskripsi | Volume | Satuan | Biaya Satuan (Rp) | Total Biaya (Rp) |
+|---|---|---|:---:|:---:|:---:|:---:|
+| 1 | **Domain Custom (.com / .id)** | Registrasi alamat web resmi (`barberflow.id` / `barberflow.com`) 1 tahun | 1 | Tahun | 150.000 | 150.000 |
+| 2 | **Cloud Hosting / VPS Web Server** | Penyewaan server web cloud (Vercel / VPS Server) 1 tahun | 1 | Tahun | 350.000 | 350.000 |
+| 3 | **Printer Thermal Struk 58mm** | Perangkat keras printer struk POS kasir (Bluetooth/USB) | 1 | Unit | 350.000 | 350.000 |
+| 4 | **Kertas Thermal Struk (10 Roll)** | Kertas cetak nota transaksi kasir di lokasi barbershop | 1 | Pak | 50.000 | 50.000 |
+| 5 | **Sertifikat Enkripsi SSL (HTTPS)** | Keamanan koneksi & enkripsi data transaksi web | 1 | Paket | 0 *(Gratis/SSL)* | 0 |
+| 6 | **Cetak & Jilid Proposal UKK** | Cetak penggandaan & jilid dokumen proposal/laporan UKK | 1 | Paket | 100.000 | 100.000 |
+| 7 | **Koneksi Internet & Testing** | Kuota data internet untuk pengujian & deployment live | 1 | Paket | 50.000 | 50.000 |
+| **TOTAL KESELURUHAN ANGGARAN BIAYA (RAB)** | | | | | **Rp 1.050.000** |
 
 ### 4.2 Timeline Pelaksanaan Proyek (Gantt Chart 8 Minggu)
 | No | Kegiatan / Tahapan | M1 | M2 | M3 | M4 | M5 | M6 | M7 | M8 |
