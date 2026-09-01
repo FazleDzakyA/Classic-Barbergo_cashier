@@ -10,8 +10,7 @@ import {
   Sparkles, 
   BarChart3, 
   Settings, 
-  LogOut,
-  Calendar
+  LogOut
 } from 'lucide-react';
 import { sound } from '../utils/audio';
 import './Sidebar.css';
@@ -29,12 +28,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const role = user.role;
 
   const menuItems = [
-    {
-      path: '/booking',
-      name: 'Portal Booking',
-      icon: <Calendar size={18} />,
-      roles: ['admin']
-    },
     {
       path: '/dashboard',
       name: 'Dashboard',
