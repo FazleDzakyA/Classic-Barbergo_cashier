@@ -78,12 +78,6 @@ export const Reports: React.FC = () => {
 
 
 
-  // Shift reports — status comes 100% from MySQL via API. No localStorage override.
-  const shiftReports = useMemo(() => {
-    if (!shiftReportsRaw) return [];
-    return [...shiftReportsRaw].sort((a, b) => b.submittedAt - a.submittedAt);
-  }, [shiftReportsRaw]);
-
   const currency = settings?.currency || 'Rp';
 
   // State
@@ -97,6 +91,23 @@ export const Reports: React.FC = () => {
   const [isInspectModalOpen, setIsInspectModalOpen] = useState<boolean>(false);
 
   // Unverified Shift Reports Alert Filter
+  // Local optimistic override: IDs that were just ACC'd in this session
+  // This ensures the UI shows "Terverifikasi" instantly without waiting for next polling cycle
+  const [localVerifiedIds, setLocalVerifiedIds] = useState<Set<number>>(new Set());
+
+  // Shift reports — status from MySQL, with instant local optimistic override after ACC
+  const shiftReports = useMemo(() => {
+    if (!shiftReportsRaw) return [];
+    return [...shiftReportsRaw]
+      .sort((a, b) => b.submittedAt - a.submittedAt)
+      .map(r => {
+        if (r.id != null && localVerifiedIds.has(r.id) && r.status !== 'diverifikasi') {
+          return { ...r, status: 'diverifikasi' as const };
+        }
+        return r;
+      });
+  }, [shiftReportsRaw, localVerifiedIds]);
+
   const unverifiedReports = useMemo(() => {
     if (!shiftReports) return [];
     return shiftReports.filter(r => r.status === 'terkirim').sort((a, b) => b.submittedAt - a.submittedAt);
@@ -124,7 +135,10 @@ export const Reports: React.FC = () => {
         throw new Error(err.message || `Server error: ${res.status}`);
       }
 
-      // 2. Clear local cache so Edge reloads from MySQL immediately
+      // 2. Instantly flip the UI: remove ACC button, show badge
+      setLocalVerifiedIds(prev => new Set([...prev, reportId]));
+
+      // 3. Clear local cache so Edge reloads from MySQL immediately
       (db.shiftReports as any).cache = null;
       (db.shiftReports as any).fetchPromise = null;
 
