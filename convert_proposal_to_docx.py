@@ -202,8 +202,13 @@ def create_proposal_docx(md_path, docx_path):
     if in_table:
         process_table(table_lines)
 
-    doc.save(docx_path)
-    print(f"Successfully created docx at {docx_path}")
+    try:
+        doc.save(docx_path)
+        print(f"Successfully created docx at {docx_path}")
+    except PermissionError:
+        fallback_path = docx_path.replace('.docx', '_REVISI_RAB.docx')
+        doc.save(fallback_path)
+        print(f"File locked by Word. Saved to {fallback_path}")
 
 if __name__ == '__main__':
     create_proposal_docx('PROPOSAL_BARBERFLOW.md', 'PROPOSAL_BARBERFLOW.docx')
