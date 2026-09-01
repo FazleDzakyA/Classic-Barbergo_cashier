@@ -57,10 +57,12 @@ export const CustomerBooking: React.FC = () => {
       ).sort((a, b) => b.createdAt - a.createdAt);
     }), [user]
   );
-  // Real-time polling to keep booking statuses live-synced from kasir / backend API
+  // Real-time polling to keep bookings, services, and barbers live-synced from Admin / API (Edge + Chrome)
   useEffect(() => {
     const interval = setInterval(() => {
       (db.transactions as any).cache = null;
+      (db.services as any).cache = null;
+      (db.barbers as any).cache = null;
       notifyChange();
     }, 3000);
     return () => clearInterval(interval);
