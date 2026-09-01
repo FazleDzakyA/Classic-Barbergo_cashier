@@ -64,7 +64,7 @@ export const UserManagement: React.FC = () => {
       if (nextActive) {
         toast.success(`Banned akun ${userObj.name} berhasil dibuka! (Status: Aktif)`);
       } else {
-        toast.error(`Akun ${userObj.name} telah berhasil di-Banned!`);
+        toast.success(`Akun ${userObj.name} berhasil di-Banned!`);
       }
     } catch (err) {
       console.error(err);
