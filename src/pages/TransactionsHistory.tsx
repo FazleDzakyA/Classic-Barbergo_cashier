@@ -316,11 +316,21 @@ export const TransactionsHistory: React.FC = () => {
               </thead>
               <tbody>
                 {paginatedTransactions.map((trx) => {
-                  const barberObj = barbers?.find(b => b.id === trx.barberId);
+                  const barberObj = barbers?.find(b => Number(b.id) === Number(trx.barberId));
                   const bName = barberObj?.name || 'Unknown';
                   const initials = bName.substring(0, 2).toUpperCase();
-                  const serviceNames = trx.serviceIds
-                    .map(sid => services?.find(s => s.id === sid)?.name)
+
+                  const rawSids = trx.serviceIds;
+                  const parsedSids: number[] = Array.isArray(rawSids)
+                    ? rawSids.map(id => Number(id)).filter(n => !isNaN(n))
+                    : typeof rawSids === 'string'
+                    ? (rawSids as string).split(',').map(s => Number(s.trim())).filter(n => !isNaN(n))
+                    : typeof rawSids === 'number'
+                    ? [rawSids]
+                    : [];
+
+                  const serviceNames = parsedSids
+                    .map(sid => services?.find(s => Number(s.id) === Number(sid))?.name)
                     .filter(Boolean)
                     .join(', ');
 

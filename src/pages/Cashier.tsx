@@ -832,8 +832,21 @@ export const Cashier: React.FC = () => {
                 </thead>
                 <tbody>
                   {customerBookingsList.map((bk) => {
-                    const bName = barbers?.find(b => b.id === bk.barberId)?.name || 'Barber';
-                    const sNames = bk.serviceIds.map(sid => services?.find(s => s.id === sid)?.name || allServices?.find(s => s.id === sid)?.name).filter(Boolean).join(', ');
+                    const bName = barbers?.find(b => Number(b.id) === Number(bk.barberId))?.name || 'Barber';
+                    
+                    const rawSids = bk.serviceIds;
+                    const parsedSids: number[] = Array.isArray(rawSids)
+                      ? rawSids.map(id => Number(id)).filter(n => !isNaN(n))
+                      : typeof rawSids === 'string'
+                      ? (rawSids as string).split(',').map(s => Number(s.trim())).filter(n => !isNaN(n))
+                      : typeof rawSids === 'number'
+                      ? [rawSids]
+                      : [];
+
+                    const sNames = parsedSids
+                      .map(sid => services?.find(s => Number(s.id) === Number(sid))?.name || allServices?.find(s => Number(s.id) === Number(sid))?.name)
+                      .filter(Boolean)
+                      .join(', ');
 
                     return (
                       <tr key={bk.id}>
