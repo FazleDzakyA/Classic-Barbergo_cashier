@@ -210,28 +210,11 @@ export const Cashier: React.FC = () => {
     };
   }, []);
 
-  // Generate Transaction ID
-  const fetchNextTrxId = async () => {
-    const todayStr = dayjs().format('YYYY-MM-DD');
-    const dateNumStr = todayStr.replace(/-/g, '');
-    const prefix = `TRX-${dateNumStr}`;
-    try {
-      const dayTxs = await db.transactions.where('id').startsWith(prefix).toArray();
-      let maxNum = 0;
-      dayTxs.forEach((t: any) => {
-        const parts = t.id.split('-');
-        if (parts.length === 3) {
-          const num = parseInt(parts[2], 10);
-          if (num > maxNum) maxNum = num;
-        }
-      });
-      const nextNum = maxNum + 1;
-      const numStr = String(nextNum).padStart(4, '0');
-      setTrxId(`${prefix}-${numStr}`);
-    } catch (err) {
-      console.error('Error generating transaction ID:', err);
-      setTrxId(`${prefix}-0001`);
-    }
+  // Generate Transaction ID — timestamp + random suffix to guarantee uniqueness
+  const fetchNextTrxId = () => {
+    const dateNumStr = dayjs().format('YYYYMMDD');
+    const randPart = Math.floor(1000 + Math.random() * 9000);
+    setTrxId(`TRX-${dateNumStr}-${randPart}`);
   };
 
   useEffect(() => {
@@ -486,16 +469,11 @@ export const Cashier: React.FC = () => {
     }
 
     try {
-      // Ensure unique transaction ID
-      let finalTrxId = trxId;
-      if (!finalTrxId) {
-        finalTrxId = `TRX-${dayjs().format('YYYYMMDD')}-${Math.floor(1000 + Math.random() * 9000)}`;
-      }
-      const allTxs = await db.transactions.toArray();
-      const existing = allTxs.find(t => t.id === finalTrxId);
-      if (existing) {
-        finalTrxId = `TRX-${dayjs().format('YYYYMMDD')}-${Math.floor(1000 + Math.random() * 9000)}`;
-      }
+      // Always generate a fresh unique ID (timestamp + random = no collision)
+      const dateNumStr = dayjs().format('YYYYMMDD');
+      const finalTrxId = trxId && trxId.includes(dateNumStr)
+        ? trxId
+        : `TRX-${dateNumStr}-${Date.now().toString().slice(-6)}`;
 
       const transactionObj: Transaction = {
         id: finalTrxId,
