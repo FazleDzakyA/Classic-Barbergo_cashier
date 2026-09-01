@@ -83,14 +83,14 @@ export const Reports: React.FC = () => {
     return `${r.date || ''}_${r.cashierName || ''}_${r.actualCash || 0}_${r.totalTransactions || 0}`;
   };
 
-  // Verified shift reports IDs stored persistently in localStorage
-  const [verifiedReportIds, setVerifiedReportIds] = useState<string[]>(() => {
+  // Verified shift reports IDs (legacy localStorage fallback, kept for compatibility)
+  const verifiedReportIds: string[] = (() => {
     try {
       return JSON.parse(localStorage.getItem('barberflow_verified_report_ids') || '[]');
     } catch {
       return [];
     }
-  });
+  })();
 
   // Shift reports mapped with verified status
   const shiftReports = useMemo(() => {
@@ -132,52 +132,52 @@ export const Reports: React.FC = () => {
 
   // Helper to verify a shift report
   const handleVerifyShiftReport = async (rpt: ShiftReport) => {
-    const key = getReportKey(rpt);
-    const id1 = String(rpt.id || '');
-    const id2 = String(rpt.submittedAt || '');
-    const id3 = String(rpt.sessionId || '');
-    const reportId = rpt.id || rpt.submittedAt || rpt.sessionId || key;
-
     try {
-      // 1. Save to persistent verifiedReportIds state & localStorage
-      const newVerified = Array.from(new Set([...verifiedReportIds, key, id1, id2, id3].filter(Boolean)));
-      setVerifiedReportIds(newVerified);
-      localStorage.setItem('barberflow_verified_report_ids', JSON.stringify(newVerified));
+      const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '').replace(/\/$/, '');
+      const reportId = rpt.id;
 
-      // 2. Update in DB using db.shiftReports.update
-      await db.shiftReports.update((rpt.id || rpt.submittedAt || rpt.sessionId) as any, { status: 'diverifikasi' });
+      if (!reportId) {
+        toast.error('ID laporan tidak ditemukan, tidak bisa verifikasi');
+        return;
+      }
 
-      // 3. Direct localStorage backup update for instant persistence
-      try {
-        const raw = localStorage.getItem('barberflow_/api/shift-reports');
-        if (raw) {
-          const list = JSON.parse(raw);
-          const idx = list.findIndex((item: any) => 
-            getReportKey(item) === key ||
-            String(item.id) === String(reportId) ||
-            String(item.submittedAt) === String(reportId) ||
-            String(item.sessionId) === String(reportId)
-          );
-          if (idx >= 0) {
-            list[idx].status = 'diverifikasi';
-            localStorage.setItem('barberflow_/api/shift-reports', JSON.stringify(list));
-          }
-        }
-      } catch (_e) {}
+      // 1. Hit the correct /verify endpoint on the backend
+      const res = await fetch(`${API_URL}/api/shift-reports/${reportId}/verify`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+      });
 
-      // 4. Save notification for cashier page
-      const msg = `Admin telah memverifikasi laporan shift tanggal ${rpt.date} oleh ${rpt.cashierName}. Terima kasih!`;
-      localStorage.setItem('barberflow_shift_verified_notif', msg);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || `Server error: ${res.status}`);
+      }
 
-      // 5. Update local modal state if open so modal UI updates immediately
+      // 2. Clear local cache so Edge reloads from MySQL immediately
+      (db.shiftReports as any).cache = null;
+      (db.shiftReports as any).fetchPromise = null;
+
+      // 3. Save verified notification to backend (settings table) so Kasir Chrome
+      //    can pick it up on next polling cycle
+      const notifMsg = `Admin telah memverifikasi laporan shift tanggal ${rpt.date} oleh ${rpt.cashierName}. Terima kasih!`;
+      fetch(`${API_URL}/api/settings`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key_name: 'shift_verified_notif', key_value: notifMsg })
+      }).catch(() => {
+        // fallback: save to localStorage so same-browser cashier page sees it
+        localStorage.setItem('barberflow_shift_verified_notif', notifMsg);
+      });
+
+      // 4. Also update local state so Edge modal closes cleanly
       setSelectedShiftForModal(prev => prev ? { ...prev, status: 'diverifikasi' } : null);
 
+      notifyChange();
       sound.playSuccess();
-      toast.success('✅ Laporan shift berhasil terverifikasi (ACC)! Notifikasi dikirim ke kasir.');
-    } catch (err) {
+      toast.success('✅ Laporan shift berhasil di-ACC! Kasir akan mendapat notifikasi.');
+    } catch (err: any) {
       console.error('Error verifying shift report:', err);
       sound.playError();
-      toast.error('Gagal memverifikasi laporan shift');
+      toast.error(err?.message || 'Gagal memverifikasi laporan shift');
     }
   };
 

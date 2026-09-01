@@ -202,6 +202,29 @@ export const Cashier: React.FC = () => {
       (db.barbers as any).cache = null;
       (db.services as any).cache = null;
       notifyChange();
+
+      // Poll shift report status: if Admin ACC'd, show notification banner to Kasir
+      const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '').replace(/\/$/, '');
+      fetch(`${API_URL}/api/shift-reports`)
+        .then(r => r.ok ? r.json() : null)
+        .then((reports: any[]) => {
+          if (!reports || !Array.isArray(reports)) return;
+          // Find the most recent report that is now verified
+          const lastVerified = reports.find(r => r.status === 'diverifikasi');
+          if (lastVerified) {
+            // Only show if not already dismissed
+            const dismissed = localStorage.getItem('barberflow_shift_verified_dismiss');
+            if (String(lastVerified.id) !== dismissed) {
+              const msg = `Admin telah memverifikasi laporan shift tanggal ${lastVerified.date} oleh ${lastVerified.cashierName}. Terima kasih!`;
+              setVerifiedNotif(msg);
+            }
+          }
+        })
+        .catch(() => {
+          // Fallback: read from localStorage
+          const local = localStorage.getItem('barberflow_shift_verified_notif');
+          if (local) setVerifiedNotif(local);
+        });
     }, 3000);
 
     return () => {
@@ -627,8 +650,15 @@ export const Cashier: React.FC = () => {
             </div>
           </div>
           <button type="button" style={{ background: 'transparent', border: 'none', color: '#71717A', cursor: 'pointer', fontSize: '1.1rem', padding: '0.25rem' }}
-            onClick={() => {
+            onClick={async () => {
               localStorage.removeItem('barberflow_shift_verified_notif');
+              // Mark the latest verified report as dismissed so polling won't re-show it
+              try {
+                const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '').replace(/\/$/, '');
+                const reports = await fetch(`${API_URL}/api/shift-reports`).then(r => r.json());
+                const lastVerified = Array.isArray(reports) && reports.find((r: any) => r.status === 'diverifikasi');
+                if (lastVerified) localStorage.setItem('barberflow_shift_verified_dismiss', String(lastVerified.id));
+              } catch (_e) {}
               setVerifiedNotif(null);
             }}
           >✕</button>
