@@ -216,32 +216,50 @@ class MockTable<T, PK extends string | number> {
         return res.json();
       })
       .then(data => {
-        // Merge API data with local data, preserving local modifications (e.g. status updates)
-        const localData = this.getLocalStore();
-        const localMap = new Map((localData as any[]).map((item: any) => [
-          String(item.id ?? item.key ?? item.key_name ?? item.submittedAt ?? item.sessionId),
-          item
-        ]));
+        let merged: any[];
 
-        const mergedApi = (data as any[]).map((apiItem: any) => {
-          const itemId = String(apiItem.id ?? apiItem.key ?? apiItem.key_name ?? apiItem.submittedAt ?? apiItem.sessionId);
-          const localItem = localMap.get(itemId);
-          if (localItem) {
-            // API data is authoritative for updated status/fields
-            return { ...localItem, ...apiItem };
-          }
-          return apiItem;
-        });
+        // MASTER DATA (services, barbers, users, settings):
+        // API is 100% authoritative — never merge with stale localStorage.
+        // This ensures Admin edits in Edge appear immediately in Chrome.
+        const isMasterData = this.apiPath.includes('services') ||
+                             this.apiPath.includes('barbers') ||
+                             this.apiPath.includes('users');
 
-        const apiIds = new Set((data as any[]).map((item: any) => String(item.id ?? item.key ?? item.key_name ?? item.submittedAt ?? item.sessionId)));
-        const onlyLocal = localData.filter((item: any) => {
-          const itemId = String(item.id ?? item.key ?? item.key_name ?? item.submittedAt ?? item.sessionId);
-          return !apiIds.has(itemId);
-        });
+        if (isMasterData) {
+          // Use API data directly, no onlyLocal ghosts
+          merged = data as any[];
+        } else {
+          // TRANSACTIONAL DATA (transactions, expenses, sessions, shift-reports):
+          // Keep local-only items so offline bookings are preserved.
+          const localData = this.getLocalStore();
+          const localMap = new Map((localData as any[]).map((item: any) => [
+            String(item.id ?? item.key ?? item.key_name ?? item.submittedAt ?? item.sessionId),
+            item
+          ]));
 
-        const merged = [...mergedApi, ...onlyLocal];
+          const mergedApi = (data as any[]).map((apiItem: any) => {
+            const itemId = String(apiItem.id ?? apiItem.key ?? apiItem.key_name ?? apiItem.submittedAt ?? apiItem.sessionId);
+            const localItem = localMap.get(itemId);
+            if (localItem) {
+              // API data wins for status/updated fields
+              return { ...localItem, ...apiItem };
+            }
+            return apiItem;
+          });
+
+          const apiIds = new Set((data as any[]).map((item: any) =>
+            String(item.id ?? item.key ?? item.key_name ?? item.submittedAt ?? item.sessionId)
+          ));
+          const onlyLocal = localData.filter((item: any) => {
+            const itemId = String(item.id ?? item.key ?? item.key_name ?? item.submittedAt ?? item.sessionId);
+            return !apiIds.has(itemId);
+          });
+
+          merged = [...mergedApi, ...onlyLocal];
+        }
+
         this.cache = merged;
-        this.setLocalStore(merged);
+        this.setLocalStore(merged as T[]);
         this.fetchPromise = null;
         return merged;
       })
