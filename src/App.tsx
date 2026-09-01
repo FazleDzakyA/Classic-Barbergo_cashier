@@ -9,6 +9,7 @@ import { Dashboard } from './pages/Dashboard';
 import { Cashier } from './pages/Cashier';
 import { TransactionsHistory } from './pages/TransactionsHistory';
 import { BarberManagement } from './pages/BarberManagement';
+import { UserManagement } from './pages/UserManagement';
 import { ServiceManagement } from './pages/ServiceManagement';
 import { Expenses } from './pages/Expenses';
 import { Reports } from './pages/Reports';
@@ -72,6 +73,14 @@ export const App: React.FC = () => {
                 element={
                   <ProtectedRoute allowedRoles={['admin']}>
                     <BarberManagement />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="users-management" 
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <UserManagement />
                   </ProtectedRoute>
                 } 
               />

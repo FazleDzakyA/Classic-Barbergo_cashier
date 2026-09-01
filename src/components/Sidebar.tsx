@@ -10,7 +10,8 @@ import {
   Sparkles, 
   BarChart3, 
   Settings, 
-  LogOut
+  LogOut,
+  UserCheck
 } from 'lucide-react';
 import { sound } from '../utils/audio';
 import './Sidebar.css';
@@ -56,6 +57,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       path: '/barbers',
       name: 'Barber',
       icon: <Users size={18} />,
+      roles: ['admin']
+    },
+    {
+      path: '/users-management',
+      name: 'Data User',
+      icon: <UserCheck size={18} />,
       roles: ['admin']
     },
     {
