@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { db, useLiveQuery } from '../database/db';
+import React, { useState, useMemo, useEffect } from 'react';
+import { db, useLiveQuery, notifyChange } from '../database/db';
 import type { Barber } from '../types';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -50,6 +50,15 @@ export const BarberManagement: React.FC = () => {
 
   // Component States
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Cross-browser live sync polling (Edge + Chrome)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      (db.barbers as any).cache = null;
+      notifyChange();
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
   
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);

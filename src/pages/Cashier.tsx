@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { db, useLiveQuery } from '../database/db';
+import { db, useLiveQuery, notifyChange } from '../database/db';
 import type { Transaction, ShiftReport } from '../types';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -190,13 +190,24 @@ export const Cashier: React.FC = () => {
   const watchedServiceIds = watch('serviceIds') || [];
   const watchedPaymentMethod = watch('paymentMethod');
 
-  // Realtime clock
+  // Realtime clock & Cross-browser live polling (Edge + Chrome)
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentDate(dayjs().format('YYYY-MM-DD'));
       setCurrentTime(dayjs().format('HH:mm'));
     }, 10000);
-    return () => clearInterval(timer);
+
+    const syncPoll = setInterval(() => {
+      (db.transactions as any).cache = null;
+      (db.barbers as any).cache = null;
+      (db.services as any).cache = null;
+      notifyChange();
+    }, 3000);
+
+    return () => {
+      clearInterval(timer);
+      clearInterval(syncPoll);
+    };
   }, []);
 
   // Generate Transaction ID

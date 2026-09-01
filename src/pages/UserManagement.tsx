@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { db, useLiveQuery } from '../database/db';
+import React, { useState, useEffect } from 'react';
+import { db, useLiveQuery, notifyChange } from '../database/db';
 import type { User } from '../types';
 import { 
   Users, 
@@ -23,6 +23,15 @@ export const UserManagement: React.FC = () => {
   const [search, setSearch] = useState('');
   const [filterRole, setFilterRole] = useState<'all' | 'admin' | 'cashier' | 'customer'>('all');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+  // Cross-browser live sync polling (Edge + Chrome)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      (db.users as any).cache = null;
+      notifyChange();
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Form states for adding user
   const [newUsername, setNewUsername] = useState('');
