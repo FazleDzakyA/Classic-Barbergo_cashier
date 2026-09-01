@@ -1017,35 +1017,57 @@ export const Cashier: React.FC = () => {
                   style={{ 
                     borderLeftColor: s.labelColor,
                     opacity: isOutOfStock ? 0.45 : 1,
-                    cursor: isOutOfStock ? 'not-allowed' : 'pointer'
+                    cursor: isOutOfStock ? 'not-allowed' : 'pointer',
+                    padding: 0,
+                    overflow: 'hidden'
                   }}
                   whileHover={isOutOfStock ? {} : { y: -2 }}
                   whileTap={isOutOfStock ? {} : { scale: 0.98 }}
                 >
-                  <div className="card-selection-indicator">
-                    {isSelected && <Check size={12} className="check-icon" />}
+                  {/* Service Image Banner */}
+                  <div style={{ position: 'relative', width: '100%', height: '90px', overflow: 'hidden', flexShrink: 0 }}>
+                    {s.image ? (
+                      <img
+                        src={s.image}
+                        alt={s.name}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      />
+                    ) : (
+                      <div style={{ width: '100%', height: '100%', background: `linear-gradient(135deg, ${s.labelColor}33, ${s.labelColor}11)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Sparkles size={28} style={{ color: s.labelColor, opacity: 0.7 }} />
+                      </div>
+                    )}
+                    {/* Overlay selected checkmark */}
+                    {isSelected && (
+                      <div style={{ position: 'absolute', top: '6px', right: '6px', background: '#22C55E', borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Check size={13} color="#FFF" />
+                      </div>
+                    )}
+                    {isOutOfStock && (
+                      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <span style={{ color: '#EF4444', fontWeight: 800, fontSize: '0.75rem', background: 'rgba(0,0,0,0.7)', padding: '0.2rem 0.6rem', borderRadius: '6px' }}>STOK HABIS</span>
+                      </div>
+                    )}
                   </div>
-                  <div className="service-card-info">
-                    <span className="srv-name">{s.name}</span>
-                    <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', marginTop: '0.2rem' }}>
-                      <span className="srv-cat">{s.category}</span>
-                      {hasStockLimit && (
-                        <span style={{
-                          fontSize: '0.68rem',
-                          padding: '0.1rem 0.4rem',
-                          borderRadius: '4px',
-                          backgroundColor: isOutOfStock ? 'rgba(239, 68, 68, 0.2)' : 'rgba(234, 179, 8, 0.2)',
-                          color: isOutOfStock ? '#EF4444' : '#EAB308',
-                          fontWeight: 700
-                        }}>
-                          {isOutOfStock ? 'Stok Habis' : `Stok: ${s.stock} Pcs`}
-                        </span>
-                      )}
+
+                  {/* Card Body */}
+                  <div style={{ padding: '0.6rem 0.75rem 0.55rem' }}>
+                    <div className="service-card-info" style={{ marginBottom: '0.35rem' }}>
+                      <span className="srv-name">{s.name}</span>
+                      <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', marginTop: '0.2rem', flexWrap: 'wrap' }}>
+                        <span className="srv-cat">{s.category}</span>
+                        {hasStockLimit && !isOutOfStock && (
+                          <span style={{ fontSize: '0.65rem', padding: '0.1rem 0.35rem', borderRadius: '4px', backgroundColor: 'rgba(234, 179, 8, 0.2)', color: '#EAB308', fontWeight: 700 }}>
+                            Stok: {s.stock} Pcs
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <div className="service-card-footer">
-                    <span className="srv-dur">{s.duration} m</span>
-                    <span className="srv-price">{formatMoney(s.price)}</span>
+                    <div className="service-card-footer">
+                      <span className="srv-dur">{s.duration} m</span>
+                      <span className="srv-price">{formatMoney(s.price)}</span>
+                    </div>
                   </div>
                 </motion.div>
               );
