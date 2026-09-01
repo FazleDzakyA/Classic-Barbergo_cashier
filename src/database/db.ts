@@ -309,30 +309,15 @@ class MockTable<T, PK extends string | number> {
 
   async put(item: any): Promise<PK> {
     const id = (item.id || item.key || item.key_name);
-    const method = id && id !== 'app_settings' ? 'PUT' : 'POST';
-    const url = id && id !== 'app_settings' ? `${API_URL}${this.apiPath}/${id}` : `${API_URL}${this.apiPath}`;
     
+    // 1. Optimistic local update
     try {
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(item)
-      });
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        const msg = errJson.message || (errJson.errors ? Object.values(errJson.errors).flat().join(', ') : null);
-        throw new Error(msg || `Gagal menyimpan data (${res.status})`);
-      }
-      const data = await res.json();
-      this.cache = null;
-      this.fetchPromise = null;
-      notifyChange();
-      return (data.id || data.key || data.key_name || id) as PK;
-    } catch (err: any) {
-      if (err.message && !err.message.includes('fetch')) throw err;
-      // Offline fallback
-      const items = await this.toArray();
-      const idx = items.findIndex((i: any) => String(i.id || i.key) === String(id));
+      const items = this.getLocalStore();
+      const idx = items.findIndex((i: any) => 
+        String(i.id || i.key || i.key_name) === String(id) ||
+        (i.username && item.username && i.username.toLowerCase() === item.username.toLowerCase()) ||
+        (i.email && item.email && i.email.toLowerCase() === item.email.toLowerCase())
+      );
       let updated = [...items];
       if (idx >= 0) {
         updated[idx] = { ...items[idx], ...item };
@@ -342,8 +327,25 @@ class MockTable<T, PK extends string | number> {
       this.setLocalStore(updated as T[]);
       this.cache = updated as T[];
       notifyChange();
-      return (id || Date.now()) as PK;
-    }
+    } catch (_e) {}
+
+    // 2. Background API sync
+    const method = id && id !== 'app_settings' ? 'PUT' : 'POST';
+    const url = id && id !== 'app_settings' ? `${API_URL}${this.apiPath}/${id}` : `${API_URL}${this.apiPath}`;
+    
+    fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(item)
+    }).then(res => {
+      if (res.ok) {
+        this.cache = null;
+        this.fetchPromise = null;
+        notifyChange();
+      }
+    }).catch(() => {});
+
+    return (id || Date.now()) as PK;
   }
 
   async update(id: PK, changes: any): Promise<PK> {

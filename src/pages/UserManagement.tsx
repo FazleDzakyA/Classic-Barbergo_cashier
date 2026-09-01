@@ -56,10 +56,12 @@ export const UserManagement: React.FC = () => {
 
   const handleToggleStatus = async (userObj: User) => {
     try {
-      const updatedUser = { ...userObj, isActive: !userObj.isActive };
+      const currentActive = userObj.isActive !== false;
+      const nextActive = !currentActive;
+      const updatedUser = { ...userObj, isActive: nextActive };
       await db.users.put(updatedUser);
       sound.playBeep();
-      toast.success(`Status ${userObj.name} berhasil diubah!`);
+      toast.success(`Akun ${userObj.name} berhasil di-${nextActive ? 'aktifkan' : 'nonaktifkan'}!`);
     } catch (err) {
       console.error(err);
       sound.playError();
