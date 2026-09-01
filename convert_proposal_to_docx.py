@@ -67,24 +67,40 @@ def create_proposal_docx(md_path, docx_path):
             for j, cell_text in enumerate(row):
                 if j < cols_count:
                     cell = table.cell(i, j)
-                    cell.text = cell_text.strip()
+                    cell.text = ""
                     p = cell.paragraphs[0]
                     p.paragraph_format.space_before = Pt(4)
                     p.paragraph_format.space_after = Pt(4)
 
-                    if i == 0:  # Header row
+                    cleaned = cell_text.strip()
+                    parts = re.split(r'(\*\*.*?\*\*|\*.*?\*)', cleaned)
+                    for part in parts:
+                        if not part:
+                            continue
+                        if part.startswith('**') and part.endswith('**'):
+                            r = p.add_run(part[2:-2])
+                            r.font.bold = True
+                        elif part.startswith('*') and part.endswith('*'):
+                            r = p.add_run(part[1:-1])
+                            r.font.italic = True
+                        else:
+                            r = p.add_run(part)
+
+                        r.font.name = 'Arial'
+                        if i == 0:
+                            r.font.bold = True
+                            r.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
+                            r.font.size = Pt(10)
+                        else:
+                            r.font.size = Pt(9.5)
+
+                    if i == 0:
                         set_cell_background(cell, "1E293B")
-                        for run in p.runs:
-                            run.font.bold = True
-                            run.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
-                            run.font.size = Pt(10)
                     else:
                         if i % 2 == 1:
                             set_cell_background(cell, "F8FAFC")
                         else:
                             set_cell_background(cell, "FFFFFF")
-                        for run in p.runs:
-                            run.font.size = Pt(9.5)
         doc.add_paragraph()  # Spacing
 
     def process_code_block(code_lines):
@@ -211,4 +227,4 @@ def create_proposal_docx(md_path, docx_path):
         print(f"File locked by Word. Saved to {fallback_path}")
 
 if __name__ == '__main__':
-    create_proposal_docx('PROPOSAL_BARBERFLOW.md', 'PROPOSAL_BARBERFLOW.docx')
+    create_proposal_docx('PROPOSAL_BARBERFLOW.md', 'PROPOSAL_BARBERFLOW_FINAL.docx')
