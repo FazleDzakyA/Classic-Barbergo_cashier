@@ -20,9 +20,10 @@ const loginSchema = zod.object({
   remember: zod.boolean()
 });
 
-// Zod Schema for Customer Registration (Strict Real Email required)
+// Zod Schema for Customer Registration (Strict Real Email & Custom Username)
 const registerSchema = zod.object({
   name: zod.string().min(2, 'Nama lengkap minimal 2 karakter'),
+  username: zod.string().min(3, 'Username minimal 3 karakter').regex(/^[a-zA-Z0-9._]+$/, 'Username hanya boleh huruf, angka, titik, atau underscore'),
   email: zod.string().email('Format email tidak valid. Gunakan email beneran (contoh: user@gmail.com)'),
   password: zod.string().min(6, 'Password minimal 6 karakter')
 });
@@ -62,6 +63,7 @@ export const Login: React.FC = () => {
     resolver: zodResolver(registerSchema),
     defaultValues: {
       name: '',
+      username: '',
       email: '',
       password: ''
     }
@@ -98,25 +100,29 @@ export const Login: React.FC = () => {
       const passHash = await hashPassword(data.password);
       const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '').replace(/\/$/, '');
 
-      // Check if email already exists in local DB or API
+      const usernameClean = data.username.trim().toLowerCase();
+
+      // Check if email or username already exists in local DB
       const allUsers = await db.users.toArray();
       const existing = allUsers.find((u: any) => 
         (u.email && u.email.toLowerCase() === data.email.toLowerCase()) || 
-        (u.username && u.username.toLowerCase() === data.email.toLowerCase())
+        (u.username && u.username.toLowerCase() === usernameClean)
       );
       if (existing) {
         sound.playError();
-        toast.error('Email ini sudah terdaftar. Silakan login.');
+        if (existing.email && existing.email.toLowerCase() === data.email.toLowerCase()) {
+          toast.error('Email ini sudah terdaftar. Silakan login.');
+        } else {
+          toast.error('Username ini sudah dipakai. Gunakan username lain.');
+        }
         setIsSubmitting(false);
         return;
       }
 
-      // Generate username from email
-      const username = data.email.split('@')[0] + Math.floor(100 + Math.random() * 900);
       const newId = Date.now();
       const newUserObj: User & { id: number } = {
         id: newId,
-        username,
+        username: usernameClean,
         email: data.email,
         name: data.name,
         passwordHash: passHash,
@@ -132,6 +138,7 @@ export const Login: React.FC = () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             name: data.name,
+            username: usernameClean,
             email: data.email,
             passwordHash: passHash
           })
@@ -345,6 +352,21 @@ export const Login: React.FC = () => {
                     />
                   </div>
                   {regErrors.name && <span className="form-error">{regErrors.name.message}</span>}
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label uppercase-label" htmlFor="regUsername">USERNAME UNTUK LOGIN</label>
+                  <div className="input-with-icon">
+                    <UserIcon size={18} className="input-icon" />
+                    <input
+                      id="regUsername"
+                      type="text"
+                      className={`form-input icon-padding ${regErrors.username ? 'error-border' : ''}`}
+                      placeholder="Contoh: budi123 (tanpa spasi)"
+                      {...registerReg('username')}
+                    />
+                  </div>
+                  {regErrors.username && <span className="form-error">{regErrors.username.message}</span>}
                 </div>
 
                 <div className="form-group">

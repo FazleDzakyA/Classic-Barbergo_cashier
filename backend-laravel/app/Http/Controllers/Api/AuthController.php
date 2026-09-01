@@ -51,13 +51,15 @@ class AuthController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string',
+            'username' => 'nullable|string|unique:users,username',
             'email' => 'required|string|email|unique:users,email',
             'passwordHash' => 'required|string',
         ], [
-            'email.unique' => 'Email ini sudah terdaftar. Silakan login.'
+            'email.unique' => 'Email ini sudah terdaftar. Silakan login.',
+            'username.unique' => 'Username ini sudah digunakan. Silakan gunakan username lain.'
         ]);
 
-        $username = explode('@', $data['email'])[0] . rand(100, 999);
+        $username = !empty($data['username']) ? strtolower(trim($data['username'])) : (explode('@', $data['email'])[0] . rand(100, 999));
 
         $user = User::create([
             'username' => $username,
