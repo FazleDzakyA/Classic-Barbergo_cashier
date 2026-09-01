@@ -75,42 +75,14 @@ export const Reports: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Helper to generate a unique key for any shift report
-  const getReportKey = (r: Partial<ShiftReport>) => {
-    if (r.id) return String(r.id);
-    if (r.submittedAt) return String(r.submittedAt);
-    if (r.sessionId) return String(r.sessionId);
-    return `${r.date || ''}_${r.cashierName || ''}_${r.actualCash || 0}_${r.totalTransactions || 0}`;
-  };
 
-  // Verified shift reports IDs (legacy localStorage fallback, kept for compatibility)
-  const verifiedReportIds: string[] = (() => {
-    try {
-      return JSON.parse(localStorage.getItem('barberflow_verified_report_ids') || '[]');
-    } catch {
-      return [];
-    }
-  })();
 
-  // Shift reports mapped with verified status
+
+  // Shift reports — status comes 100% from MySQL via API. No localStorage override.
   const shiftReports = useMemo(() => {
     if (!shiftReportsRaw) return [];
-    return shiftReportsRaw.map(r => {
-      const key = getReportKey(r);
-      const id1 = String(r.id || '');
-      const id2 = String(r.submittedAt || '');
-      const id3 = String(r.sessionId || '');
-      const isVerified = r.status === 'diverifikasi' || 
-                         verifiedReportIds.includes(key) ||
-                         (id1 && verifiedReportIds.includes(id1)) || 
-                         (id2 && verifiedReportIds.includes(id2)) || 
-                         (id3 && verifiedReportIds.includes(id3));
-      if (isVerified && r.status !== 'diverifikasi') {
-        return { ...r, status: 'diverifikasi' as const };
-      }
-      return r;
-    });
-  }, [shiftReportsRaw, verifiedReportIds]);
+    return [...shiftReportsRaw].sort((a, b) => b.submittedAt - a.submittedAt);
+  }, [shiftReportsRaw]);
 
   const currency = settings?.currency || 'Rp';
 
