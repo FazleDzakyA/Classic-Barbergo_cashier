@@ -242,9 +242,14 @@ export const UserManagement: React.FC = () => {
                     </div>
                   </td>
                   <td>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                       <span className="font-mono text-gold" style={{ fontSize: '0.875rem' }}>@{u.username}</span>
-                      {u.email && <span className="text-muted" style={{ fontSize: '0.75rem' }}>{u.email}</span>}
+                      {u.email && (
+                        <>
+                          <span style={{ color: '#555', fontSize: '0.75rem' }}>|</span>
+                          <span className="text-muted" style={{ fontSize: '0.75rem' }}>{u.email}</span>
+                        </>
+                      )}
                     </div>
                   </td>
                   <td>{getRoleBadge(u.role)}</td>
