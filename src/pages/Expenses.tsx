@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { db, useLiveQuery } from '../database/db';
+import React, { useState, useMemo, useEffect } from 'react';
+import { db, useLiveQuery, notifyChange } from '../database/db';
 import type { Expense } from '../types';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -47,6 +47,16 @@ export const Expenses: React.FC = () => {
 
   const barbersList = barbers || [];
   const currency = settings?.currency || 'Rp';
+
+  // Cross-browser live sync polling (Edge + Chrome)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      (db.expenses as any).cache = null;
+      (db.barbers as any).cache = null;
+      notifyChange();
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Filters State
   const [searchTerm, setSearchTerm] = useState('');

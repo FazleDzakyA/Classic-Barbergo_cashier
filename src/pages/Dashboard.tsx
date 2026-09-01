@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { db, useLiveQuery } from '../database/db';
+import React, { useMemo, useEffect } from 'react';
+import { db, useLiveQuery, notifyChange } from '../database/db';
 import { 
   TrendingUp, 
   Bookmark,
@@ -47,6 +47,19 @@ export const Dashboard: React.FC = () => {
   const settings = useLiveQuery(() => db.settings.get());
 
   const currency = settings?.currency || 'Rp';
+
+  // Cross-browser live sync polling (Edge + Chrome)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      (db.transactions as any).cache = null;
+      (db.expenses as any).cache = null;
+      (db.barbers as any).cache = null;
+      (db.services as any).cache = null;
+      (db.sessions as any).cache = null;
+      notifyChange();
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   const today = dayjs().format('YYYY-MM-DD');
 

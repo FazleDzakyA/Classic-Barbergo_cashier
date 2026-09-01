@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { db, useLiveQuery } from '../database/db';
+import React, { useState, useMemo, useEffect } from 'react';
+import { db, useLiveQuery, notifyChange } from '../database/db';
 import type { Transaction } from '../types';
 import { 
   Search, 
@@ -26,6 +26,17 @@ export const TransactionsHistory: React.FC = () => {
   const settings = useLiveQuery(() => db.settings.get());
 
   const currency = settings?.currency || 'Rp';
+
+  // Cross-browser live sync polling (Edge + Chrome)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      (db.transactions as any).cache = null;
+      (db.barbers as any).cache = null;
+      (db.services as any).cache = null;
+      notifyChange();
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Filters State
   const [searchTerm, setSearchTerm] = useState('');
