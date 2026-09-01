@@ -30,8 +30,17 @@ export const UserManagement: React.FC = () => {
   const [newPassword, setNewPassword] = useState('');
   const [newRole, setNewRole] = useState<'admin' | 'cashier' | 'customer'>('cashier');
 
-  // Query all users from DB
-  const users = useLiveQuery(() => db.users.toArray(), []) || [];
+  // Query all users from DB and deduplicate
+  const rawUsers = useLiveQuery(() => db.users.toArray(), []) || [];
+  const users = React.useMemo(() => {
+    const seen = new Set<string>();
+    return rawUsers.filter(u => {
+      const key = (u.email || u.username || String(u.id)).toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [rawUsers]);
 
   // Filtered users
   const filteredUsers = users.filter(u => {
@@ -62,6 +71,17 @@ export const UserManagement: React.FC = () => {
     e.preventDefault();
     if (!newUsername || !newName || !newPassword) {
       toast.error('Username, Nama, dan Password wajib diisi');
+      return;
+    }
+
+    // Duplicate check
+    const existing = users.find(u => 
+      u.username?.toLowerCase() === newUsername.trim().toLowerCase() ||
+      (newEmail && u.email && u.email.toLowerCase() === newEmail.trim().toLowerCase())
+    );
+    if (existing) {
+      sound.playError();
+      toast.error('Username atau Email sudah terdaftar!');
       return;
     }
 

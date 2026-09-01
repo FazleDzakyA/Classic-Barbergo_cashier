@@ -167,6 +167,19 @@ class MockTable<T, PK extends string | number> {
       const raw = localStorage.getItem(`barberflow_${this.apiPath}`);
       if (raw) {
         const parsed = JSON.parse(raw);
+        if (this.apiPath.includes('users')) {
+          const seen = new Set<string>();
+          const deduped: any[] = [];
+          for (const u of parsed) {
+            const key = (u.email || u.username || String(u.id)).toLowerCase();
+            if (!seen.has(key)) {
+              seen.add(key);
+              deduped.push(u);
+            }
+          }
+          localStorage.setItem(`barberflow_${this.apiPath}`, JSON.stringify(deduped));
+          return deduped;
+        }
         if (this.apiPath.includes('services')) {
           const fallbackServices = this.getFallbackData('services') as any[];
           const fallbackMap = new Map(fallbackServices.map(s => [s.id, s.image]));
@@ -255,6 +268,17 @@ class MockTable<T, PK extends string | number> {
     // Optimistic local-first: save immediately then sync to backend
     try {
       const items = await this.toArray();
+
+      if (this.apiPath.includes('users')) {
+        const dup = items.find((u: any) => 
+          (item.email && u.email && u.email.toLowerCase() === item.email.toLowerCase()) ||
+          (item.username && u.username && u.username.toLowerCase() === item.username.toLowerCase())
+        );
+        if (dup) {
+          throw new Error('Email atau Username ini sudah terdaftar. Silakan gunakan yang lain.');
+        }
+      }
+
       const newId = item.id || Date.now();
       const newItem = { ...item, id: newId };
       const updated = [...items, newItem];
