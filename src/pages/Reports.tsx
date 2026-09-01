@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { db, useLiveQuery } from '../database/db';
+import React, { useState, useMemo, useEffect } from 'react';
+import { db, useLiveQuery, notifyChange } from '../database/db';
 import type { ShiftReport } from '../types';
 import { 
   Printer, 
@@ -60,6 +60,20 @@ export const Reports: React.FC = () => {
   const services = useLiveQuery(() => db.services.toArray());
   const settings = useLiveQuery(() => db.settings.get());
   const shiftReportsRaw = useLiveQuery(() => db.shiftReports.toArray());
+
+  // Cross-browser live sync polling (Edge + Chrome)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      (db.transactions as any).cache = null;
+      (db.expenses as any).cache = null;
+      (db.barbers as any).cache = null;
+      (db.services as any).cache = null;
+      (db.shiftReports as any).cache = null;
+      (db.sessions as any).cache = null;
+      notifyChange();
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Helper to generate a unique key for any shift report
   const getReportKey = (r: Partial<ShiftReport>) => {
