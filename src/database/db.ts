@@ -283,12 +283,11 @@ class MockTable<T, PK extends string | number> {
   }
 
   async add(item: any): Promise<PK> {
-    // Optimistic local-first: save immediately then sync to backend
     try {
-      const items = await this.toArray();
-
+      // Duplicate check for users
       if (this.apiPath.includes('users')) {
-        const dup = items.find((u: any) => 
+        const items = await this.toArray();
+        const dup = items.find((u: any) =>
           (item.email && u.email && u.email.toLowerCase() === item.email.toLowerCase()) ||
           (item.username && u.username && u.username.toLowerCase() === item.username.toLowerCase())
         );
@@ -297,38 +296,52 @@ class MockTable<T, PK extends string | number> {
         }
       }
 
-      const newId = item.id || Date.now();
-      const newItem = { ...item, id: newId };
-      const updated = [...items, newItem];
-      this.setLocalStore(updated as T[]);
-      this.cache = updated as T[];
-      notifyChange();
+      const localId = item.id || Date.now();
 
-      // Try to sync to backend in background
-      fetch(`${API_URL}${this.apiPath}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newItem)
-      }).then(async res => {
+      // API-FIRST: POST to backend FIRST so data reaches MySQL immediately.
+      // This guarantees bookings from Chrome are visible to Edge/Kasir in real-time.
+      try {
+        const res = await fetch(`${API_URL}${this.apiPath}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...item, id: localId })
+        });
+
         if (res.ok) {
           const apiItem = await res.json().catch(() => null);
-          if (apiItem && apiItem.id && String(apiItem.id) !== String(newId)) {
-            // Remap temporary local ID to actual backend ID in local storage to prevent duplicates
-            const currentLocal = this.getLocalStore();
-            const remapped = currentLocal.map((i: any) =>
-              String(i.id) === String(newId) ? { ...i, id: apiItem.id } : i
-            );
-            this.setLocalStore(remapped as T[]);
-          }
+          // Use server's real ID (MySQL auto-increment or server-assigned)
+          const finalId = (apiItem && apiItem.id) ? apiItem.id : localId;
+          const newItem = { ...(apiItem || item), id: finalId };
+
+          // Update local store with confirmed server data
+          const currentLocal = this.getLocalStore();
+          // Remove any existing temp entry with localId, add confirmed entry
+          const cleaned = currentLocal.filter((i: any) => String(i.id) !== String(localId));
+          this.setLocalStore([...cleaned, newItem] as T[]);
           this.cache = null;
           this.fetchPromise = null;
           notifyChange();
+          return finalId as PK;
+        } else {
+          // API returned error — parse message for user
+          const errJson = await res.json().catch(() => ({}));
+          throw new Error(errJson.message || errJson.error || `Gagal menyimpan ke server (${res.status})`);
         }
-      }).catch(() => {
-        // Backend sync failed silently - local already saved
-      });
-
-      return newId as PK;
+      } catch (fetchErr: any) {
+        // Network/API down — fallback to local-only (offline mode)
+        if (fetchErr.message && (fetchErr.message.includes('Gagal') || fetchErr.message.includes('terdaftar'))) {
+          throw fetchErr; // re-throw intentional errors
+        }
+        // True network failure: save locally and warn
+        console.warn('[db] API unreachable, saving locally only:', fetchErr);
+        const newItem = { ...item, id: localId };
+        const currentLocal = this.getLocalStore();
+        this.setLocalStore([...currentLocal, newItem] as T[]);
+        this.cache = null;
+        this.fetchPromise = null;
+        notifyChange();
+        return localId as PK;
+      }
     } catch (err: any) {
       console.error('Add error:', err);
       throw err;
@@ -432,19 +445,23 @@ class MockTable<T, PK extends string | number> {
       this.cache = items as T[];
       notifyChange();
 
-      // Then try to sync to backend in background
-      fetch(`${API_URL}${this.apiPath}/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(merged)
-      }).then(res => {
+      // API-FIRST: await PUT so MySQL is updated immediately (not background).
+      // This ensures status changes (proses/selesai/batal) from Edge kasir
+      // are visible in Chrome within the next 3s polling cycle.
+      try {
+        const res = await fetch(`${API_URL}${this.apiPath}/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(merged)
+        });
         if (res.ok) {
           this.cache = null;
           this.fetchPromise = null;
+          notifyChange();
         }
-      }).catch(() => {
-        // Backend sync failed silently - local already saved
-      });
+      } catch (_fetchErr) {
+        // Network unavailable - local update already applied
+      }
 
       return id;
     } catch (err: any) {
