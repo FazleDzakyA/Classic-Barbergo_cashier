@@ -11,7 +11,8 @@ import {
   User as CustomerIcon, 
   Plus, 
   CheckCircle,
-  XCircle
+  XCircle,
+  X
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { sound } from '../utils/audio';
@@ -192,19 +193,29 @@ export const UserManagement: React.FC = () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+          {search && (
+            <button 
+              type="button" 
+              onClick={() => setSearch('')}
+              title="Bersihkan pencarian"
+              style={{ background: 'transparent', border: 'none', color: '#71717A', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}
+            >
+              <X size={16} />
+            </button>
+          )}
         </div>
         <div className="role-filter-tabs">
           <button className={`role-tab ${filterRole === 'all' ? 'active' : ''}`} onClick={() => setFilterRole('all')}>
             Semua ({users.length})
           </button>
           <button className={`role-tab ${filterRole === 'admin' ? 'active' : ''}`} onClick={() => setFilterRole('admin')}>
-            Admin
+            Admin ({users.filter(u => u.role === 'admin').length})
           </button>
           <button className={`role-tab ${filterRole === 'cashier' ? 'active' : ''}`} onClick={() => setFilterRole('cashier')}>
-            Kasir
+            Kasir ({users.filter(u => u.role === 'cashier').length})
           </button>
           <button className={`role-tab ${filterRole === 'customer' ? 'active' : ''}`} onClick={() => setFilterRole('customer')}>
-            Pelanggan
+            Pelanggan ({users.filter(u => u.role === 'customer').length})
           </button>
         </div>
       </div>
