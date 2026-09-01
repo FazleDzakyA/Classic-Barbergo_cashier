@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" pages="8">
   <diagram name="Context diagram" id="XIpYmBOHUcILxwoyCMLm">
-    <mxGraphModel dx="3425" dy="420" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="3268" dy="420" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -2119,7 +2119,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="jJI-Nfw5ov-PgTYC2Lt8" name="ERD">
-    <mxGraphModel dx="1717" dy="1013" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" background="#ffffff" math="0" shadow="0">
+    <mxGraphModel dx="1381" dy="869" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" background="#ffffff" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -2295,19 +2295,19 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="e_report" parent="1" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#1a2a3a;strokeColor=#3498db;fontColor=#ffffff;fontStyle=1;fontSize=13;align=center;verticalAlign=middle;" value="SHIFT_REPORT" vertex="1">
-          <mxGeometry height="50" width="160" x="1000" y="560" as="geometry" />
+          <mxGeometry height="50" width="160" x="1580" y="580" as="geometry" />
         </mxCell>
         <mxCell id="a_rep_id" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1a2a3a;strokeColor=#3498db;fontColor=#aaddff;fontStyle=2;fontSize=11;" value="id (PK)" vertex="1">
-          <mxGeometry height="34" width="100" x="950" y="460" as="geometry" />
+          <mxGeometry height="34" width="100" x="1530" y="480" as="geometry" />
         </mxCell>
         <mxCell id="a_rep_date" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1a2a3a;strokeColor=#3498db;fontColor=#ffffff;fontSize=11;" value="date" vertex="1">
-          <mxGeometry height="34" width="90" x="1100" y="460" as="geometry" />
+          <mxGeometry height="34" width="90" x="1680" y="480" as="geometry" />
         </mxCell>
         <mxCell id="a_rep_total" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1a2a3a;strokeColor=#3498db;fontColor=#ffffff;fontSize=11;" value="totalTransactions" vertex="1">
-          <mxGeometry height="34" width="140" x="950" y="670" as="geometry" />
+          <mxGeometry height="34" width="140" x="1530" y="690" as="geometry" />
         </mxCell>
         <mxCell id="a_rep_status" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1a2a3a;strokeColor=#3498db;fontColor=#ffffff;fontSize=11;" value="status" vertex="1">
-          <mxGeometry height="34" width="90" x="1110" y="670" as="geometry" />
+          <mxGeometry height="34" width="90" x="1690" y="690" as="geometry" />
         </mxCell>
         <mxCell id="lr_id" edge="1" parent="1" source="a_rep_id" style="edgeStyle=none;html=1;strokeColor=#3498db;" target="e_report">
           <mxGeometry relative="1" as="geometry" />
@@ -2322,19 +2322,19 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="e_expense" parent="1" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#2a2a1a;strokeColor=#f1c40f;fontColor=#ffffff;fontStyle=1;fontSize=13;align=center;verticalAlign=middle;" value="EXPENSE" vertex="1">
-          <mxGeometry height="50" width="140" x="1000" y="870" as="geometry" />
+          <mxGeometry height="50" width="140" x="930" y="750" as="geometry" />
         </mxCell>
         <mxCell id="a_exp_id" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#2a2a1a;strokeColor=#f1c40f;fontColor=#fff099;fontStyle=2;fontSize=11;" value="id (PK)" vertex="1">
-          <mxGeometry height="34" width="100" x="950" y="800" as="geometry" />
+          <mxGeometry height="34" width="100" x="880" y="680" as="geometry" />
         </mxCell>
         <mxCell id="a_exp_cat" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#2a2a1a;strokeColor=#f1c40f;fontColor=#ffffff;fontSize=11;" value="category" vertex="1">
-          <mxGeometry height="34" width="100" x="1090" y="800" as="geometry" />
+          <mxGeometry height="34" width="100" x="1020" y="680" as="geometry" />
         </mxCell>
         <mxCell id="a_exp_amt" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#2a2a1a;strokeColor=#f1c40f;fontColor=#ffffff;fontSize=11;" value="amount" vertex="1">
-          <mxGeometry height="34" width="100" x="950" y="970" as="geometry" />
+          <mxGeometry height="34" width="100" x="880" y="850" as="geometry" />
         </mxCell>
         <mxCell id="a_exp_hdl" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#2a2a1a;strokeColor=#f1c40f;fontColor=#ffffff;fontSize=11;" value="handler" vertex="1">
-          <mxGeometry height="34" width="100" x="1090" y="970" as="geometry" />
+          <mxGeometry height="34" width="100" x="1020" y="850" as="geometry" />
         </mxCell>
         <mxCell id="le_id" edge="1" parent="1" source="a_exp_id" style="edgeStyle=none;html=1;strokeColor=#f1c40f;" target="e_expense">
           <mxGeometry relative="1" as="geometry" />
@@ -2349,19 +2349,19 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="e_review" parent="1" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#2a1a3a;strokeColor=#9b59b6;fontColor=#ffffff;fontStyle=1;fontSize=13;align=center;verticalAlign=middle;" value="REVIEW" vertex="1">
-          <mxGeometry height="50" width="140" x="80" y="1100" as="geometry" />
+          <mxGeometry height="50" width="140" x="100" y="1250" as="geometry" />
         </mxCell>
         <mxCell id="a_rev_id" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#2a1a3a;strokeColor=#9b59b6;fontColor=#ddaaff;fontStyle=2;fontSize=11;" value="id (PK)" vertex="1">
-          <mxGeometry height="34" width="100" x="20" y="1040" as="geometry" />
+          <mxGeometry height="34" width="100" x="40" y="1190" as="geometry" />
         </mxCell>
         <mxCell id="a_rev_cust" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#2a1a3a;strokeColor=#9b59b6;fontColor=#ffffff;fontSize=11;" value="customerName" vertex="1">
-          <mxGeometry height="34" width="120" x="150" y="1040" as="geometry" />
+          <mxGeometry height="34" width="120" x="170" y="1190" as="geometry" />
         </mxCell>
         <mxCell id="a_rev_rate" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#2a1a3a;strokeColor=#9b59b6;fontColor=#ffffff;fontSize=11;" value="rating (1-5)" vertex="1">
-          <mxGeometry height="34" width="110" x="20" y="1200" as="geometry" />
+          <mxGeometry height="34" width="110" x="40" y="1350" as="geometry" />
         </mxCell>
         <mxCell id="a_rev_cmt" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#2a1a3a;strokeColor=#9b59b6;fontColor=#ffffff;fontSize=11;" value="comment" vertex="1">
-          <mxGeometry height="34" width="100" x="150" y="1200" as="geometry" />
+          <mxGeometry height="34" width="100" x="170" y="1350" as="geometry" />
         </mxCell>
         <mxCell id="lrv_id" edge="1" parent="1" source="a_rev_id" style="edgeStyle=none;html=1;strokeColor=#9b59b6;" target="e_review">
           <mxGeometry relative="1" as="geometry" />
@@ -2421,7 +2421,7 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="rel_ses_exp" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#2a2a1a;strokeColor=#f1c40f;fontColor=#f1c40f;fontStyle=1;fontSize=11;" value="pengeluaran" vertex="1">
-          <mxGeometry height="70" width="130" x="1260" y="860" as="geometry" />
+          <mxGeometry height="70" width="130" x="1190" y="740" as="geometry" />
         </mxCell>
         <mxCell id="r_se1" edge="1" parent="1" source="e_session" style="edgeStyle=none;html=1;strokeColor=#f1c40f;fontColor=#f1c40f;fontStyle=1;fontSize=13;endArrow=none;align=center;" target="rel_ses_exp" value="1:M">
           <mxGeometry relative="1" as="geometry" />
