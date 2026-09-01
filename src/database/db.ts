@@ -223,7 +223,8 @@ class MockTable<T, PK extends string | number> {
         // This ensures Admin edits in Edge appear immediately in Chrome.
         const isMasterData = this.apiPath.includes('services') ||
                              this.apiPath.includes('barbers') ||
-                             this.apiPath.includes('users');
+                             this.apiPath.includes('users') ||
+                             this.apiPath.includes('shift-reports');
 
         if (isMasterData) {
           // Use API data directly, no onlyLocal ghosts
