@@ -4,7 +4,7 @@
 ---
 
 **Diajukan Untuk Memenuhi Salah Satu Syarat Uji Kompetensi Keahlian (UKK)**  
-**Program Keahlian:** Rekayasa Perangkat Lunak (RPL)  
+**Program Keahlian:** Pengembangan Perangkat Lunak dan Gim (PPLG)  
 **Tahun Ajaran:** 2025/2026  
 
 ---
@@ -20,32 +20,16 @@ Disusun oleh:
 - **Kompetensi Keahlian:** Pengembangan Perangkat Lunak dan Gim (PPLG)  
 - **Instansi Sekolah:** SMK Negeri 8 Semarang  
 
-Telah diperiksa, disetujui, dan disahkan pada:  
-**Hari / Tanggal:** Senin, 31 Agustus 2026  
-**Tempat:** Semarang, Jawa Tengah  
-
-<br/>
-
-| Pembimbing Internal | Penguji Eksternal (Industri) |
-| :---: | :---: |
-| <br/><br/>________________________<br/>**NIP. 19850115 201001 1 002** | <br/><br/>________________________<br/>**Lead Software Engineer** |
-
-<br/>
-
-| Kepala Program Keahlian RPL | Kepala Sekolah |
-| :---: | :---: |
-| <br/><br/>________________________<br/>**NIP. 19780320 200502 2 001** | <br/><br/>________________________<br/>**NIP. 19691212 199403 1 005** |
-
 ---
 
 ## 📑 KATA PENGANTAR
 
-Puji syukur kehadirat Allah SWT yang telah memberikan rahmat dan hidayah-Nya sehingga penulis dapat menyelesaikan **Proposal Perancangan dan Pembangunan Aplikasi BarberFlow (Classic Barbergo)** ini dengan lancar. Proposal ini disusun sebagai bagian dari persiapan pelaksanaan Uji Kompetensi Keahlian (UKK) Rekayasa Perangkat Lunak.
+Puji syukur kehadirat Allah SWT yang telah memberikan rahmat dan hidayah-Nya sehingga penulis dapat menyelesaikan **Proposal Perancangan dan Pembangunan Aplikasi BarberFlow (Classic Barbergo)** ini dengan lancar. Proposal ini disusun sebagai bagian dari persiapan pelaksanaan Uji Kompetensi Keahlian (UKK) Pengembangan Perangkat Lunak dan Gim (PPLG).
 
 Aplikasi **BarberFlow** dirancang khusus untuk mengatasi permasalahan operasional manajemen pada barbershop modern, meliputi transaksi kasir (POS), reservasi antrean *online* bagi pelanggan, rekapitulasi penutupan *shift* kasir, serta verifikasi laporan otomatis oleh pihak manajemen/pemilik usaha.
 
 Penulis mengucapkan terima kasih yang sebesar-besarnya kepada:
-1. Kepala Sekolah dan Kepala Program Keahlian Rekayasa Perangkat Lunak.
+1. Kepala Sekolah dan Kepala Program Keahlian Pengembangan Perangkat Lunak dan Gim (PPLG).
 2. Guru Pembimbing UKK yang telah memberikan arahan dan bimbingan teknis.
 3. Penguji Eksternal dari Dunia Usaha / Dunia Industri (DU/DI).
 4. Pemilik dan Tim Operasional **Classic Barbergo** yang telah memberikan data referensi kebutuhan sistem.
@@ -619,13 +603,3 @@ Aplikasi **BarberFlow** (*Classic Barbergo*) telah berhasil dirancang dan dikemb
 ### 6.2 Saran
 1. Integrasi otomatis *payment gateway* (Midtrans/Xendit) untuk verifikasi pembayaran QRIS otomatis.
 2. Pengembangan aplikasi berbasis *Mobile Native* (Android/iOS) menggunakan React Native di masa mendatang.
-
----
-
-**Mengetahui / Menyetujui:**  
-
-<br/>
-
-| Penguji Internal | Penguji Eksternal | Siswa Penyusun |
-| :---: | :---: | :---: |
-| <br/><br/>( ___________________ ) | <br/><br/>( ___________________ ) | <br/><br/>(**Fazle Dzaky A.**) |
