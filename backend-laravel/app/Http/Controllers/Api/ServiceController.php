@@ -28,6 +28,7 @@ class ServiceController extends Controller
             'labelColor' => 'nullable|string',
             'isActive' => 'boolean',
             'stock' => 'nullable|integer',
+            'image' => 'nullable|string',
         ]);
 
         $service = Service::create($data);
@@ -48,6 +49,7 @@ class ServiceController extends Controller
             'labelColor' => 'nullable|string',
             'isActive' => 'boolean',
             'stock' => 'nullable|integer',
+            'image' => 'nullable|string',
         ]);
 
         $service = Service::find($id);

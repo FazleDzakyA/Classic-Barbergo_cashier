@@ -183,15 +183,15 @@ class MockTable<T, PK extends string | number> {
         if (this.apiPath.includes('services')) {
           const fallbackServices = this.getFallbackData('services') as any[];
           const fallbackMap = new Map(fallbackServices.map(s => [s.id, s.image]));
-          // Force update images to the latest professional HD Unsplash URLs
           const updated = parsed.map((item: any) => {
-            const newImg = fallbackMap.get(item.id);
-            if (newImg) {
-              return { ...item, image: newImg };
+            if (!item.image) {
+              const defaultImg = fallbackMap.get(item.id);
+              if (defaultImg) {
+                return { ...item, image: defaultImg };
+              }
             }
             return item;
           });
-          localStorage.setItem(`barberflow_${this.apiPath}`, JSON.stringify(updated));
           return updated;
         }
         return parsed;
@@ -290,11 +290,21 @@ class MockTable<T, PK extends string | number> {
       fetch(`${API_URL}${this.apiPath}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(item)
-      }).then(res => {
+        body: JSON.stringify(newItem)
+      }).then(async res => {
         if (res.ok) {
+          const apiItem = await res.json().catch(() => null);
+          if (apiItem && apiItem.id && String(apiItem.id) !== String(newId)) {
+            // Remap temporary local ID to actual backend ID in local storage to prevent duplicates
+            const currentLocal = this.getLocalStore();
+            const remapped = currentLocal.map((i: any) =>
+              String(i.id) === String(newId) ? { ...i, id: apiItem.id } : i
+            );
+            this.setLocalStore(remapped as T[]);
+          }
           this.cache = null;
           this.fetchPromise = null;
+          notifyChange();
         }
       }).catch(() => {
         // Backend sync failed silently - local already saved
@@ -426,24 +436,25 @@ class MockTable<T, PK extends string | number> {
   }
 
   async delete(id: PK): Promise<void> {
+    // 1. Immediate local storage cleanup (optimistic local-first)
     try {
-      const res = await fetch(`${API_URL}${this.apiPath}/${id}`, {
-        method: 'DELETE'
-      });
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.message || `Gagal menghapus data (${res.status})`);
-      }
-      this.cache = null;
-      this.fetchPromise = null;
-      notifyChange();
-    } catch (err: any) {
-      if (err.message && !err.message.includes('fetch')) throw err;
-      const items = await this.toArray();
-      const updated = items.filter((i: any) => String(i.id || i.key) !== String(id));
+      const items = this.getLocalStore();
+      const updated = items.filter((i: any) => String(i.id ?? i.key ?? i.key_name) !== String(id));
       this.setLocalStore(updated as T[]);
       this.cache = updated as T[];
       notifyChange();
+    } catch (_e) {}
+
+    // 2. Sync DELETE request to backend API
+    try {
+      await fetch(`${API_URL}${this.apiPath}/${id}`, {
+        method: 'DELETE'
+      });
+      this.cache = null;
+      this.fetchPromise = null;
+      notifyChange();
+    } catch (_err) {
+      // Backend not available - already removed locally
     }
   }
 
