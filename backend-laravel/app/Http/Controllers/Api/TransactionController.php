@@ -98,7 +98,7 @@ class TransactionController extends Controller
             }
         }
 
-        return response()->json($request->all(), 201);
+        return response()->json($tx, 201);
     }
 
     public function update(Request $request, $id)

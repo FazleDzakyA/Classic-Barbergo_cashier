@@ -6,9 +6,9 @@ class SoundManager {
   private isUnlocked: boolean = false;
 
   constructor() {
-    this.enabled = true;
     if (typeof window !== 'undefined') {
-      localStorage.setItem('barberflow_sound_enabled', 'true');
+      const saved = localStorage.getItem('barberflow_sound_enabled');
+      this.enabled = saved !== null ? saved === 'true' : true;
       
       const unlockAudio = () => {
         try {
@@ -85,6 +85,7 @@ class SoundManager {
    * SHORT TACTILE UI CLICK (Crisp button, toggle, or select)
    */
   public playBeep(freq: number = 880, duration: number = 0.05): void {
+    if (!this.enabled) return;
     const ctx = this.getContext();
     if (!ctx) return;
 
@@ -113,6 +114,7 @@ class SoundManager {
    * PAGE NAVIGATION / MENU TAB CLICK (Sleek, soft modern iOS/macOS pop)
    */
   public playNav(): void {
+    if (!this.enabled) return;
     const ctx = this.getContext();
     if (!ctx) return;
 
@@ -142,6 +144,7 @@ class SoundManager {
    * 🌟 SOUND UANG MASUK KASIR SUPER RAME (Full Mechanical Drawer + Cascading Coin Shower + Grand Bell Chimes)
    */
   public playKaching(): void {
+    if (!this.enabled) return;
     const ctx = this.getContext();
     if (!ctx) return;
 
@@ -248,6 +251,7 @@ class SoundManager {
    * 🚀 UPLIFTING LOGIN FANFARE (Welcoming, premium, golden startup chime)
    */
   public playLogin(): void {
+    if (!this.enabled) return;
     const ctx = this.getContext();
     if (!ctx) return;
 
@@ -286,6 +290,7 @@ class SoundManager {
    * 💤 SMOOTH LOGOUT POWER-DOWN (Gentle descending goodbye chime)
    */
   public playLogout(): void {
+    if (!this.enabled) return;
     const ctx = this.getContext();
     if (!ctx) return;
 
@@ -322,6 +327,7 @@ class SoundManager {
    * 🖨️ THERMAL PRINTER SOUND (Printing receipt)
    */
   public playPrint(): void {
+    if (!this.enabled) return;
     const ctx = this.getContext();
     if (!ctx) return;
 
@@ -366,6 +372,7 @@ class SoundManager {
    * SUCCESS CHIME (Ascending 3-tone chime for save/update/actions)
    */
   public playSuccess(): void {
+    if (!this.enabled) return;
     const ctx = this.getContext();
     if (!ctx) return;
 
@@ -400,6 +407,7 @@ class SoundManager {
    * ERROR / ALERT TONE
    */
   public playError(): void {
+    if (!this.enabled) return;
     const ctx = this.getContext();
     if (!ctx) return;
 
@@ -429,6 +437,7 @@ class SoundManager {
    * DELETE / TRASH / CLEAR (Crisp downward sweep)
    */
   public playDelete(): void {
+    if (!this.enabled) return;
     const ctx = this.getContext();
     if (!ctx) return;
 
@@ -458,6 +467,7 @@ class SoundManager {
    * SHIFT REGISTER OPEN / CLOSE
    */
   public playShift(): void {
+    if (!this.enabled) return;
     const ctx = this.getContext();
     if (!ctx) return;
 
