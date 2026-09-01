@@ -35,6 +35,15 @@ const barberSchema = zod.object({
 
 type BarberFormValues = zod.infer<typeof barberSchema>;
 
+const PRESET_AVATARS = [
+  { label: 'Barber Stylist 1', url: 'https://images.unsplash.com/photo-1503443207922-dff7d543fd0e?w=200&auto=format&fit=crop&q=80' },
+  { label: 'Barber Stylist 2', url: 'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=200&auto=format&fit=crop&q=80' },
+  { label: 'Barber Stylist 3', url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80' },
+  { label: 'Barber Stylist 4', url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80' },
+  { label: 'Barber Stylist 5', url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80' },
+  { label: 'Barber Stylist 6', url: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=200&auto=format&fit=crop&q=80' },
+];
+
 export const BarberManagement: React.FC = () => {
   // Database Query
   const barbers = useLiveQuery(() => db.barbers.toArray());
@@ -416,26 +425,77 @@ export const BarberManagement: React.FC = () => {
               </div>
 
               <form onSubmit={handleSubmit(onSubmit)} className="modal-form">
-                <div className="photo-upload-container">
-                  <div className="photo-preview-box">
-                    {photoBase64 ? (
-                      <img src={photoBase64} alt="Preview" />
-                    ) : (
-                      <Camera size={30} className="upload-placeholder-icon" />
-                    )}
+                <div style={{ background: '#18181B', padding: '1rem', borderRadius: '12px', border: '1px solid #27272A', marginBottom: '1.25rem' }}>
+                  <label className="form-label" style={{ marginBottom: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#EAB308', fontWeight: 800 }}>
+                    <Camera size={16} /> Foto Profil Barber
+                  </label>
+
+                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
+                    <div style={{ width: '64px', height: '64px', borderRadius: '50%', overflow: 'hidden', background: '#09090B', border: '2px solid #EAB308', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      {photoBase64 ? (
+                        <img src={photoBase64} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <Camera size={26} style={{ color: '#71717A' }} />
+                      )}
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', flex: 1 }}>
+                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        <label htmlFor="photo-file" className="btn btn-secondary" style={{ padding: '0.4rem 0.75rem', fontSize: '0.78rem', cursor: 'pointer', background: '#27272A', color: '#FFF', border: '1px solid #3F3F46', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <Camera size={14} /> Pilih File dari Komputer
+                        </label>
+                        <input 
+                          id="photo-file"
+                          type="file" 
+                          accept="image/*"
+                          onChange={handlePhotoChange}
+                          style={{ display: 'none' }}
+                        />
+
+                        {photoBase64 && (
+                          <button 
+                            type="button" 
+                            className="btn" 
+                            onClick={() => setPhotoBase64('')}
+                            style={{ padding: '0.4rem 0.75rem', fontSize: '0.78rem', background: 'rgba(239, 68, 68, 0.15)', color: '#EF4444', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '6px' }}
+                          >
+                            Hapus Foto
+                          </button>
+                        )}
+                      </div>
+                      <span style={{ fontSize: '0.72rem', color: '#71717A' }}>Bisa upload file atau klik salah satu foto sampel di bawah ini:</span>
+                    </div>
                   </div>
-                  <div className="photo-upload-details">
-                    <label htmlFor="photo-file" className="btn btn-secondary photo-upload-btn">
-                      Pilih Foto Barber
-                    </label>
-                    <input 
-                      id="photo-file"
-                      type="file" 
-                      accept="image/*"
-                      onChange={handlePhotoChange}
-                      style={{ display: 'none' }}
-                    />
-                    <span className="photo-info-text">Maksimal 200KB. PNG atau JPG.</span>
+
+                  {/* Quick Preset Barber Avatars */}
+                  <div>
+                    <span style={{ fontSize: '0.75rem', color: '#A1A1AA', fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>
+                      ⚡ Foto Sampel Barber Siap Pakai (Klik 1-Kali):
+                    </span>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      {PRESET_AVATARS.map((preset, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => {
+                            setPhotoBase64(preset.url);
+                            sound.playBeep(900, 0.05);
+                            toast.success(`Foto ${preset.label} terpilih!`);
+                          }}
+                          style={{
+                            border: photoBase64 === preset.url ? '2px solid #EAB308' : '1px solid #3F3F46',
+                            borderRadius: '50%',
+                            padding: '2px',
+                            background: 'transparent',
+                            cursor: 'pointer',
+                            transition: 'transform 0.15s ease'
+                          }}
+                          title={preset.label}
+                        >
+                          <img src={preset.url} alt={preset.label} style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'cover' }} />
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
