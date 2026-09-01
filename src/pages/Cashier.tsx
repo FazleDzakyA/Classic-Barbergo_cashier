@@ -299,6 +299,15 @@ export const Cashier: React.FC = () => {
         status: 'proses',
         sessionId: currentSession?.id 
       });
+
+      // Sync update to backend API
+      const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '').replace(/\/$/, '');
+      fetch(`${API_URL}/api/transactions/${trx.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'proses' })
+      }).catch(e => console.warn('API sync warning:', e));
+
       toast.success(`Booking ${trx.id} (${trx.customerName}) di-ACC! Status: Proses`);
     } catch (_err) {
       toast.error('Gagal meng-ACC booking');
@@ -313,6 +322,15 @@ export const Cashier: React.FC = () => {
         status: 'selesai', 
         sessionId: currentSession?.id 
       });
+
+      // Sync update to backend API
+      const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '').replace(/\/$/, '');
+      fetch(`${API_URL}/api/transactions/${trx.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'selesai' })
+      }).catch(e => console.warn('API sync warning:', e));
+
       toast.success(`Booking ${trx.id} (${trx.customerName}) Rp ${trx.total.toLocaleString('id-ID')} telah Selesai! Masuk ke pendapatan kasir + database admin.`);
     } catch (_err) {
       toast.error('Gagal menyelesaikan booking');

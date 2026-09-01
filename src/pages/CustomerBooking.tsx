@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { db, useLiveQuery } from '../database/db';
+import { db, useLiveQuery, notifyChange } from '../database/db';
 import type { Transaction } from '../types';
 import { useAuth } from '../store/AuthContext';
 import { 
@@ -57,6 +57,14 @@ export const CustomerBooking: React.FC = () => {
       ).sort((a, b) => b.createdAt - a.createdAt);
     }), [user]
   );
+  // Real-time polling to keep booking statuses live-synced from kasir / backend API
+  useEffect(() => {
+    const interval = setInterval(() => {
+      (db.transactions as any).cache = null;
+      notifyChange();
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   const currency = settings?.currency || 'Rp';
 

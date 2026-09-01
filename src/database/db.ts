@@ -227,8 +227,8 @@ class MockTable<T, PK extends string | number> {
           const itemId = String(apiItem.id ?? apiItem.key ?? apiItem.key_name ?? apiItem.submittedAt ?? apiItem.sessionId);
           const localItem = localMap.get(itemId);
           if (localItem) {
-            // Preserve local modifications (e.g. status 'diverifikasi') over API defaults
-            return { ...apiItem, ...localItem };
+            // API data is authoritative for updated status/fields
+            return { ...localItem, ...apiItem };
           }
           return apiItem;
         });
