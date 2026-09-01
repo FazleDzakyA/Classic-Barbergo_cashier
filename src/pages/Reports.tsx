@@ -10,7 +10,9 @@ import {
   Equal,
   Bell,
   Eye,
-  ShieldCheck
+  ShieldCheck,
+  ArrowUpDown,
+  Filter
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import dayjs from 'dayjs';
@@ -91,22 +93,33 @@ export const Reports: React.FC = () => {
   const [isInspectModalOpen, setIsInspectModalOpen] = useState<boolean>(false);
 
   // Unverified Shift Reports Alert Filter
-  // Local optimistic override: IDs that were just ACC'd in this session
-  // This ensures the UI shows "Terverifikasi" instantly without waiting for next polling cycle
+  // Local optimistic override for ACC status
   const [localVerifiedIds, setLocalVerifiedIds] = useState<Set<number>>(new Set());
+
+  // Shift Reports Sort & Filter States
+  const [shiftSortOrder, setShiftSortOrder] = useState<'desc' | 'asc'>('desc');
+  const [shiftStatusFilter, setShiftStatusFilter] = useState<'Semua' | 'terkirim' | 'diverifikasi'>('Semua');
 
   // Shift reports — status from MySQL, with instant local optimistic override after ACC
   const shiftReports = useMemo(() => {
     if (!shiftReportsRaw) return [];
-    return [...shiftReportsRaw]
-      .sort((a, b) => b.submittedAt - a.submittedAt)
-      .map(r => {
-        if (r.id != null && localVerifiedIds.has(r.id) && r.status !== 'diverifikasi') {
-          return { ...r, status: 'diverifikasi' as const };
-        }
-        return r;
-      });
-  }, [shiftReportsRaw, localVerifiedIds]);
+    let list = [...shiftReportsRaw].map(r => {
+      if (r.id != null && localVerifiedIds.has(r.id) && r.status !== 'diverifikasi') {
+        return { ...r, status: 'diverifikasi' as const };
+      }
+      return r;
+    });
+
+    // Filter by Status (Semua / Belum ACC / Sudah ACC)
+    if (shiftStatusFilter !== 'Semua') {
+      list = list.filter(r => r.status === shiftStatusFilter);
+    }
+
+    // Sort by Date (submittedAt)
+    list.sort((a, b) => shiftSortOrder === 'desc' ? b.submittedAt - a.submittedAt : a.submittedAt - b.submittedAt);
+
+    return list;
+  }, [shiftReportsRaw, localVerifiedIds, shiftStatusFilter, shiftSortOrder]);
 
   const unverifiedReports = useMemo(() => {
     if (!shiftReports) return [];
@@ -1240,6 +1253,38 @@ export const Reports: React.FC = () => {
                 <p style={{ fontSize: '0.8rem', color: '#A1A1AA', margin: '0.2rem 0 0' }}>
                   Daftar rekapitulasi shift yang dikirimkan oleh Kasir melalui web. Bandingkan fisik vs estimasi sistem.
                 </p>
+              </div>
+
+              {/* Sorting & Filter Controls */}
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                {/* Status Filter Dropdown */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', border: '1px solid #333333', borderRadius: '8px', padding: '0 0.75rem', height: '38px' }}>
+                  <Filter size={14} color="#A1A1AA" />
+                  <span style={{ fontSize: '0.78rem', color: '#A1A1AA', fontWeight: 600 }}>Status:</span>
+                  <select
+                    value={shiftStatusFilter}
+                    onChange={(e) => setShiftStatusFilter(e.target.value as any)}
+                    style={{ background: 'transparent', border: 'none', color: '#FFF', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', outline: 'none' }}
+                  >
+                    <option value="Semua" style={{ background: '#121212', color: '#FFF' }}>Semua Status</option>
+                    <option value="terkirim" style={{ background: '#121212', color: '#EAB308' }}>⏳ Belum ACC (Terkirim)</option>
+                    <option value="diverifikasi" style={{ background: '#121212', color: '#22C55E' }}>✅ Sudah ACC (Terverifikasi)</option>
+                  </select>
+                </div>
+
+                {/* Sort Order Dropdown */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.4)', borderRadius: '8px', padding: '0 0.75rem', height: '38px' }}>
+                  <ArrowUpDown size={14} color="#D4AF37" />
+                  <span style={{ fontSize: '0.78rem', color: '#D4AF37', fontWeight: 600 }}>Urutan:</span>
+                  <select
+                    value={shiftSortOrder}
+                    onChange={(e) => setShiftSortOrder(e.target.value as any)}
+                    style={{ background: 'transparent', border: 'none', color: '#D4AF37', fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer', outline: 'none' }}
+                  >
+                    <option value="desc" style={{ background: '#121212', color: '#FFF' }}>🕒 Terbaru → Terlama</option>
+                    <option value="asc" style={{ background: '#121212', color: '#FFF' }}>🕒 Terlama → Terbaru</option>
+                  </select>
+                </div>
               </div>
             </div>
 
