@@ -214,7 +214,7 @@ export const UserManagement: React.FC = () => {
         <table className="user-table">
           <thead>
             <tr>
-              <th>ID / Tanggal</th>
+              <th>ID</th>
               <th>Nama Pengguna</th>
               <th>Username / Email</th>
               <th>Role / Peran</th>
