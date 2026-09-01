@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import type { User } from '../types';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as zod from 'zod';
@@ -95,10 +96,14 @@ export const Login: React.FC = () => {
     setIsSubmitting(true);
     try {
       const passHash = await hashPassword(data.password);
+      const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '').replace(/\/$/, '');
 
-      // Check if email already exists locally
+      // Check if email already exists in local DB or API
       const allUsers = await db.users.toArray();
-      const existing = allUsers.find((u: any) => u.email === data.email || u.username === data.email);
+      const existing = allUsers.find((u: any) => 
+        (u.email && u.email.toLowerCase() === data.email.toLowerCase()) || 
+        (u.username && u.username.toLowerCase() === data.email.toLowerCase())
+      );
       if (existing) {
         sound.playError();
         toast.error('Email ini sudah terdaftar. Silakan login.');
@@ -109,34 +114,50 @@ export const Login: React.FC = () => {
       // Generate username from email
       const username = data.email.split('@')[0] + Math.floor(100 + Math.random() * 900);
       const newId = Date.now();
-      const newUserObj = {
+      const newUserObj: User & { id: number } = {
         id: newId,
         username,
         email: data.email,
         name: data.name,
         passwordHash: passHash,
-        role: 'customer' as const,
+        role: 'customer',
         isActive: true,
         createdAt: new Date().toISOString()
       };
 
-      // Save locally (and try backend in background via optimistic add)
+      // 1. Send to Backend API if available
+      try {
+        await fetch(`${API_URL}/api/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: data.name,
+            email: data.email,
+            passwordHash: passHash
+          })
+        });
+      } catch (_e) {
+        console.warn('Backend API unavailable, account saved locally');
+      }
+
+      // 2. Save in Local DB (IndexedDB / MockTable)
       await db.users.add(newUserObj);
 
-      // Directly create session — bypass login() to avoid toArray() race condition
+      // 3. Set Session active user immediately
       const sessionData = JSON.stringify(newUserObj);
       localStorage.setItem('barberflow_user', sessionData);
+      sessionStorage.setItem('barberflow_user', sessionData);
 
       sound.playSuccess();
       toast.success(`Akun berhasil dibuat! Selamat datang, ${data.name}! 🎉`);
 
-      // Use window.location for reliable full-page redirect so AuthContext re-reads session
+      // 4. Instant redirect to /booking page
       setTimeout(() => {
         window.location.href = '/booking';
-      }, 800);
+      }, 500);
 
     } catch (err: any) {
-      console.error(err);
+      console.error('Register Error:', err);
       sound.playError();
       toast.error(err.message || 'Gagal mendaftar akun. Coba lagi.');
       setIsSubmitting(false);

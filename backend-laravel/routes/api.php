@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\ShiftReportController;
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::get('/users', [AuthController::class, 'index']);
+Route::post('/users', [AuthController::class, 'register']);
 Route::put('/users/{id}', [AuthController::class, 'update']);
 
 // 2. Barber API
