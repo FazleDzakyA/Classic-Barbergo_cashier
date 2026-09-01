@@ -66,10 +66,14 @@ export const BarberManagement: React.FC = () => {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors }
   } = useForm<BarberFormValues>({
     resolver: zodResolver(barberSchema)
   });
+
+  const watchedName = watch('name') || editingBarber?.name || 'Barber';
+  const modalInitials = watchedName.trim() ? watchedName.trim().substring(0, 2).toUpperCase() : 'BB';
 
   // Handle Photo conversion to Base64 with auto canvas compression
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -150,7 +154,7 @@ export const BarberManagement: React.FC = () => {
     try {
       const barberData: Barber = {
         ...data,
-        photo: photoBase64 || undefined
+        photo: photoBase64 ? photoBase64 : ''
       };
 
       if (editingBarber) {
@@ -431,11 +435,13 @@ export const BarberManagement: React.FC = () => {
                   </label>
 
                   <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
-                    <div style={{ width: '64px', height: '64px', borderRadius: '50%', overflow: 'hidden', background: '#09090B', border: '2px solid #EAB308', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <div style={{ width: '64px', height: '64px', borderRadius: '50%', overflow: 'hidden', background: photoBase64 ? '#09090B' : '#EAB308', border: '2px solid #EAB308', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       {photoBase64 ? (
                         <img src={photoBase64} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       ) : (
-                        <Camera size={26} style={{ color: '#71717A' }} />
+                        <span style={{ color: '#000000', fontSize: '1.2rem', fontWeight: 800 }}>
+                          {modalInitials}
+                        </span>
                       )}
                     </div>
 
@@ -456,7 +462,11 @@ export const BarberManagement: React.FC = () => {
                           <button 
                             type="button" 
                             className="btn" 
-                            onClick={() => setPhotoBase64('')}
+                            onClick={() => {
+                              setPhotoBase64('');
+                              sound.playDelete();
+                              toast.success('Foto dihapus. Kembali ke inisial nama.');
+                            }}
                             style={{ padding: '0.4rem 0.75rem', fontSize: '0.78rem', background: 'rgba(239, 68, 68, 0.15)', color: '#EF4444', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '6px' }}
                           >
                             Hapus Foto
