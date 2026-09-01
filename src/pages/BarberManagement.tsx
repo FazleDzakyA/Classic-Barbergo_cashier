@@ -62,20 +62,46 @@ export const BarberManagement: React.FC = () => {
     resolver: zodResolver(barberSchema)
   });
 
-  // Handle Photo conversion to Base64
+  // Handle Photo conversion to Base64 with auto canvas compression
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 200000) { // Limit to 200KB for offline storage
-        toast.error('Ukuran foto terlalu besar. Maksimal 200KB.');
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoBase64(reader.result as string);
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxSize = 300;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxSize) {
+            height *= maxSize / width;
+            width = maxSize;
+          }
+        } else {
+          if (height > maxSize) {
+            width *= maxSize / height;
+            height = maxSize;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.85);
+          setPhotoBase64(compressedBase64);
+          sound.playBeep(950, 0.05);
+          toast.success('Foto barber berhasil dimuat!');
+        }
       };
-      reader.readAsDataURL(file);
-    }
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
   };
 
   // Open modal for add
@@ -271,20 +297,34 @@ export const BarberManagement: React.FC = () => {
                     <tr key={barber.id}>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                          <span style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '8px',
-                            backgroundColor: getAvatarBg(barber.name),
-                            color: '#000000',
-                            fontSize: '0.8rem',
-                            fontWeight: '800',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}>
-                            {initials}
-                          </span>
+                          {barber.photo ? (
+                            <img 
+                              src={barber.photo} 
+                              alt={barber.name}
+                              style={{
+                                width: '36px',
+                                height: '36px',
+                                borderRadius: '50%',
+                                objectFit: 'cover',
+                                border: '2px solid #EAB308'
+                              }}
+                            />
+                          ) : (
+                            <span style={{
+                              width: '36px',
+                              height: '36px',
+                              borderRadius: '50%',
+                              backgroundColor: getAvatarBg(barber.name),
+                              color: '#000000',
+                              fontSize: '0.8rem',
+                              fontWeight: '800',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}>
+                              {initials}
+                            </span>
+                          )}
                           <span style={{ fontWeight: 700, color: '#FFFFFF', fontSize: '0.9rem' }}>{barber.name}</span>
                         </div>
                       </td>
