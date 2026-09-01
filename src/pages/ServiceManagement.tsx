@@ -11,7 +11,8 @@ import {
   Trash2, 
   Sparkles, 
   X,
-  AlertCircle
+  AlertCircle,
+  ArrowUpDown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -137,12 +138,27 @@ export const ServiceManagement: React.FC = () => {
     }
   };
 
-  // Filtered Services
+  // Sorting & Filtering States
+  const [sortBy, setSortBy] = useState<'name-asc' | 'name-desc' | 'price-asc' | 'price-desc' | 'category'>('name-asc');
+  const [selectedCategory, setSelectedCategory] = useState<string>('Semua');
+
+  // Categories List
+  const categories = useMemo(() => {
+    if (!services) return [];
+    return ['Semua', ...Array.from(new Set(services.map(s => s.category).filter(Boolean)))];
+  }, [services]);
+
+  // Filtered & Sorted Services
   const processedServices = useMemo(() => {
     if (!services) return [];
     let result = [...services];
 
-    // Comprehensive Search across name, category, price, duration, and stock
+    // Category Filter
+    if (selectedCategory !== 'Semua') {
+      result = result.filter(s => s.category === selectedCategory);
+    }
+
+    // Comprehensive Search
     if (searchTerm.trim() !== '') {
       const term = searchTerm.toLowerCase();
       result = result.filter(
@@ -154,8 +170,18 @@ export const ServiceManagement: React.FC = () => {
       );
     }
 
+    // Sorting Logic
+    result.sort((a, b) => {
+      if (sortBy === 'name-asc') return a.name.localeCompare(b.name);
+      if (sortBy === 'name-desc') return b.name.localeCompare(a.name);
+      if (sortBy === 'price-asc') return a.price - b.price;
+      if (sortBy === 'price-desc') return b.price - a.price;
+      if (sortBy === 'category') return (a.category || '').localeCompare(b.category || '');
+      return 0;
+    });
+
     return result;
-  }, [services, searchTerm]);
+  }, [services, searchTerm, selectedCategory, sortBy]);
 
   const activeServicesCount = services ? services.filter(s => s.isActive).length : 0;
 
@@ -182,17 +208,48 @@ export const ServiceManagement: React.FC = () => {
         </button>
       </div>
 
-      {/* Search Bar */}
-      <div style={{ maxWidth: '400px', position: 'relative' }}>
-        <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#71717A' }} />
-        <input
-          type="text"
-          placeholder="Cari layanan..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+      {/* Search & Sorting Toolbar */}
+      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div style={{ flex: 1, minWidth: '240px', maxWidth: '360px', position: 'relative' }}>
+          <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#71717A' }} />
+          <input
+            type="text"
+            placeholder="Cari nama, harga, kategori..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="form-input"
+            style={{ paddingLeft: '2.4rem', background: '#121212', borderColor: '#222222', borderRadius: '8px', height: '40px', fontSize: '0.85rem' }}
+          />
+        </div>
+
+        {/* Category Filter */}
+        <select
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
           className="form-input"
-          style={{ paddingLeft: '2.4rem', background: '#121212', borderColor: '#222222', borderRadius: '8px', height: '40px', fontSize: '0.85rem' }}
-        />
+          style={{ background: '#121212', borderColor: '#222222', borderRadius: '8px', height: '40px', fontSize: '0.85rem', width: 'auto', minWidth: '150px' }}
+        >
+          {categories.map(c => (
+            <option key={c} value={c}>{c === 'Semua' ? 'Semua Kategori' : c}</option>
+          ))}
+        </select>
+
+        {/* Sort By Dropdown */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: '#121212', border: '1px solid #222222', borderRadius: '8px', padding: '0 0.75rem', height: '40px' }}>
+          <ArrowUpDown size={14} color="#D4AF37" />
+          <span style={{ fontSize: '0.8rem', color: '#A1A1AA', fontWeight: 600 }}>Sortir:</span>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+            style={{ background: 'transparent', border: 'none', color: '#D4AF37', fontWeight: 700, fontSize: '0.83rem', cursor: 'pointer', outline: 'none' }}
+          >
+            <option value="name-asc" style={{ background: '#121212', color: '#FFF' }}>Nama (A - Z)</option>
+            <option value="name-desc" style={{ background: '#121212', color: '#FFF' }}>Nama (Z - A)</option>
+            <option value="price-asc" style={{ background: '#121212', color: '#FFF' }}>Harga (Termurah)</option>
+            <option value="price-desc" style={{ background: '#121212', color: '#FFF' }}>Harga (Termahal)</option>
+            <option value="category" style={{ background: '#121212', color: '#FFF' }}>Kategori</option>
+          </select>
+        </div>
       </div>
 
       {/* Services Grid matching Figma (4 columns) */}

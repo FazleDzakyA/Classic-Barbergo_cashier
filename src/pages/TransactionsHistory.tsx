@@ -8,7 +8,8 @@ import {
   FileText,
   ChevronLeft,
   ChevronRight,
-  AlertCircle
+  AlertCircle,
+  ArrowUpDown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -47,8 +48,7 @@ export const TransactionsHistory: React.FC = () => {
   const [filterPayment, setFilterPayment] = useState('Semua');
   
   // Sorting & Pagination
-  const [sortBy, setSortBy] = useState<'date' | 'total'>('date');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [sortOption, setSortOption] = useState<'date-desc' | 'date-asc' | 'total-desc' | 'total-asc' | 'customer-asc' | 'customer-desc'>('date-desc');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -83,18 +83,7 @@ export const TransactionsHistory: React.FC = () => {
     setFilterBarber('Semua');
     setFilterService('Semua');
     setFilterPayment('Semua');
-    setCurrentPage(1);
-  };
-
-  // Sorting helper
-  const toggleSort = (field: 'date' | 'total') => {
-    sound.playBeep(750);
-    if (sortBy === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(field);
-      setSortOrder('desc');
-    }
+    setSortOption('date-desc');
     setCurrentPage(1);
   };
 
@@ -135,7 +124,6 @@ export const TransactionsHistory: React.FC = () => {
 
     // Filter by Month
     if (filterMonth) {
-      // filterMonth format is YYYY-MM
       result = result.filter(t => t.date.startsWith(filterMonth));
     }
 
@@ -154,19 +142,19 @@ export const TransactionsHistory: React.FC = () => {
       result = result.filter(t => t.paymentMethod === filterPayment);
     }
 
-    // Sort
+    // Sort Logic
     result.sort((a, b) => {
-      let comparison = 0;
-      if (sortBy === 'date') {
-        comparison = a.createdAt - b.createdAt;
-      } else if (sortBy === 'total') {
-        comparison = a.total - b.total;
-      }
-      return sortOrder === 'asc' ? comparison : -comparison;
+      if (sortOption === 'date-desc') return b.createdAt - a.createdAt;
+      if (sortOption === 'date-asc') return a.createdAt - b.createdAt;
+      if (sortOption === 'total-desc') return b.total - a.total;
+      if (sortOption === 'total-asc') return a.total - b.total;
+      if (sortOption === 'customer-asc') return a.customerName.localeCompare(b.customerName);
+      if (sortOption === 'customer-desc') return b.customerName.localeCompare(a.customerName);
+      return 0;
     });
 
     return result;
-  }, [transactions, searchTerm, filterDate, filterMonth, filterBarber, filterService, filterPayment, sortBy, sortOrder]);
+  }, [transactions, searchTerm, filterDate, filterMonth, filterBarber, filterService, filterPayment, sortOption]);
 
   // Paginated Data
   const paginatedTransactions = useMemo(() => {
@@ -281,6 +269,29 @@ export const TransactionsHistory: React.FC = () => {
               <option value="QRIS">QRIS</option>
             </select>
           </div>
+
+          {/* Sortir Filter */}
+          <div className="form-group filter-item">
+            <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#D4AF37', fontWeight: 700 }}>
+              <ArrowUpDown size={14} /> Sortir Berdasarkan
+            </label>
+            <select
+              value={sortOption}
+              onChange={(e) => {
+                setSortOption(e.target.value as any);
+                setCurrentPage(1);
+              }}
+              className="form-input select-input"
+              style={{ borderColor: 'rgba(212, 175, 55, 0.4)', color: '#D4AF37', fontWeight: 700 }}
+            >
+              <option value="date-desc" style={{ background: '#121212', color: '#FFF' }}>📅 Tanggal Terbaru</option>
+              <option value="date-asc" style={{ background: '#121212', color: '#FFF' }}>📅 Tanggal Terlama</option>
+              <option value="total-desc" style={{ background: '#121212', color: '#FFF' }}>💰 Nominal Terbesar</option>
+              <option value="total-asc" style={{ background: '#121212', color: '#FFF' }}>💰 Nominal Termurah</option>
+              <option value="customer-asc" style={{ background: '#121212', color: '#FFF' }}>🔤 Nama Pelanggan (A - Z)</option>
+              <option value="customer-desc" style={{ background: '#121212', color: '#FFF' }}>🔤 Nama Pelanggan (Z - A)</option>
+            </select>
+          </div>
         </div>
 
         <div className="filter-actions">
@@ -311,14 +322,22 @@ export const TransactionsHistory: React.FC = () => {
               <thead>
                 <tr>
                   <th>NO. TRX</th>
-                  <th onClick={() => toggleSort('date')} className="sortable-th">
-                    TANGGAL {sortBy === 'date' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
+                  <th 
+                    onClick={() => setSortOption(prev => prev === 'date-desc' ? 'date-asc' : 'date-desc')} 
+                    className="sortable-th"
+                    style={{ cursor: 'pointer' }}
+                  >
+                    TANGGAL {sortOption.startsWith('date') ? (sortOption === 'date-asc' ? '▲' : '▼') : ''}
                   </th>
                   <th>PELANGGAN</th>
                   <th>BARBER</th>
                   <th>LAYANAN</th>
-                  <th onClick={() => toggleSort('total')} className="sortable-th">
-                    TOTAL {sortBy === 'total' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
+                  <th 
+                    onClick={() => setSortOption(prev => prev === 'total-desc' ? 'total-asc' : 'total-desc')} 
+                    className="sortable-th"
+                    style={{ cursor: 'pointer' }}
+                  >
+                    TOTAL {sortOption.startsWith('total') ? (sortOption === 'total-asc' ? '▲' : '▼') : ''}
                   </th>
                   <th>METODE</th>
                   <th>STATUS LAYANAN</th>
