@@ -14,14 +14,14 @@ class TransactionController extends Controller
     {
         $transactions = Transaction::orderBy('createdAt', 'desc')->get();
 
-        $mapped = $transactions->map(function ($t) {
+        $mapped = $transactions->map(function (Transaction $t) {
             $serviceIdsArr = !empty($t->serviceIds)
                 ? array_map('intval', explode(',', $t->serviceIds))
                 : [];
 
-            return array_merge($t->toArray(), [
-                'serviceIds' => $serviceIdsArr,
-            ]);
+            $data = $t->toArray();
+            $data['serviceIds'] = $serviceIdsArr;
+            return $data;
         });
 
         return response()->json($mapped);
