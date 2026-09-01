@@ -61,7 +61,11 @@ export const UserManagement: React.FC = () => {
       const updatedUser = { ...userObj, isActive: nextActive };
       await db.users.put(updatedUser);
       sound.playBeep();
-      toast.success(`Akun ${userObj.name} berhasil di-${nextActive ? 'aktifkan' : 'nonaktifkan'}!`);
+      if (nextActive) {
+        toast.success(`Banned akun ${userObj.name} berhasil dibuka! (Status: Aktif)`);
+      } else {
+        toast.error(`Akun ${userObj.name} telah berhasil di-Banned!`);
+      }
     } catch (err) {
       console.error(err);
       sound.playError();
@@ -248,17 +252,17 @@ export const UserManagement: React.FC = () => {
                     {u.isActive !== false ? (
                       <span className="badge badge-active"><CheckCircle size={14} /> Aktif</span>
                     ) : (
-                      <span className="badge badge-inactive"><XCircle size={14} /> Non-aktif</span>
+                      <span className="badge badge-inactive"><XCircle size={14} /> Banned</span>
                     )}
                   </td>
                   <td>
                     <button 
                       className={`btn-action-toggle ${u.isActive !== false ? 'active' : 'inactive'}`}
                       onClick={() => handleToggleStatus(u)}
-                      title="Klik untuk ubah status aktif/nonaktif"
+                      title={u.isActive !== false ? 'Klik untuk Banned user' : 'Klik untuk Buka Banned user'}
                     >
                       {u.isActive !== false ? <UserX size={14} /> : <UserCheck size={14} />}
-                      <span>{u.isActive !== false ? 'Nonaktifkan' : 'Aktifkan'}</span>
+                      <span>{u.isActive !== false ? 'Banned User' : 'Buka Banned'}</span>
                     </button>
                   </td>
                 </tr>
