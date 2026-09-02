@@ -7,14 +7,25 @@ use App\Models\Expense;
 use App\Models\Session;
 use Illuminate\Http\Request;
 
+// ====================================================================================
+// CONTROLLER PENGELUARAN KAS OPERASIONAL (EXPENSES)
+// ====================================================================================
+// Mengatur pencatatan pengeluaran uang kas laci (seperti beli silet, es batu, listrik),
+// serta meng-decrement estimasi uang fisik di shift kasir yang sedang berjalan.
 class ExpenseController extends Controller
 {
+    /**
+     * Mengambil daftar seluruh pengeluaran kas, diurutkan dari tanggal terbaru.
+     */
     public function index()
     {
         $expenses = Expense::orderBy('date', 'desc')->orderBy('time', 'desc')->get();
         return response()->json($expenses);
     }
 
+    /**
+     * Mencatat pengeluaran uang kas baru & meng-decrement saldo estimasi laci kasir.
+     */
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -40,6 +51,9 @@ class ExpenseController extends Controller
         return response()->json($expense, 201);
     }
 
+    /**
+     * Mengubah data transaksi pengeluaran.
+     */
     public function update(Request $request, $id)
     {
         $data = $request->validate([

@@ -6,14 +6,25 @@ use App\Http\Controllers\Controller;
 use App\Models\Barber;
 use Illuminate\Http\Request;
 
+// ====================================================================================
+// CONTROLLER MANAJEMEN BARBER / CAPSTER
+// ====================================================================================
+// Mengelola data tukang potong rambut (Barber): pendaftaran barber baru, 
+// perbaruan jadwal shift & foto, serta penghapusan data barber dari MySQL.
 class BarberController extends Controller
 {
+    /**
+     * Mengambil seluruh daftar barber, diurutkan sesuai abjad nama (A-Z).
+     */
     public function index()
     {
         $barbers = Barber::orderBy('name', 'asc')->get();
         return response()->json($barbers);
     }
 
+    /**
+     * Menambahkan data barber baru ke database MySQL.
+     */
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -32,6 +43,9 @@ class BarberController extends Controller
         return response()->json($barber, 201);
     }
 
+    /**
+     * Mengubah data barber (nama, hp, shift, foto profil).
+     */
     public function update(Request $request, $id)
     {
         $data = $request->validate([
@@ -56,6 +70,9 @@ class BarberController extends Controller
         return response()->json($barber);
     }
 
+    /**
+     * Menghapus data barber berdasarkan ID.
+     */
     public function destroy($id)
     {
         $barber = Barber::find($id);

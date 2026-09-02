@@ -7,14 +7,24 @@ use App\Models\Review;
 use App\Models\Barber;
 use Illuminate\Http\Request;
 
+// ====================================================================================
+// CONTROLLER ULASAN & RATING (CUSTOMER REVIEWS)
+// ====================================================================================
+// Mengelola rating bintang (1-5) & ulasan kepuasan pelanggan terhadap barber dan layanan.
 class ReviewController extends Controller
 {
+    /**
+     * Mengambil daftar ulasan pelanggan beserta data relasi barber, diurutkan dari yang terbaru.
+     */
     public function index()
     {
         $reviews = Review::with('barber')->orderBy('createdAt', 'desc')->get();
         return response()->json($reviews);
     }
 
+    /**
+     * Menyimpan ulasan & rating bintang dari pelanggan.
+     */
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -36,6 +46,9 @@ class ReviewController extends Controller
         return response()->json($review, 201);
     }
 
+    /**
+     * Menghapus ulasan pelanggan.
+     */
     public function destroy($id)
     {
         $review = Review::find($id);

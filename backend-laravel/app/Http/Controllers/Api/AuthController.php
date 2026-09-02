@@ -6,8 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 
+// ====================================================================================
+// CONTROLLER AUTENTIKASI & USER (LOGIN, REGISTRASI, MANAGEMENT USER)
+// ====================================================================================
+// Mengatur proses login akun (Admin/Kasir/User), registrasi pengguna baru, 
+// pencarian data user, dan perbaruan data profil / password.
 class AuthController extends Controller
 {
+    /**
+     * Memproses login user berdasarkan username/email dan hash password SHA-256.
+     */
     public function login(Request $request)
     {
         $request->validate([
@@ -47,6 +55,9 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * Mendaftarkan pengguna baru (Admin / Kasir / Pelanggan) ke database.
+     */
     public function register(Request $request)
     {
         $data = $request->validate([

@@ -6,14 +6,25 @@ use App\Http\Controllers\Controller;
 use App\Models\Service;
 use Illuminate\Http\Request;
 
+// ====================================================================================
+// CONTROLLER MANAJEMEN LAYANAN / SERVIS POTONG RAMBUT
+// ====================================================================================
+// Mengatur katalog jenis potong rambut, harga, durasi pengerjaan, kategori, 
+// serta persediaan stok produk tambahan (seperti pomade/shampoo).
 class ServiceController extends Controller
 {
+    /**
+     * Mengambil daftar seluruh layanan potong rambut dari MySQL.
+     */
     public function index()
     {
         $services = Service::orderBy('name', 'asc')->get();
         return response()->json($services);
     }
 
+    /**
+     * Menambahkan jenis layanan / produk baru ke katalog.
+     */
     public function store(Request $request)
     {
         if ($request->has('stock') && ($request->stock === '' || $request->stock === 'null')) {
@@ -35,6 +46,9 @@ class ServiceController extends Controller
         return response()->json($service, 201);
     }
 
+    /**
+     * Mengubah data layanan potong (nama, harga, kategori, durasi, stok).
+     */
     public function update(Request $request, $id)
     {
         if ($request->has('stock') && ($request->stock === '' || $request->stock === 'null')) {

@@ -6,8 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 
+// ====================================================================================
+// CONTROLLER PENGATURAN TOKO (APP SETTINGS)
+// ====================================================================================
+// Mengatur profil bisnis barbershop (Nama Toko, Alamat, Telepon, Logo, Catatan Struk, & Mata Uang).
 class SettingController extends Controller
 {
+    /**
+     * Mengambil data profil dan pengaturan toko saat ini dari MySQL.
+     */
     public function index()
     {
         $setting = Setting::where('key_name', 'app_settings')->first();
@@ -27,6 +34,9 @@ class SettingController extends Controller
         ]);
     }
 
+    /**
+     * Memperbarui profil toko (diubah oleh Admin).
+     */
     public function update(Request $request)
     {
         $data = $request->validate([

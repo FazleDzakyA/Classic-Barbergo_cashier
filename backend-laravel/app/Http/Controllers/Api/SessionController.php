@@ -6,20 +6,34 @@ use App\Http\Controllers\Controller;
 use App\Models\Session;
 use Illuminate\Http\Request;
 
+// ====================================================================================
+// CONTROLLER SESI SHIFT KASIR (OPEN / CLOSE SHIFT HARIAN)
+// ====================================================================================
+// Mengatur siklus shift kasir: membuka shift dengan modal tunai laci awal, 
+// menghitung estimasi uang sistem, dan menutup shift dengan uang aktual & catatan selisih.
 class SessionController extends Controller
 {
+    /**
+     * Mengambil riwayat seluruh shift kasir yang pernah dibuka.
+     */
     public function index()
     {
         $sessions = Session::orderBy('id', 'desc')->get();
         return response()->json($sessions);
     }
 
+    /**
+     * Mengambil data shift kasir yang sedang aktif saat ini (status 'open').
+     */
     public function active()
     {
         $session = Session::where('status', 'open')->first();
         return response()->json($session);
     }
 
+    /**
+     * Membuka shift kasir baru dengan modal tunai awal di laci.
+     */
     public function open(Request $request)
     {
         $data = $request->validate([
@@ -46,6 +60,9 @@ class SessionController extends Controller
         return response()->json($session, 201);
     }
 
+    /**
+     * Menutup shift kasir aktif, menghitung selisih kas, dan mengubah status shift jadi 'closed'.
+     */
     public function close(Request $request)
     {
         $data = $request->validate([

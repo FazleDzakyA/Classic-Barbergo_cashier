@@ -13,8 +13,16 @@ use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 
+// ====================================================================================
+// CONTROLLER UTILITAS DATABASE (RESET & IMPORT BACKUP JSON)
+// ====================================================================================
+// Mengatur pembersihan data (reset database ke kondisi bawaan seeder) dan 
+// pemulihan (restore/import) backup data sistem dari file JSON.
 class DatabaseController extends Controller
 {
+    /**
+     * Mereset seluruh isi database MySQL ke kondisi awal (seeder default).
+     */
     public function reset()
     {
         Transaction::truncate();
@@ -33,6 +41,9 @@ class DatabaseController extends Controller
         ]);
     }
 
+    /**
+     * Mengimpor backup data dari file JSON yang diunggah Admin.
+     */
     public function import(Request $request)
     {
         $data = $request->all();
