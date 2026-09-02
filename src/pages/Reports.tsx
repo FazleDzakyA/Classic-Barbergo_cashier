@@ -38,7 +38,13 @@ import { Line } from 'react-chartjs-2';
 import { CardSkeleton } from '../components/SkeletonLoader';
 import './Reports.css';
 
-// Register ChartJS components
+// ====================================================================================
+// KOMPONEN LAPORAN KEUANGAN & AUDIT SHIFT ADMIN (REPORTS)
+// ====================================================================================
+// Menyajikan visualisasi grafik omset, rekapitulasi laba-rugi, pemeriksaan selisih kasir,
+// verifikasi (ACC) laporan shift, serta ekspor dokumen laporan ke format PDF dan Excel.
+
+// Register komponen grafik Chart.js
 ChartJS.register(
   CategoryScale,
   LinearScale,

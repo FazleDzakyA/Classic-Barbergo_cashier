@@ -8,8 +8,16 @@ use App\Models\Session;
 use App\Models\Service;
 use Illuminate\Http\Request;
 
+// ====================================================================================
+// CONTROLLER TRANSAKSI (POS KASIR & BOOKING ONLINE)
+// ====================================================================================
+// Mengontrol pemrosesan data transaksi, booking online, pemotongan stok otomatis, 
+// serta penambahan omset tunai ke shift kasir yang sedang aktif.
 class TransactionController extends Controller
 {
+    /**
+     * Mengambil daftar seluruh transaksi dari database MySQL, diurutkan dari yang terbaru.
+     */
     public function index()
     {
         $transactions = Transaction::orderBy('createdAt', 'desc')->get();
@@ -27,6 +35,10 @@ class TransactionController extends Controller
         return response()->json($mapped);
     }
 
+    /**
+     * Menyimpan transaksi baru (Walk-In Kasir / Booking Online) ke MySQL.
+     * Meng-increment omset tunai shift kasir & meng-decrement stok produk jika ada.
+     */
     public function store(Request $request)
     {
         $data = $request->validate([
