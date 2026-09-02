@@ -30,7 +30,13 @@ import { useSession } from '../store/SessionContext';
 import './Cashier.css';
 import dayjs from 'dayjs';
 
-// Schema validation using Zod (No discounts)
+// ====================================================================================
+// KOMPONEN UTAMA KASIR / POS (POINT OF SALE & DAFTAR BOOKING)
+// ====================================================================================
+// Mengatur alur transaksi kasir secara langsung (walk-in), ACC booking online customer,
+// pembayaran tunai/QRIS, cetak struk, nota WhatsApp, dan penutupan shift kasir.
+
+// Validasi Form Kasir menggunakan Zod Schema
 const cashierSchema = zod.object({
   customerName: zod.string().min(1, 'Nama pelanggan tidak boleh kosong'),
   customerPhone: zod.string().optional(),

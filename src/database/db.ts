@@ -1,16 +1,31 @@
 import { useState, useEffect } from 'react';
 import type { User, Barber, Service, Transaction, Expense, Settings, CashierSession, Review, ShiftReport } from '../types';
 
+// ====================================================================================
+// CONFIGURASI BACKEND API (LARAVEL REST API)
+// ====================================================================================
+// Mengambil URL backend API Laravel dari file environment (.env)
+// Jika tidak ada, secara default akan mengarah ke http://localhost:8000
 const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '').replace(/\/$/, '');
 
-// Global Event Emitter for reactive updates (custom pub/sub)
+// ====================================================================================
+// REAKSTIF EVENT EMITTER (SYSTEM NOTIFIKASI PERUBAHAN DATA LOKAL / REAL-TIME)
+// ====================================================================================
+// Digunakan untuk memberi tahu seluruh komponen React bahwa ada perubahan data pada database (Pub/Sub)
 type Listener = () => void;
 const listeners = new Set<Listener>();
 
+/**
+ * Memanggil seluruh listener React untuk memperbarui (re-render) tampilan UI
+ * setiap kali ada transaksi, booking, atau perubahan master data baru.
+ */
 export function notifyChange() {
   listeners.forEach(l => l());
 }
 
+/**
+ * Mendaftarkan komponen React agar mendengarkan perubahan data secara real-time.
+ */
 export function subscribe(l: Listener) {
   listeners.add(l);
   return () => {
@@ -18,11 +33,19 @@ export function subscribe(l: Listener) {
   };
 }
 
-// Custom reactive hook that matches the useLiveQuery signature from dexie-react-hooks
+// ====================================================================================
+// HOOK REACTIVE: useLiveQuery
+// ====================================================================================
+/**
+ * Hook kustom untuk mengambil data dari database secara otomatis dan real-time.
+ * Setiap kali notifyChange() dipanggil atau polling berjalan, hook ini akan mengambil
+ * data terbaru dari backend MySQL / Cache.
+ */
 export function useLiveQuery<T>(querier: () => Promise<T> | T, deps: any[] = []): T | undefined {
   const [data, setData] = useState<T>();
   const [trigger, setTrigger] = useState(0);
 
+  // Berlangganan (subscribe) ke event listener perubahan data
   useEffect(() => {
     const unsubscribe = subscribe(() => {
       setTrigger(t => t + 1);
@@ -30,6 +53,7 @@ export function useLiveQuery<T>(querier: () => Promise<T> | T, deps: any[] = [])
     return unsubscribe;
   }, []);
 
+  // Mengeksekusi query pengambilan data dari backend/cache
   useEffect(() => {
     let active = true;
     Promise.resolve(querier())
@@ -37,7 +61,7 @@ export function useLiveQuery<T>(querier: () => Promise<T> | T, deps: any[] = [])
         if (active) setData(res);
       })
       .catch(err => {
-        console.error('Error in useLiveQuery querier:', err);
+        console.error('Error saat mengeksekusi useLiveQuery:', err);
       });
     return () => {
       active = false;

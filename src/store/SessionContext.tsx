@@ -4,6 +4,10 @@ import { notifyChange } from '../database/db';
 import { useAuth } from './AuthContext';
 import toast from 'react-hot-toast';
 
+// ====================================================================================
+// CONTEXT MANAJEMEN SHIFT KASIR (BUKA & TUTUP SHIFT HARIAN)
+// ====================================================================================
+// Mengelola state global shift kasir: modal tunai awal, omset shift berjalan, & penutupan shift
 interface SessionContextType {
   currentSession: CashierSession | null;
   openSession: (startingCash: number) => Promise<boolean>;
@@ -20,7 +24,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [currentSession, setCurrentSession] = useState<CashierSession | null>(null);
   const [isLoadingSession, setIsLoadingSession] = useState(true);
 
-  // Check for active open session in database or localStorage
+  // Mengecek apakah kasir sedang berada dalam shift aktif (status 'open') dari MySQL / LocalStorage
   useEffect(() => {
     const fetchActiveSession = async () => {
       if (!user) {
