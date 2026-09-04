@@ -2291,232 +2291,221 @@
     </mxGraphModel>
   </diagram>
   <diagram id="zMGlRxjy6f0BzSJqNW7V" name="FLOWCHART MANUAL">
-    <mxGraphModel dx="1488" dy="935" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="3139" dy="1351" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <UserObject label="" mermaidData="{&#xa;  &quot;data&quot;: &quot;flowchart TD\n    classDef startEnd fill:#D4AF37,stroke:#000,stroke-width:2px,color:#000,font-weight:bold;\n    classDef process fill:#1E293B,stroke:#94A3B8,stroke-width:2px,color:#FFF;\n    classDef decision fill:#854D0E,stroke:#F59E0B,stroke-width:2px,color:#FFF;\n    classDef document fill:#0284C7,stroke:#38BDF8,stroke-width:2px,color:#FFF;\n    classDef manual fill:#334155,stroke:#64748B,stroke-width:2px,color:#FFF;\n\n    Start([Mulai: Pelanggan Datang Walk-In]):::startEnd --&gt; QueueCheck{Antrean Tempat Duduk Penuh?}:::decision\n    \n    QueueCheck -- \&quot;Ya\&quot; --&gt; WaitManual[Pelanggan Menunggu Antrean Fisik di Barbershop]:::manual\n    WaitManual --&gt; ServiceSelect[Pelanggan Menyampaikan Pilihan Layanan Secara Lisan]:::process\n    \n    QueueCheck -- \&quot;Tidak\&quot; --&gt; ServiceSelect\n    \n    ServiceSelect --&gt; Grooming[Barber Stylist Melakukan Pengerjaan Cukur &amp; Grooming]:::process\n    Grooming --&gt; CalcTotal[Kasir Menghitung Total Biaya Manual / Kalkulator]:::process\n    \n    CalcTotal --&gt; PayCash[Pelanggan Membayar dengan Uang Tunai / Cash]:::process\n    PayCash --&gt; WriteReceipt[/Kasir Menulis Nota Transaksi di Buku Nota Kertas/]::document\n    \n    WriteReceipt --&gt; GiveReceipt[Kasir Menyerahkan Nota Kertas &amp; Kembalian Uang]:::process\n    GiveReceipt --&gt; RecordLedger[/Kasir Mencatat Transaksi di Buku Kas Harian Kertas/]::document\n    \n    RecordLedger --&gt; ShiftEndCheck{Operasional Hari Ini Selesai / Tutup?}:::decision\n    \n    ShiftEndCheck -- \&quot;Belum\&quot; --&gt; WaitNext[Melayani Pelanggan Berikutnya]:::manual\n    WaitNext --&gt; QueueCheck\n    \n    ShiftEndCheck -- \&quot;Ya\&quot; --&gt; CountCashManual[Kasir Hitung Manual Uang Fisik Laci &amp; Total Buku Kas]:::process\n    CountCashManual --&gt; HandoverOwner[/Kasir Serahkan Uang Setoran &amp; Buku Kas Kertas ke Owner/]::document\n    \n    HandoverOwner --&gt; OwnerCheck{Owner Cek Rekap Buku Kas &amp; Fisik Uang?}:::decision\n    \n    OwnerCheck -- \&quot;Cocok / Sesuai\&quot; --&gt; End([Selesai: Rekapitulasi Pembukuan Manual Selesai]):::startEnd\n    OwnerCheck -- \&quot;Selisih Uang / Typo\&quot; --&gt; AuditManual[Owner Lakukan Audit Rekapitulasi Manual]:::process\n    AuditManual --&gt; End&quot;,&#xa;  &quot;config&quot;: null&#xa;}" id="Hh1cJthFECqSRMKJnUem-1">
-          <mxCell connectable="0" parent="1" style="group;transparentBounds=1;editIcon=1;lockedGroup=0;groupPadding=10;" vertex="1">
-            <mxGeometry as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Mulai: Pelanggan Datang Walk-In" mermaidId="n:Start" mermaidBaseStyle="html=1;rounded=1;whiteSpace=wrap;arcSize=50;strokeWidth=2;fillColor=#D4AF37;strokeColor=default;fontColor=default;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;fontStyle=1;" mermaidBaseValue="Mulai: Pelanggan Datang Walk-In" id="Hh1cJthFECqSRMKJnUem-2">
-          <mxCell parent="Hh1cJthFECqSRMKJnUem-1" style="html=1;rounded=1;whiteSpace=wrap;arcSize=50;fillColor=#D4AF37;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=15;fontStyle=1;align=center;" vertex="1">
-            <mxGeometry height="50" width="400" x="250" y="40" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Antrean Tempat Duduk Penuh?" mermaidId="n:QueueCheck" mermaidBaseStyle="rhombus;html=1;strokeWidth=2;whiteSpace=wrap;fillColor=#854D0E;strokeColor=#F59E0B;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Antrean Tempat Duduk Penuh?" id="Hh1cJthFECqSRMKJnUem-3">
-          <mxCell parent="Hh1cJthFECqSRMKJnUem-1" style="rhombus;html=1;whiteSpace=wrap;fillColor=#854D0E;strokeColor=#F59E0B;strokeWidth=2;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=14;fontStyle=1;align=center;" vertex="1">
-            <mxGeometry height="140" width="320" x="290" y="130" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Pelanggan Menunggu Antrean Fisik di Barbershop" mermaidId="n:WaitManual" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=2;fillColor=#334155;strokeColor=#64748B;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Pelanggan Menunggu Antrean Fisik di Barbershop" id="Hh1cJthFECqSRMKJnUem-4">
-          <mxCell parent="Hh1cJthFECqSRMKJnUem-1" style="shape=mxgraph.flowchart.manual_operation;html=1;whiteSpace=wrap;fillColor=#334155;strokeColor=#64748B;strokeWidth=2;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=13;align=center;" vertex="1">
-            <mxGeometry height="65" width="240" x="660" y="170" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Pelanggan Menyampaikan Pilihan Layanan Secara Lisan" mermaidId="n:ServiceSelect" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=2;fillColor=#1E293B;strokeColor=#94A3B8;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Pelanggan Menyampaikan Pilihan Layanan Secara Lisan" id="Hh1cJthFECqSRMKJnUem-5">
-          <mxCell parent="Hh1cJthFECqSRMKJnUem-1" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;size=20;html=1;whiteSpace=wrap;fillColor=#1E293B;strokeColor=#94A3B8;strokeWidth=2;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=13;align=center;" vertex="1">
-            <mxGeometry height="55" width="400" x="250" y="320" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Barber Stylist Melakukan Pengerjaan Cukur &amp; Grooming" mermaidId="n:Grooming" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=2;fillColor=#1E293B;strokeColor=#94A3B8;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Barber Stylist Melakukan Pengerjaan Cukur &amp; Grooming" id="Hh1cJthFECqSRMKJnUem-6">
-          <mxCell parent="Hh1cJthFECqSRMKJnUem-1" style="rounded=0;html=1;whiteSpace=wrap;fillColor=#1E293B;strokeColor=#94A3B8;strokeWidth=2;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=13;align=center;" vertex="1">
-            <mxGeometry height="55" width="400" x="250" y="415" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Kasir Menghitung Total Biaya Manual / Kalkulator" mermaidId="n:CalcTotal" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=2;fillColor=#1E293B;strokeColor=#94A3B8;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Kasir Menghitung Total Biaya Manual / Kalkulator" id="Hh1cJthFECqSRMKJnUem-7">
-          <mxCell parent="Hh1cJthFECqSRMKJnUem-1" style="shape=mxgraph.flowchart.manual_operation;html=1;whiteSpace=wrap;fillColor=#334155;strokeColor=#64748B;strokeWidth=2;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=13;align=center;" vertex="1">
-            <mxGeometry height="65" width="400" x="250" y="510" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Pelanggan Membayar dengan Uang Tunai / Cash" mermaidId="n:PayCash" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=2;fillColor=#1E293B;strokeColor=#94A3B8;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Pelanggan Membayar dengan Uang Tunai / Cash" id="Hh1cJthFECqSRMKJnUem-8">
-          <mxCell parent="Hh1cJthFECqSRMKJnUem-1" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;size=20;html=1;whiteSpace=wrap;fillColor=#1E293B;strokeColor=#94A3B8;strokeWidth=2;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=13;align=center;" vertex="1">
-            <mxGeometry height="55" width="400" x="250" y="615" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Kasir Menulis Nota Transaksi di Buku Nota Kertas" mermaidId="n:WriteReceipt" mermaidBaseStyle="html=1;shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;size=19.5;strokeWidth=1;whiteSpace=wrap;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Kasir Menulis Nota Transaksi di Buku Nota Kertas" id="Hh1cJthFECqSRMKJnUem-9">
-          <mxCell parent="Hh1cJthFECqSRMKJnUem-1" style="shape=mxgraph.flowchart.document;html=1;whiteSpace=wrap;fillColor=#0284C7;strokeColor=#38BDF8;strokeWidth=2;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=13;align=center;" vertex="1">
-            <mxGeometry height="65" width="400" x="250" y="710" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Kasir Menyerahkan Nota Kertas &amp; Kembalian Uang" mermaidId="n:GiveReceipt" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=2;fillColor=#1E293B;strokeColor=#94A3B8;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Kasir Menyerahkan Nota Kertas &amp; Kembalian Uang" id="Hh1cJthFECqSRMKJnUem-10">
-          <mxCell parent="Hh1cJthFECqSRMKJnUem-1" style="rounded=0;html=1;whiteSpace=wrap;fillColor=#1E293B;strokeColor=#94A3B8;strokeWidth=2;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=13;align=center;" vertex="1">
-            <mxGeometry height="55" width="400" x="250" y="815" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Kasir Mencatat Transaksi di Buku Kas Harian Kertas" mermaidId="n:RecordLedger" mermaidBaseStyle="html=1;shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;size=19.5;strokeWidth=1;whiteSpace=wrap;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Kasir Mencatat Transaksi di Buku Kas Harian Kertas" id="Hh1cJthFECqSRMKJnUem-11">
-          <mxCell parent="Hh1cJthFECqSRMKJnUem-1" style="shape=mxgraph.flowchart.document;html=1;whiteSpace=wrap;fillColor=#0284C7;strokeColor=#38BDF8;strokeWidth=2;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=13;align=center;" vertex="1">
-            <mxGeometry height="65" width="400" x="250" y="910" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Operasional Hari Ini Selesai / Tutup?" mermaidId="n:ShiftEndCheck" mermaidBaseStyle="rhombus;html=1;strokeWidth=2;whiteSpace=wrap;fillColor=#854D0E;strokeColor=#F59E0B;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Operasional Hari Ini Selesai / Tutup?" id="Hh1cJthFECqSRMKJnUem-12">
-          <mxCell parent="Hh1cJthFECqSRMKJnUem-1" style="rhombus;html=1;whiteSpace=wrap;fillColor=#854D0E;strokeColor=#F59E0B;strokeWidth=2;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=14;fontStyle=1;align=center;" vertex="1">
-            <mxGeometry height="140" width="340" x="280" y="1015" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Melayani Pelanggan Berikutnya" mermaidId="n:WaitNext" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=2;fillColor=#334155;strokeColor=#64748B;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Melayani Pelanggan Berikutnya" id="Hh1cJthFECqSRMKJnUem-13">
-          <mxCell parent="Hh1cJthFECqSRMKJnUem-1" style="rounded=0;html=1;whiteSpace=wrap;fillColor=#334155;strokeColor=#64748B;strokeWidth=2;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=13;align=center;" vertex="1">
-            <mxGeometry height="55" width="200" x="40" y="1205" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Kasir Hitung Manual Uang Fisik Laci &amp; Total Buku Kas" mermaidId="n:CountCashManual" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=2;fillColor=#1E293B;strokeColor=#94A3B8;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Kasir Hitung Manual Uang Fisik Laci &amp; Total Buku Kas" id="Hh1cJthFECqSRMKJnUem-14">
-          <mxCell parent="Hh1cJthFECqSRMKJnUem-1" style="shape=mxgraph.flowchart.manual_operation;html=1;whiteSpace=wrap;fillColor=#334155;strokeColor=#64748B;strokeWidth=2;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=13;align=center;" vertex="1">
-            <mxGeometry height="65" width="400" x="250" y="1205" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Kasir Serahkan Uang Setoran &amp; Buku Kas Kertas ke Owner" mermaidId="n:HandoverOwner" mermaidBaseStyle="html=1;shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;size=19.5;strokeWidth=1;whiteSpace=wrap;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Kasir Serahkan Uang Setoran &amp; Buku Kas Kertas ke Owner" id="Hh1cJthFECqSRMKJnUem-15">
-          <mxCell parent="Hh1cJthFECqSRMKJnUem-1" style="shape=mxgraph.flowchart.document;html=1;whiteSpace=wrap;fillColor=#0284C7;strokeColor=#38BDF8;strokeWidth=2;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=13;align=center;" vertex="1">
-            <mxGeometry height="65" width="400" x="250" y="1310" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Owner Cek Rekap Buku Kas &amp; Fisik Uang?" mermaidId="n:OwnerCheck" mermaidBaseStyle="rhombus;html=1;strokeWidth=2;whiteSpace=wrap;fillColor=#854D0E;strokeColor=#F59E0B;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Owner Cek Rekap Buku Kas &amp; Fisik Uang?" id="Hh1cJthFECqSRMKJnUem-16">
-          <mxCell parent="Hh1cJthFECqSRMKJnUem-1" style="rhombus;html=1;whiteSpace=wrap;fillColor=#854D0E;strokeColor=#F59E0B;strokeWidth=2;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=14;fontStyle=1;align=center;" vertex="1">
-            <mxGeometry height="140" width="360" x="270" y="1415" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Selesai: Rekapitulasi Pembukuan Manual Selesai" mermaidId="n:End" mermaidBaseStyle="html=1;rounded=1;whiteSpace=wrap;arcSize=50;strokeWidth=2;fillColor=#D4AF37;strokeColor=default;fontColor=default;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;fontStyle=1;" mermaidBaseValue="Selesai: Rekapitulasi Pembukuan Manual Selesai" id="Hh1cJthFECqSRMKJnUem-17">
-          <mxCell parent="Hh1cJthFECqSRMKJnUem-1" style="html=1;rounded=1;whiteSpace=wrap;arcSize=50;fillColor=#D4AF37;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=15;fontStyle=1;align=center;" vertex="1">
-            <mxGeometry height="50" width="400" x="250" y="1700" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Owner Lakukan Audit Rekapitulasi Manual" mermaidId="n:AuditManual" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=2;fillColor=#1E293B;strokeColor=#94A3B8;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Owner Lakukan Audit Rekapitulasi Manual" id="Hh1cJthFECqSRMKJnUem-18">
-          <mxCell parent="Hh1cJthFECqSRMKJnUem-1" style="rounded=0;html=1;whiteSpace=wrap;fillColor=#1E293B;strokeColor=#94A3B8;strokeWidth=2;fontColor=#FFF;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=13;align=center;" vertex="1">
-            <mxGeometry height="55" width="200" x="40" y="1600" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="" mermaidId="e:Start-&gt;QueueCheck#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="" id="Hh1cJthFECqSRMKJnUem-19">
-          <mxCell edge="1" parent="Hh1cJthFECqSRMKJnUem-1" source="Hh1cJthFECqSRMKJnUem-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#1e293b;strokeWidth=2;endArrow=block;endFill=1;endSize=6;" target="Hh1cJthFECqSRMKJnUem-3">
-            <mxGeometry relative="1" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Ya" mermaidId="e:QueueCheck-&gt;WaitManual#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=1;exitY=0.82;entryX=0.5;entryY=0;" mermaidBaseValue="Ya" id="Hh1cJthFECqSRMKJnUem-20">
-          <mxCell edge="1" parent="Hh1cJthFECqSRMKJnUem-1" source="Hh1cJthFECqSRMKJnUem-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;strokeColor=#d97706;strokeWidth=2;endArrow=block;endFill=1;endSize=6;fontColor=#b45309;fontSize=13;fontStyle=1;labelBackgroundColor=#ffffff;" target="Hh1cJthFECqSRMKJnUem-4">
-            <mxGeometry relative="1" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="" mermaidId="e:WaitManual-&gt;ServiceSelect#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.65;entryY=0;" mermaidBaseValue="" id="Hh1cJthFECqSRMKJnUem-21">
-          <mxCell edge="1" parent="Hh1cJthFECqSRMKJnUem-1" source="Hh1cJthFECqSRMKJnUem-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=1;entryY=0.5;strokeColor=#1e293b;strokeWidth=2;endArrow=block;endFill=1;endSize=6;" target="Hh1cJthFECqSRMKJnUem-5">
+        <mxCell id="hdr_box" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8fafc;strokeColor=#cbd5e1;strokeWidth=2;" value="" vertex="1">
+          <mxGeometry height="75" width="660" x="80" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="hdr_txt" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;" value="&lt;b style=&quot;font-size: 15px; color: #0f172a;&quot;&gt;FLOWCHART PROSEDUR OPERASIONAL MANUAL&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size: 12px; color: #475569;&quot;&gt;Sistem Kasir, Pelayanan Cukur, &amp;amp; Pembukuan Harian Barbershop (Sebelum Digitalisasi)&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size: 11px; color: #2563eb; font-weight: bold;&quot;&gt;Standar Simbol Resmi Bagan Alir Sistem: ISO 5807 / ANSI&lt;/span&gt;" vertex="1">
+          <mxGeometry height="65" width="660" x="80" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="N1_Start" parent="1" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#dcfce7;strokeColor=#16a34a;strokeWidth=2;fontColor=#15803d;align=center;verticalAlign=middle;spacing=4;overflow=visible;" value="&lt;b style=&quot;font-size: 13px;&quot;&gt;🟢 🏁 MULAI&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;Pelanggan Datang Langsung ke Barbershop (Walk-In)&lt;/span&gt;" vertex="1">
+          <mxGeometry height="55" width="420" x="320" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="Kj6N8bS-B93HjEV5pTno-1" edge="1" parent="1" source="N2_QueueCheck" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="860" y="287.5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="N2_QueueCheck" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffedd5;strokeColor=#ea580c;strokeWidth=2;fontColor=#7c2d12;fontStyle=1;align=center;verticalAlign=middle;spacing=6;overflow=visible;" value="&lt;span style=&quot;font-size: 12px;&quot;&gt;❓ 🪑 Apakah Kursi Pangkas /&lt;br&gt;Antrean Tempat Duduk Penuh?&lt;/span&gt;" vertex="1">
+          <mxGeometry height="125" width="460" x="300" y="225" as="geometry" />
+        </mxCell>
+        <mxCell id="N4_ServiceSelect" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;size=20;whiteSpace=wrap;html=1;fillColor=#f3e8ff;strokeColor=#9333ea;strokeWidth=2;fontColor=#581c87;align=center;verticalAlign=middle;spacingLeft=15;spacingRight=15;spacing=4;overflow=visible;" value="&lt;b style=&quot;font-size: 10px; color: #7e22ce;&quot;&gt;🗣️ [INPUT DATA LISAN]&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;Pelanggan Menyampaikan Pilihan Model &amp;amp; Layanan Cukur&lt;/span&gt;" vertex="1">
+          <mxGeometry height="65" width="420" x="320" y="395" as="geometry" />
+        </mxCell>
+        <mxCell id="N7_PayCash" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;size=20;whiteSpace=wrap;html=1;fillColor=#f3e8ff;strokeColor=#9333ea;strokeWidth=2;fontColor=#581c87;align=center;verticalAlign=middle;spacingLeft=15;spacingRight=15;spacing=4;overflow=visible;" value="&lt;b style=&quot;font-size: 10px; color: #7e22ce;&quot;&gt;💵 🪙 [INPUT KAS FISIK]&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;Pelanggan Membayar Tagihan dengan Uang Tunai (Cash Fisik)&lt;/span&gt;" vertex="1">
+          <mxGeometry height="65" width="420" x="320" y="730" as="geometry" />
+        </mxCell>
+        <mxCell id="N8_WriteReceipt" parent="1" style="shape=document;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#fef3c7;strokeColor=#d97706;strokeWidth=2;fontColor=#78350f;align=center;verticalAlign=middle;spacing=4;overflow=visible;" value="&lt;b style=&quot;font-size: 10px; color: #b45309;&quot;&gt;📄 ✍️ [DOKUMEN KERTAS]&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;Kasir Menulis Nota Transaksi di Buku Nota Kertas (Rangkap 2)&lt;/span&gt;" vertex="1">
+          <mxGeometry height="75" width="420" x="320" y="835" as="geometry" />
+        </mxCell>
+        <mxCell id="N10_RecordLedger" parent="1" style="shape=document;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#fef3c7;strokeColor=#d97706;strokeWidth=2;fontColor=#78350f;align=center;verticalAlign=middle;spacing=4;overflow=visible;" value="&lt;b style=&quot;font-size: 10px; color: #b45309;&quot;&gt;📖 📑 [DOKUMEN KERTAS]&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;Kasir Mencatat Rincian Transaksi ke Buku Kas Harian Folio (Kertas)&lt;/span&gt;" vertex="1">
+          <mxGeometry height="75" width="420" x="320" y="1065" as="geometry" />
+        </mxCell>
+        <mxCell id="N11_ShiftEndCheck" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffedd5;strokeColor=#ea580c;strokeWidth=2;fontColor=#7c2d12;fontStyle=1;align=center;verticalAlign=middle;spacing=6;overflow=visible;" value="&lt;span style=&quot;font-size: 12px;&quot;&gt;🚪 ⏰ Apakah Operasional Toko Hari Ini&lt;br&gt;Telah Selesai (Tutup Shift)?&lt;/span&gt;" vertex="1">
+          <mxGeometry height="125" width="460" x="300" y="1180" as="geometry" />
+        </mxCell>
+        <mxCell id="N14_HandoverOwner" parent="1" style="shape=document;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#fef3c7;strokeColor=#d97706;strokeWidth=2;fontColor=#78350f;align=center;verticalAlign=middle;spacing=4;overflow=visible;" value="&lt;b style=&quot;font-size: 10px; color: #b45309;&quot;&gt;💼 📑 [DOKUMEN &amp;amp; FISIK KAS]&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;Kasir Menyerahkan Buku Kas Harian &amp;amp; Fisik Uang ke Owner&lt;/span&gt;" vertex="1">
+          <mxGeometry height="75" width="420" x="320" y="1460" as="geometry" />
+        </mxCell>
+        <mxCell id="N15_OwnerCheck" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffedd5;strokeColor=#ea580c;strokeWidth=2;fontColor=#7c2d12;fontStyle=1;align=center;verticalAlign=middle;spacing=6;overflow=visible;" value="&lt;span style=&quot;font-size: 12px;&quot;&gt;🔍 ⚖️ Owner Memeriksa:&lt;br&gt;Apakah Fisik Uang Tunai &amp;amp; Rekap Buku Kas Klop / Sesuai?&lt;/span&gt;" vertex="1">
+          <mxGeometry height="125" width="480" x="290" y="1575" as="geometry" />
+        </mxCell>
+        <mxCell id="Kj6N8bS-B93HjEV5pTno-2" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="N15_OwnerCheck" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="209.99999999999977" y="1637.5" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="N17_End" parent="1" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#fee2e2;strokeColor=#dc2626;strokeWidth=2;fontColor=#991b1b;align=center;verticalAlign=middle;spacing=4;overflow=visible;" value="&lt;b style=&quot;font-size: 13px;&quot;&gt;🔴 🏁 SELESAI&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;Rekapitulasi Pembukuan Kasir Manual Selesai &amp;amp; Kas Ditutup&lt;/span&gt;" vertex="1">
+          <mxGeometry height="55" width="420" x="320" y="1745" as="geometry" />
+        </mxCell>
+        <mxCell id="E1" edge="1" parent="1" source="N1_Start" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1e293b;strokeWidth=2;endArrow=block;endFill=1;endSize=6;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="N2_QueueCheck" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="E2" edge="1" parent="1" source="N2_QueueCheck" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#d97706;strokeWidth=2;endArrow=block;endFill=1;endSize=6;fontColor=#b45309;fontSize=12;fontStyle=1;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" value="Ya (Antrean Penuh)">
+          <mxGeometry relative="1" x="-0.6" y="48" as="geometry">
+            <mxPoint x="-1" as="offset" />
+            <mxPoint x="860" y="287.5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E3" edge="1" parent="1" source="Kj6N8bS-B93HjEV5pTno-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1e293b;strokeWidth=2;endArrow=block;endFill=1;endSize=6;exitX=0.016;exitY=0.619;entryX=1;entryY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;" target="N4_ServiceSelect" value="Giliran Tiba">
+          <mxGeometry relative="1" as="geometry">
             <mxGeometry relative="1" as="geometry">
               <Array as="points">
-                <mxPoint x="780" y="347" />
+                <mxPoint x="935" y="427" />
               </Array>
             </mxGeometry>
-          </mxCell>
-        </UserObject>
-        <UserObject label="Tidak" mermaidId="e:QueueCheck-&gt;ServiceSelect#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.26;entryY=0;" mermaidBaseValue="Tidak" id="Hh1cJthFECqSRMKJnUem-22">
-          <mxCell edge="1" parent="Hh1cJthFECqSRMKJnUem-1" source="Hh1cJthFECqSRMKJnUem-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#475569;strokeWidth=2;endArrow=block;endFill=1;endSize=6;fontColor=#475569;fontSize=13;fontStyle=1;labelBackgroundColor=#ffffff;" target="Hh1cJthFECqSRMKJnUem-5">
-            <mxGeometry relative="1" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="" mermaidId="e:ServiceSelect-&gt;Grooming#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="" id="Hh1cJthFECqSRMKJnUem-23">
-          <mxCell edge="1" parent="Hh1cJthFECqSRMKJnUem-1" source="Hh1cJthFECqSRMKJnUem-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#1e293b;strokeWidth=2;endArrow=block;endFill=1;endSize=6;" target="Hh1cJthFECqSRMKJnUem-6">
-            <mxGeometry relative="1" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="" mermaidId="e:Grooming-&gt;CalcTotal#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="" id="Hh1cJthFECqSRMKJnUem-24">
-          <mxCell edge="1" parent="Hh1cJthFECqSRMKJnUem-1" source="Hh1cJthFECqSRMKJnUem-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#1e293b;strokeWidth=2;endArrow=block;endFill=1;endSize=6;" target="Hh1cJthFECqSRMKJnUem-7">
-            <mxGeometry relative="1" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="" mermaidId="e:CalcTotal-&gt;PayCash#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="" id="Hh1cJthFECqSRMKJnUem-25">
-          <mxCell edge="1" parent="Hh1cJthFECqSRMKJnUem-1" source="Hh1cJthFECqSRMKJnUem-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#1e293b;strokeWidth=2;endArrow=block;endFill=1;endSize=6;" target="Hh1cJthFECqSRMKJnUem-8">
-            <mxGeometry relative="1" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="" mermaidId="e:PayCash-&gt;WriteReceipt#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="" id="Hh1cJthFECqSRMKJnUem-26">
-          <mxCell edge="1" parent="Hh1cJthFECqSRMKJnUem-1" source="Hh1cJthFECqSRMKJnUem-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#1e293b;strokeWidth=2;endArrow=block;endFill=1;endSize=6;" target="Hh1cJthFECqSRMKJnUem-9">
-            <mxGeometry relative="1" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="" mermaidId="e:WriteReceipt-&gt;GiveReceipt#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="" id="Hh1cJthFECqSRMKJnUem-27">
-          <mxCell edge="1" parent="Hh1cJthFECqSRMKJnUem-1" source="Hh1cJthFECqSRMKJnUem-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#1e293b;strokeWidth=2;endArrow=block;endFill=1;endSize=6;" target="Hh1cJthFECqSRMKJnUem-10">
-            <mxGeometry relative="1" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="" mermaidId="e:GiveReceipt-&gt;RecordLedger#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="" id="Hh1cJthFECqSRMKJnUem-28">
-          <mxCell edge="1" parent="Hh1cJthFECqSRMKJnUem-1" source="Hh1cJthFECqSRMKJnUem-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#1e293b;strokeWidth=2;endArrow=block;endFill=1;endSize=6;" target="Hh1cJthFECqSRMKJnUem-11">
-            <mxGeometry relative="1" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="" mermaidId="e:RecordLedger-&gt;ShiftEndCheck#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="" id="Hh1cJthFECqSRMKJnUem-29">
-          <mxCell edge="1" parent="Hh1cJthFECqSRMKJnUem-1" source="Hh1cJthFECqSRMKJnUem-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#1e293b;strokeWidth=2;endArrow=block;endFill=1;endSize=6;" target="Hh1cJthFECqSRMKJnUem-12">
-            <mxGeometry relative="1" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Belum" mermaidId="e:ShiftEndCheck-&gt;WaitNext#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.09;exitY=1;entryX=0.7;entryY=0;" mermaidBaseValue="Belum" id="Hh1cJthFECqSRMKJnUem-30">
-          <mxCell edge="1" parent="Hh1cJthFECqSRMKJnUem-1" source="Hh1cJthFECqSRMKJnUem-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;entryX=0.5;entryY=0;strokeColor=#475569;strokeWidth=2;endArrow=block;endFill=1;endSize=6;fontColor=#475569;fontSize=13;fontStyle=1;labelBackgroundColor=#ffffff;" target="Hh1cJthFECqSRMKJnUem-13">
+            <mxPoint x="985" y="325" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E4" edge="1" parent="1" source="N2_QueueCheck" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;endArrow=block;endFill=1;endSize=6;fontColor=#475569;fontSize=12;fontStyle=1;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="N4_ServiceSelect" value="Tidak (Langsung Duduk)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="E5" edge="1" parent="1" source="N4_ServiceSelect" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1e293b;strokeWidth=2;endArrow=block;endFill=1;endSize=6;exitX=0.5;exitY=1;entryX=0.499;entryY=0.032;entryDx=0;entryDy=0;entryPerimeter=0;" target="Kj6N8bS-B93HjEV5pTno-4" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="530" y="500" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E6" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1e293b;strokeWidth=2;endArrow=block;endFill=1;endSize=6;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="530" y="575" as="sourcePoint" />
+            <mxPoint x="530" y="615" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E7" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1e293b;strokeWidth=2;endArrow=block;endFill=1;endSize=6;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="N7_PayCash" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="530" y="690" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E8" edge="1" parent="1" source="N7_PayCash" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1e293b;strokeWidth=2;endArrow=block;endFill=1;endSize=6;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="N8_WriteReceipt" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="E9" edge="1" parent="1" source="N8_WriteReceipt" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1e293b;strokeWidth=2;endArrow=block;endFill=1;endSize=6;exitX=0.497;exitY=0.828;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitPerimeter=0;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="530" y="950" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E10" edge="1" parent="1" source="Kj6N8bS-B93HjEV5pTno-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1e293b;strokeWidth=2;endArrow=block;endFill=1;endSize=6;exitX=0.476;exitY=0.956;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitPerimeter=0;" target="N10_RecordLedger" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="530" y="1025" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E11" edge="1" parent="1" source="N10_RecordLedger" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1e293b;strokeWidth=2;endArrow=block;endFill=1;endSize=6;entryX=0.5;entryY=0;exitX=0.5;exitY=0.838;exitDx=0;exitDy=0;exitPerimeter=0;" target="N11_ShiftEndCheck" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="E12" edge="1" parent="1" source="N11_ShiftEndCheck" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#d97706;strokeWidth=2;endArrow=block;endFill=1;endSize=6;fontColor=#b45309;fontSize=12;fontStyle=1;labelBackgroundColor=#ffffff;exitX=0;exitY=0.5;entryX=1;entryY=0.5;" value="Belum (Masih Buka)">
+          <mxGeometry relative="1" x="0.0429" y="-31" as="geometry">
+            <mxPoint x="15" y="4" as="offset" />
+            <Array as="points">
+              <mxPoint x="255.06" y="1242.53" />
+              <mxPoint x="255.06" y="1227.47" />
+            </Array>
+            <mxPoint x="200" y="1227.5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E13" edge="1" parent="1" source="Kj6N8bS-B93HjEV5pTno-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1e293b;strokeWidth=2;endArrow=block;endFill=1;endSize=6;exitX=0.5;exitY=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;" target="N2_QueueCheck" value="Panggil Antrean">
+          <mxGeometry relative="1" as="geometry">
             <mxGeometry relative="1" as="geometry">
               <Array as="points">
-                <mxPoint x="140" y="1085" />
+                <mxPoint x="160" y="287" />
               </Array>
             </mxGeometry>
-          </mxCell>
-        </UserObject>
-        <UserObject label="" mermaidId="e:WaitNext-&gt;QueueCheck#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.47;exitY=0;entryX=0.15;entryY=1;" mermaidBaseValue="" id="Hh1cJthFECqSRMKJnUem-31">
-          <mxCell edge="1" parent="Hh1cJthFECqSRMKJnUem-1" source="Hh1cJthFECqSRMKJnUem-13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;entryX=0;entryY=0.5;strokeColor=#475569;strokeWidth=2;endArrow=block;endFill=1;endSize=6;" target="Hh1cJthFECqSRMKJnUem-3">
+            <mxPoint x="100" y="1190" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E14" edge="1" parent="1" source="N11_ShiftEndCheck" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;endArrow=block;endFill=1;endSize=6;fontColor=#475569;fontSize=12;fontStyle=1;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" value="Ya (Tutup Shift)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="530" y="1344.9999999999998" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E15" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1e293b;strokeWidth=2;endArrow=block;endFill=1;endSize=6;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="N14_HandoverOwner" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="530" y="1419.9999999999998" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E16" edge="1" parent="1" source="N14_HandoverOwner" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1e293b;strokeWidth=2;endArrow=block;endFill=1;endSize=6;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="N15_OwnerCheck" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="E17" edge="1" parent="1" source="N15_OwnerCheck" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#16a34a;strokeWidth=2;endArrow=block;endFill=1;endSize=6;fontColor=#15803d;fontSize=12;fontStyle=1;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="N17_End" value="Cocok / Klop Sesuai">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="E18" edge="1" parent="1" source="N15_OwnerCheck" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#dc2626;strokeWidth=2;endArrow=block;endFill=1;endSize=6;fontColor=#b91c1c;fontSize=12;fontStyle=1;labelBackgroundColor=#ffffff;exitX=0;exitY=0.5;entryX=1;entryY=0.25;entryDx=0;entryDy=0;" target="Kj6N8bS-B93HjEV5pTno-11" value="Selisih Uang / Typo">
+          <mxGeometry relative="1" x="0.0353" y="-17" as="geometry">
+            <mxPoint as="offset" />
+            <mxPoint x="209.99999999999977" y="1637.5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E19" edge="1" parent="1" source="Kj6N8bS-B93HjEV5pTno-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1e293b;strokeWidth=2;endArrow=block;endFill=1;endSize=6;entryX=0;entryY=0.5;curved=0;exitX=0.984;exitY=0.864;exitDx=0;exitDy=0;exitPerimeter=0;" target="N17_End" value="Hasil Audit Klop">
+          <mxGeometry relative="1" as="geometry">
             <mxGeometry relative="1" as="geometry">
               <Array as="points">
-                <mxPoint x="140" y="200" />
+                <mxPoint x="160" y="1772" />
               </Array>
             </mxGeometry>
-          </mxCell>
-        </UserObject>
-        <UserObject label="Ya" mermaidId="e:ShiftEndCheck-&gt;CountCashManual#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.64;exitY=1;entryX=0.5;entryY=0;" mermaidValue="Ya" id="Hh1cJthFECqSRMKJnUem-32">
-          <mxCell edge="1" parent="Hh1cJthFECqSRMKJnUem-1" source="Hh1cJthFECqSRMKJnUem-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#d97706;strokeWidth=2;endArrow=block;endFill=1;endSize=6;fontColor=#b45309;fontSize=13;fontStyle=1;labelBackgroundColor=#ffffff;" target="Hh1cJthFECqSRMKJnUem-14">
-            <mxGeometry relative="1" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="" mermaidId="e:CountCashManual-&gt;HandoverOwner#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="" id="Hh1cJthFECqSRMKJnUem-33">
-          <mxCell edge="1" parent="Hh1cJthFECqSRMKJnUem-1" source="Hh1cJthFECqSRMKJnUem-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#1e293b;strokeWidth=2;endArrow=block;endFill=1;endSize=6;" target="Hh1cJthFECqSRMKJnUem-15">
-            <mxGeometry relative="1" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="" mermaidId="e:HandoverOwner-&gt;OwnerCheck#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="" id="Hh1cJthFECqSRMKJnUem-34">
-          <mxCell edge="1" parent="Hh1cJthFECqSRMKJnUem-1" source="Hh1cJthFECqSRMKJnUem-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#1e293b;strokeWidth=2;endArrow=block;endFill=1;endSize=6;" target="Hh1cJthFECqSRMKJnUem-16">
-            <mxGeometry relative="1" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Cocok / Sesuai" mermaidId="e:OwnerCheck-&gt;End#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.74;exitY=1;entryX=0.66;entryY=0;" mermaidBaseValue="Cocok / Sesuai" id="Hh1cJthFECqSRMKJnUem-35">
-          <mxCell edge="1" parent="Hh1cJthFECqSRMKJnUem-1" source="Hh1cJthFECqSRMKJnUem-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#16a34a;strokeWidth=2;endArrow=block;endFill=1;endSize=6;fontColor=#15803d;fontSize=13;fontStyle=1;labelBackgroundColor=#ffffff;" target="Hh1cJthFECqSRMKJnUem-17">
-            <mxGeometry relative="1" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Selisih Uang / Typo" mermaidId="e:OwnerCheck-&gt;AuditManual#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.26;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="Selisih Uang / Typo" id="Hh1cJthFECqSRMKJnUem-36">
-          <mxCell edge="1" parent="Hh1cJthFECqSRMKJnUem-1" source="Hh1cJthFECqSRMKJnUem-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;entryX=0.5;entryY=0;strokeColor=#dc2626;strokeWidth=2;endArrow=block;endFill=1;endSize=6;fontColor=#b91c1c;fontSize=13;fontStyle=1;labelBackgroundColor=#ffffff;" target="Hh1cJthFECqSRMKJnUem-18">
-            <mxGeometry relative="1" as="geometry">
-              <Array as="points">
-                <mxPoint x="140" y="1485" />
-              </Array>
-            </mxGeometry>
-          </mxCell>
-        </UserObject>
-        <UserObject label="" mermaidId="e:AuditManual-&gt;End#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.34;entryY=0;" mermaidBaseValue="" id="Hh1cJthFECqSRMKJnUem-37">
-          <mxCell edge="1" parent="Hh1cJthFECqSRMKJnUem-1" source="Hh1cJthFECqSRMKJnUem-18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0;entryY=0.5;strokeColor=#1e293b;strokeWidth=2;endArrow=block;endFill=1;endSize=6;" target="Hh1cJthFECqSRMKJnUem-17">
-            <mxGeometry relative="1" as="geometry">
-              <Array as="points">
-                <mxPoint x="140" y="1725" />
-              </Array>
-            </mxGeometry>
-          </mxCell>
-        </UserObject>
-        <mxCell id="legend_iso_1" parent="1" style="html=1;rounded=1;arcSize=50;fillColor=#D4AF37;strokeColor=#000;fontColor=#000;fontStyle=1;fontSize=11;align=center;" value="Oval = Terminal (Mulai/Selesai)" vertex="1">
-          <mxGeometry height="35" width="240" x="890" y="460" as="geometry" />
+            <mxPoint x="110" y="1770" as="sourcePoint" />
+          </mxGeometry>
         </mxCell>
-        <mxCell id="legend_iso_2" parent="1" style="rounded=0;html=1;fillColor=#1E293B;strokeColor=#94A3B8;fontColor=#FFF;fontSize=11;align=center;" value="Persegi Panjang = Proses" vertex="1">
-          <mxGeometry height="35" width="240" x="910" y="390" as="geometry" />
+        <mxCell id="leg_box" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#94a3b8;strokeWidth=2;shadow=1;" value="" vertex="1">
+          <mxGeometry height="380" width="410" x="780" y="450" as="geometry" />
         </mxCell>
-        <mxCell id="legend_iso_3" parent="1" style="rhombus;html=1;fillColor=#854D0E;strokeColor=#F59E0B;fontColor=#FFF;fontStyle=1;fontSize=11;align=center;" value="Belah Ketupat = Keputusan" vertex="1">
-          <mxGeometry height="45" width="240" x="880" y="530" as="geometry" />
+        <mxCell id="leg_title" parent="1" style="text;html=1;strokeColor=none;fillColor=#f1f5f9;align=center;verticalAlign=middle;rounded=1;fontStyle=1;" value="&lt;b style=&quot;font-size: 13px; color: #1e293b;&quot;&gt;LEGENDA SIMBOL FLOWCHART MANUAL&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size: 11px; color: #2563eb; font-weight: bold;&quot;&gt;(STANDAR BAKU ISO 5807 / ANSI)&lt;/span&gt;" vertex="1">
+          <mxGeometry height="40" width="390" x="790" y="460" as="geometry" />
         </mxCell>
-        <mxCell id="legend_iso_4" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;size=15;html=1;fillColor=#1E293B;strokeColor=#94A3B8;fontColor=#FFF;fontSize=11;align=center;" value="Jajar Genjang = Input/Output" vertex="1">
-          <mxGeometry height="35" width="240" x="920" y="320" as="geometry" />
+        <mxCell id="leg_shp_1" parent="1" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#dcfce7;strokeColor=#16a34a;strokeWidth=2;fontColor=#15803d;fontSize=11;fontStyle=1;align=center;" value="🟢 Mulai / Selesai" vertex="1">
+          <mxGeometry height="35" width="120" x="800" y="515" as="geometry" />
         </mxCell>
-        <mxCell id="legend_iso_5" parent="1" style="shape=mxgraph.flowchart.manual_operation;html=1;fillColor=#334155;strokeColor=#64748B;fontColor=#FFF;fontSize=11;align=center;" value="Trapesium = Operasi Manual" vertex="1">
-          <mxGeometry height="40" width="240" x="880" y="680" as="geometry" />
+        <mxCell id="leg_txt_1" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;fontSize=11;fontColor=#334155;" value="&lt;b&gt;Terminator&lt;/b&gt;: Awal (Start) &amp;amp; Akhir (End) dari alur sistem operasional." vertex="1">
+          <mxGeometry height="40" width="250" x="930" y="512" as="geometry" />
         </mxCell>
-        <mxCell id="legend_iso_6" parent="1" style="shape=mxgraph.flowchart.document;html=1;fillColor=#0284C7;strokeColor=#38BDF8;fontColor=#FFF;fontSize=11;align=center;" value="Gelombang Bawah = Dokumen Kertas" vertex="1">
-          <mxGeometry height="40" width="240" x="880" y="610" as="geometry" />
+        <mxCell id="leg_shp_2" parent="1" style="shape=trapezoid;perimeter=trapezoidPerimeter;fixedSize=1;size=15;flipV=1;whiteSpace=wrap;html=1;fillColor=#e0e7ff;strokeColor=#4f46e5;strokeWidth=2;fontColor=#3730a3;fontSize=11;fontStyle=1;align=center;" value="⚙️ Operasi Manual" vertex="1">
+          <mxGeometry height="38" width="120" x="800" y="565" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_txt_2" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;fontSize=11;fontColor=#334155;" value="&lt;b&gt;Trapesium Terbalik (Manual Op)&lt;/b&gt;: Kegiatan fisik manusia (cukur, hitung kalkulator, hitung laci)." vertex="1">
+          <mxGeometry height="40" width="250" x="930" y="564" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_shp_3" parent="1" style="shape=document;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#fef3c7;strokeColor=#d97706;strokeWidth=2;fontColor=#92400e;fontSize=11;fontStyle=1;align=center;" value="📄 Dokumen Fisik" vertex="1">
+          <mxGeometry height="40" width="120" x="800" y="620" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_txt_3" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;fontSize=11;fontColor=#334155;" value="&lt;b&gt;Gelombang Bawah (Document)&lt;/b&gt;: Dokumen fisik kertas (nota kontan, buku kas harian folio)." vertex="1">
+          <mxGeometry height="40" width="250" x="930" y="620" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_shp_4" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;size=15;whiteSpace=wrap;html=1;fillColor=#f3e8ff;strokeColor=#9333ea;strokeWidth=2;fontColor=#6b21a8;fontSize=11;fontStyle=1;align=center;" value="📥 Input / Output" vertex="1">
+          <mxGeometry height="35" width="120" x="800" y="680" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_txt_4" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;fontSize=11;fontColor=#334155;" value="&lt;b&gt;Jajar Genjang (Data I/O)&lt;/b&gt;: Masukan lisan pesanan atau penerimaan fisik uang tunai." vertex="1">
+          <mxGeometry height="40" width="250" x="930" y="677" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_shp_5" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffedd5;strokeColor=#ea580c;strokeWidth=2;fontColor=#9a3412;fontSize=11;fontStyle=1;align=center;" value="❓ Keputusan" vertex="1">
+          <mxGeometry height="45" width="120" x="800" y="730" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_txt_5" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;fontSize=11;fontColor=#334155;" value="&lt;b&gt;Belah Ketupat (Decision)&lt;/b&gt;: Titik percabangan kondisi logika (Ya / Tidak, Cocok / Selisih)." vertex="1">
+          <mxGeometry height="40" width="250" x="930" y="732" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_note" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=10;fontColor=#64748b;fontStyle=2;" value="*Sisi atas trapesium lebih panjang (lebar) menandakan pengerjaan fisik tanpa komputer." vertex="1">
+          <mxGeometry height="25" width="390" x="790" y="790" as="geometry" />
+        </mxCell>
+        <mxCell id="Kj6N8bS-B93HjEV5pTno-3" parent="1" style="shape=trapezoid;perimeter=trapezoidPerimeter;whiteSpace=wrap;html=1;shapeInside=1;fixedSize=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;b style=&quot;font-size: 10px; color: rgb(67, 56, 202);&quot;&gt;⏳ [OPERASI MANUAL]&lt;/b&gt;&lt;br style=&quot;color: rgb(30, 27, 75);&quot;&gt;&lt;b style=&quot;color: rgb(30, 27, 75); font-size: 11px;&quot;&gt;Pelanggan Menunggu Giliran&lt;/b&gt;&lt;br style=&quot;color: rgb(30, 27, 75);&quot;&gt;&lt;span style=&quot;color: rgb(30, 27, 75); font-size: 11px;&quot;&gt;di Kursi Antrean Fisik Barbershop&lt;/span&gt;" vertex="1">
+          <mxGeometry height="90" width="345" x="835" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="Kj6N8bS-B93HjEV5pTno-4" parent="1" style="shape=trapezoid;perimeter=trapezoidPerimeter;whiteSpace=wrap;html=1;shapeInside=1;fixedSize=1;fillColor=#dae8fc;strokeColor=#6c8ebf;container=1;" value="&lt;b style=&quot;font-size: 10px; color: rgb(67, 56, 202);&quot;&gt;✂️ 💈 [OPERASI MANUAL]&lt;/b&gt;&lt;br style=&quot;color: rgb(30, 27, 75);&quot;&gt;&lt;span style=&quot;color: rgb(30, 27, 75);&quot;&gt;Barber Stylist Melakukan Pengerjaan Fisik Cukur &amp;amp; Grooming&lt;/span&gt;" vertex="1">
+          <mxGeometry height="75" width="420" x="320" y="500" as="geometry" />
+        </mxCell>
+        <mxCell id="Kj6N8bS-B93HjEV5pTno-5" parent="1" style="shape=trapezoid;perimeter=trapezoidPerimeter;whiteSpace=wrap;html=1;shapeInside=1;fixedSize=1;fillColor=#dae8fc;strokeColor=#6c8ebf;container=1;" value="&lt;b style=&quot;font-size: 10px; color: rgb(67, 56, 202);&quot;&gt;🧮 ✍️ [OPERASI MANUAL]&lt;/b&gt;&lt;br style=&quot;color: rgb(30, 27, 75);&quot;&gt;&lt;span style=&quot;color: rgb(30, 27, 75);&quot;&gt;Kasir Menghitung Total Biaya Menggunakan Kalkulator Manual&lt;/span&gt;" vertex="1">
+          <mxGeometry height="75" width="420" x="320" y="615" as="geometry" />
+        </mxCell>
+        <mxCell id="Kj6N8bS-B93HjEV5pTno-7" parent="1" style="shape=trapezoid;perimeter=trapezoidPerimeter;whiteSpace=wrap;html=1;shapeInside=1;fixedSize=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;b style=&quot;font-size: 10px; color: rgb(67, 56, 202);&quot;&gt;🤝 🧾 [OPERASI MANUAL]&lt;/b&gt;&lt;br style=&quot;color: rgb(30, 27, 75);&quot;&gt;&lt;span style=&quot;color: rgb(30, 27, 75);&quot;&gt;Kasir Menyerahkan Nota Asli &amp;amp; Uang Kembalian Fisik ke Pelanggan&lt;/span&gt;" vertex="1">
+          <mxGeometry height="60" width="480" x="300" y="950" as="geometry" />
+        </mxCell>
+        <mxCell id="Kj6N8bS-B93HjEV5pTno-9" parent="1" style="shape=trapezoid;perimeter=trapezoidPerimeter;whiteSpace=wrap;html=1;shapeInside=1;fixedSize=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;b style=&quot;font-size: 10px; color: rgb(67, 56, 202);&quot;&gt;👥 📢 [OPERASI MANUAL]&lt;/b&gt;&lt;br style=&quot;color: rgb(30, 27, 75);&quot;&gt;&lt;span style=&quot;color: rgb(30, 27, 75); font-size: 11px;&quot;&gt;Kasir Memanggil &amp;amp; Melayani&lt;br&gt;Pelanggan Antrean Berikutnya&lt;/span&gt;" vertex="1">
+          <mxGeometry height="60" width="210" x="10" y="1200" as="geometry" />
+        </mxCell>
+        <mxCell id="Kj6N8bS-B93HjEV5pTno-10" parent="1" style="shape=trapezoid;perimeter=trapezoidPerimeter;whiteSpace=wrap;html=1;shapeInside=1;fixedSize=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;b style=&quot;font-size: 10px; color: rgb(67, 56, 202);&quot;&gt;💰 🧮 [OPERASI MANUAL]&lt;/b&gt;&lt;br style=&quot;color: rgb(30, 27, 75);&quot;&gt;&lt;span style=&quot;color: rgb(30, 27, 75);&quot;&gt;Kasir Menghitung Fisik Uang di Laci Kasir &amp;amp; Rekap Buku Kas&lt;/span&gt;" vertex="1">
+          <mxGeometry height="60" width="420" x="320" y="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="Kj6N8bS-B93HjEV5pTno-11" parent="1" style="shape=trapezoid;perimeter=trapezoidPerimeter;whiteSpace=wrap;html=1;shapeInside=1;fixedSize=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;b style=&quot;font-size: 10px; color: rgb(67, 56, 202);&quot;&gt;🔎 📄 [OPERASI MANUAL]&lt;/b&gt;&lt;br style=&quot;color: rgb(30, 27, 75);&quot;&gt;&lt;span style=&quot;color: rgb(30, 27, 75); font-size: 11px;&quot;&gt;Owner Melakukan Audit Manual&lt;br&gt;&amp;amp; Cek Nota Kertas Satu per Satu&lt;/span&gt;" vertex="1">
+          <mxGeometry height="60" width="210" x="-80" y="1620" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
